@@ -1,6 +1,6 @@
 # Contacts+ iCloud Photo Sync Fix
 
-An on-demand macOS tool that copies missing contact photos from Contacts+ into Apple Contacts. It runs locally and is separate from the Contacts+ Photo Review application.
+Contacts+ iCloud Photo Sync Fix runs locally on a Mac running macOS. It copies missing contact photos from Contacts+ into Apple Contacts, where iCloud can sync them to your other Apple devices.
 
 No hourly job, automatic startup, or recurring sync is installed. Running with `--apply` is an explicit write operation through the Contacts app scripting interface, never Address Book SQLite. Apple Contacts may sync saved photos through its configured accounts.
 
