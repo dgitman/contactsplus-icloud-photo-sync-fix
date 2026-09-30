@@ -1,4 +1,4 @@
-# Contacts+ Photo Sync
+# Contacts+ iCloud Photo Sync Fix
 
 An on-demand macOS tool that copies missing contact photos from Contacts+ into Apple Contacts. It runs locally and is separate from the Contacts+ Photo Review application.
 
@@ -42,7 +42,7 @@ Examples and tests use synthetic contact data. Git author names and GitHub norep
 
 ```sh
 python3 -m unittest discover -s tests
-osacompile -o /tmp/contactsplus-photo-sync-check.scpt scripts/set-missing-photo.applescript
+osacompile -o /tmp/contactsplus-icloud-photo-sync-fix-check.scpt scripts/set-missing-photo.applescript
 ```
 
 Compilation does not execute a contact write. `experimental/PhotoSync.swift` remains an unused prototype: its tested save failed with Cocoa error 134092. Do not clear notes or disable macOS security to work around that failure.
