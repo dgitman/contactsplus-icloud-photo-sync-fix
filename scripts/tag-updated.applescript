@@ -14,26 +14,35 @@ on run argv
             set targetGroup to item 1 of matchingGroups
         end if
         set existingIDs to id of every person of targetGroup
+        set deferredIDs to {}
         repeat with targetID in targetIDs
             set targetID to targetID as text
             if targetID is not "" and targetID is not in existingIDs then
                 set p to person id targetID
-                if image of p is missing value then error "An updated contact no longer has a photo"
-                add p to targetGroup
+                if image of p is missing value then
+                    set end of deferredIDs to targetID
+                else
+                    add p to targetGroup
+                end if
             end if
         end repeat
         save
         set actualIDs to id of every person of targetGroup
-        set verifiedCount to 0
+        set reportText to ""
         repeat with targetID in targetIDs
             if (targetID as text) is not "" then
-                if (targetID as text) is not in actualIDs then error "List membership verification failed"
-                set verifiedCount to verifiedCount + 1
+                if (targetID as text) is in actualIDs then
+                    set reportText to reportText & "verified" & tab & (targetID as text) & linefeed
+                else if (targetID as text) is in deferredIDs then
+                    set reportText to reportText & "deferred" & tab & (targetID as text) & linefeed
+                else
+                    error "List membership verification failed"
+                end if
             end if
         end repeat
         -- Compare the scalar ID; comparing the live card reference can raise -1700.
         set currentMyCardID to get id of my card
         if currentMyCardID is not expectedMyCard then error "My Card changed after list update"
-        return "Contacts+ list verified for " & verifiedCount & " updated contacts; My Card unchanged"
+        return reportText
     end tell
 end run
