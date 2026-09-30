@@ -12,8 +12,9 @@ on run argv
     set photoData to read POSIX file photoPath as TIFF picture
     tell application "Contacts"
         if expectedMyCard is not "" then
-            if my card is missing value then error "My Card was unset before saving"
-            if id of my card is not expectedMyCard then error "My Card changed before saving"
+            -- Compare the scalar ID; comparing the live card reference can raise -1700.
+            set currentMyCardID to get id of my card
+            if currentMyCardID is not expectedMyCard then error "My Card changed before saving"
         end if
         set p to person id targetID
         if id of p is not targetID then error "Contact identifier mismatch"
@@ -47,8 +48,9 @@ on run argv
         if image of p is missing value then error "Photo verification failed"
         set afterCard to vcard of p
         if expectedMyCard is not "" then
-            if my card is missing value then error "My Card was unset after saving"
-            if id of my card is not expectedMyCard then error "My Card changed after saving"
+            -- Compare the scalar ID; comparing the live card reference can raise -1700.
+            set currentMyCardID to get id of my card
+            if currentMyCardID is not expectedMyCard then error "My Card changed after saving"
         end if
     end tell
     set afterFile to open for access POSIX file (backupPath & ".after.vcf") with write permission

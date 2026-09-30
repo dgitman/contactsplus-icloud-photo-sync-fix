@@ -3,8 +3,9 @@ on run argv
     set targetIDs to paragraphs of (read POSIX file (item 1 of argv) as «class utf8»)
     set expectedMyCard to item 2 of argv
     tell application "Contacts"
-        if my card is missing value then error "My Card is unset"
-        if id of my card is not expectedMyCard then error "My Card changed"
+        -- Compare the scalar ID; comparing the live card reference can raise -1700.
+        set currentMyCardID to get id of my card
+        if currentMyCardID is not expectedMyCard then error "My Card changed"
         set matchingGroups to every group whose name is "Contacts+"
         if (count matchingGroups) is greater than 1 then error "More than one Contacts+ list exists"
         if (count matchingGroups) is 0 then
@@ -30,8 +31,9 @@ on run argv
                 set verifiedCount to verifiedCount + 1
             end if
         end repeat
-        if my card is missing value then error "My Card was unset after list update"
-        if id of my card is not expectedMyCard then error "My Card changed after list update"
+        -- Compare the scalar ID; comparing the live card reference can raise -1700.
+        set currentMyCardID to get id of my card
+        if currentMyCardID is not expectedMyCard then error "My Card changed after list update"
         return "Contacts+ list verified for " & verifiedCount & " updated contacts; My Card unchanged"
     end tell
 end run
