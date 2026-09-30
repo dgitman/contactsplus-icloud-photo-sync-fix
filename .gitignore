@@ -1,0 +1,12 @@
+outputs/
+config.local.json
+manifest*.json
+.env
+.env.*
+*.vcf
+*.abcddb*
+*.log
+*.app/
+*.scpt
+photo-sync
+.DS_Store
