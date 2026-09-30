@@ -1,17 +1,22 @@
 on run argv
-    if (count argv) is less than 6 or (count argv) is greater than 7 then error "Required: contact ID, TIFF path, backup path, first name, last name, email"
+    if (count argv) is less than 6 or (count argv) is greater than 8 then error "Required: contact ID, TIFF path, backup path, first name, last name, email"
     set matchKind to "email"
-    if (count argv) is 7 then set matchKind to item 7 of argv
+    if (count argv) is greater than or equal to 7 then set matchKind to item 7 of argv
     if matchKind is not "email" and matchKind is not "phone" then error "Unknown match kind"
+    set expectedMyCard to ""
+    if (count argv) is 8 then set expectedMyCard to item 8 of argv
     set targetID to item 1 of argv
     set photoPath to item 2 of argv
     set backupPath to item 3 of argv
     if my fileExists(backupPath) or my fileExists(backupPath & ".after.vcf") then error "Backup exists; refusing overwrite"
     set photoData to read POSIX file photoPath as TIFF picture
     tell application "Contacts"
-        set matches to every person whose id is targetID
-        if (count matches) is not 1 then error "Expected exactly one contact"
-        set p to item 1 of matches
+        if expectedMyCard is not "" then
+            if my card is missing value then error "My Card was unset before saving"
+            if id of my card is not expectedMyCard then error "My Card changed before saving"
+        end if
+        set p to person id targetID
+        if id of p is not targetID then error "Contact identifier mismatch"
         set actualFirst to first name of p
         set actualLast to last name of p
         if actualFirst is missing value then set actualFirst to ""
@@ -41,6 +46,10 @@ on run argv
         if note of p is not originalNote then error "Note verification failed"
         if image of p is missing value then error "Photo verification failed"
         set afterCard to vcard of p
+        if expectedMyCard is not "" then
+            if my card is missing value then error "My Card was unset after saving"
+            if id of my card is not expectedMyCard then error "My Card changed after saving"
+        end if
     end tell
     set afterFile to open for access POSIX file (backupPath & ".after.vcf") with write permission
     try
@@ -55,7 +64,7 @@ end run
 
 on fileExists(thePath)
     try
-        set existingFile to POSIX file thePath as alias
+        set existingFile to info for POSIX file thePath
         return true
     on error number -43
         return false

@@ -26,7 +26,7 @@ python3 scripts/run-sync.py --config /absolute/private/config.json --plan output
 # After reviewing the plan, repeat the last command with --apply.
 ```
 
-`scripts/set-missing-photo.applescript` is the low-level writer. It requires local contact ID, TIFF path, new backup path, first name, last name, and matching email. An optional seventh argument `phone` uses the sixth argument as a phone instead. It performs a real write and has no dry-run flag.
+`scripts/set-missing-photo.applescript` is the low-level writer. It requires local contact ID, TIFF path, new backup path, first name, last name, and matching email. An optional seventh argument `phone` uses the sixth argument as a phone instead. The bulk runner passes the current My Card ID as an eighth argument and checks it before and after every photo save. It performs a real write and has no dry-run flag.
 
 ## Private data and validation
 
@@ -38,3 +38,11 @@ osacompile -o /tmp/contactsplus-photo-sync-check.scpt scripts/set-missing-photo.
 ```
 
 Compilation does not execute a contact write. `experimental/PhotoSync.swift` remains an unused prototype: its tested save failed with Cocoa error 134092. Do not clear notes or disable macOS security to work around that failure.
+
+## One-time run progress and QA
+
+The active run writes `results.jsonl` after each verified save. Its My Card identity is pinned in `my-card-id.txt`; a change stops further updates. `--prepared` resumes an already downloaded, source-checked plan without retrieving credentials again. Inspect every failed attempt before retrying; recorded attempts are not repeated automatically.
+
+`scripts/tag-updated.applescript` adds only verified updates to the user-approved **Contacts+** list and checks membership and My Card afterward. `scripts/follow-tags.py` follows one running process and adds newly verified contacts in batches. `scripts/finish-run.py` waits for that process, finishes newly prepared entries, updates the list, and writes `final-report.json` after a final macOS inventory. These are bounded helpers for one run, not a recurring sync service.
+
+Image hosts include current `img.contactsplus.com` and legacy `img.fullcontact.com`. Source URLs returning access errors are left unchanged. Background progress notifications, when requested, monitor the existing run only and do not schedule another sync.
