@@ -8,6 +8,12 @@ ROOT=Path(__file__).resolve().parents[1]
 def canonical(card):
  text=re.sub(r'\r?\n[ \t]','',card.replace('\r\n','\n'))
  return sorted(line for line in text.splitlines() if line and line.split(':',1)[0].split(';',1)[0].split('.')[-1].upper() not in {'PHOTO','REV'})
+def safe_skip_reason(stderr, backup):
+ # These guards run before backup creation and before any contact write.
+ if backup.exists() or Path(str(backup)+'.after.vcf').exists():return None
+ for message,reason in [('Name mismatch','name_mismatch'),('Email mismatch','email_mismatch'),('Phone mismatch','phone_mismatch'),('Contact identifier mismatch','identifier_mismatch'),('Existing photo; refusing replacement','photo_already_present')]:
+  if re.search(r'execution error: '+re.escape(message)+r' \(-2700\)\s*$',stderr):return reason
+ return None
 def main():
  p=argparse.ArgumentParser();p.add_argument('--config',required=True);p.add_argument('--plan',required=True);p.add_argument('--run-dir',required=True);p.add_argument('--apply',action='store_true');p.add_argument('--limit',type=int);p.add_argument('--prepared',action='store_true',help='Apply the already downloaded and source-checked plan in this run directory');a=p.parse_args()
  run=Path(a.run_dir).resolve();run.mkdir(parents=True,exist_ok=True);(run/'images').mkdir(exist_ok=True);(run/'backups').mkdir(exist_ok=True)
@@ -73,7 +79,7 @@ def main():
     if canonical(before)!=canonical(after):reason='non_photo_fields_changed'
     elif not re.search(r'(?:^|[\r\n])(?:item\d+\.)?PHOTO[;:]',after,re.I):reason='missing_readback_photo'
     else:status='verified';verified+=1
-   elif 'Existing photo' in result.stderr:status='skipped';reason='photo_already_present'
+   elif (skip_reason:=safe_skip_reason(result.stderr,backup)) is not None:status='skipped';reason=skip_reason
    else:reason='save_failed'
    record={'localId':e['localId'],'sourceId':e['sourceId'],'status':status,'reason':reason}
    log.write(json.dumps(record)+'\n');log.flush();os.fsync(log.fileno())

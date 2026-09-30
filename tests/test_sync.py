@@ -30,3 +30,18 @@ class PhoneMatchingTests(SyncTests):
   self.source['contactData']['phoneNumbers']=[{'value':'+12125550100'}]
   self.assertFalse(p.plan([self.local,{**self.local,'id':'other'}],[self.source])['entries'])
  def test_phone_extension_not_guessed(self):self.assertEqual(p.phone('+1 212 555 0100 ext 3'),'')
+
+class SafeSkipTests(unittest.TestCase):
+ def test_prewrite_identity_mismatch_can_skip(self):
+  import tempfile
+  with tempfile.TemporaryDirectory() as d:
+   backup=Path(d)/'before.vcf'
+   self.assertEqual(r.safe_skip_reason('script:1:2: execution error: Name mismatch (-2700)\n',backup),'name_mismatch')
+   self.assertIsNone(r.safe_skip_reason('execution error: Connection is invalid. (-609)',backup))
+   self.assertIsNone(r.safe_skip_reason('execution error: My Card changed (-2700)',backup))
+ def test_any_backup_prevents_skip(self):
+  import tempfile
+  with tempfile.TemporaryDirectory() as d:
+   backup=Path(d)/'before.vcf';error='execution error: Name mismatch (-2700)'
+   backup.write_text('backup');self.assertIsNone(r.safe_skip_reason(error,backup));backup.unlink()
+   Path(str(backup)+'.after.vcf').write_text('after');self.assertIsNone(r.safe_skip_reason(error,backup))

@@ -24,5 +24,5 @@ import importlib.util
 spec=importlib.util.spec_from_file_location('plan',ROOT/'scripts/plan-sync.py');module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
 current={x['id']:x for x in json.loads(inventory.read_text())}
 missing=[i for i in ids if i not in current or not any(k=='PHOTO' for k,v in module.fields(current[i]['vcard']))]
-report={'status':'complete' if not missing and not deferred else 'verification_failed','verifiedUpdates':len(ids),'tagged':len(tagged),'deferredListIds':sorted(deferred),'missingOnFinalRead':missing,'preparedSkipped':len(json.loads((run/'prepared.json').read_text())['skipped'])}
+report={'status':'complete' if not missing and not deferred else 'verification_failed','verifiedUpdates':len(ids),'skippedUpdates':sum(x['status']=='skipped' for x in rows),'tagged':len(tagged),'deferredListIds':sorted(deferred),'missingOnFinalRead':missing,'preparedSkipped':len(json.loads((run/'prepared.json').read_text())['skipped'])}
 (run/'final-report.json').write_text(json.dumps(report,indent=2));print(json.dumps(report),flush=True)

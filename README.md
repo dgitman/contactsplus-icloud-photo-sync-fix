@@ -16,7 +16,7 @@ This script downloads the primary photo stored in Contacts+ and saves the actual
 2. `scripts/fetch-source.py` reads every Contacts+ page using a 1Password token reference supplied in a private config file.
 3. `scripts/plan-sync.py` selects only missing-image records with matching names and a unique email on both sides. Records without email may match by a unique exact phone number; it does not guess country codes or extensions. Existing photos, shared identifiers, name mismatches, and absent source photos are skipped.
 4. `scripts/run-sync.py` refetches source records, checks versions and primary URLs, downloads and decodes TIFF images, and prepares a private plan. Without `--apply`, it stops there.
-5. With `--apply`, it calls the AppleScript writer serially, makes a fresh vCard backup, rechecks identity and absence of a photo, saves, and verifies all non-photo vCard fields. Only PHOTO and REV changes are permitted. An unexpected failure stops the run; no uncertain write is automatically retried.
+5. With `--apply`, it calls the AppleScript writer serially, makes a fresh vCard backup, rechecks identity and absence of a photo, saves, and verifies all non-photo vCard fields. Only PHOTO and REV changes are permitted. Identity mismatches detected before backup creation or writing are recorded as skips so other contacts can continue. Unexpected failures and uncertain writes still stop the run; they are not automatically retried.
 
 The runner appends durable results to the run directory. It will not repeat recorded attempts or overwrite unresolved backups. Always inspect failures before resuming. Source preparation failures are recorded separately in `prepared.json`.
 
