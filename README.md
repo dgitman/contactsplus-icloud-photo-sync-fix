@@ -1,31 +1,40 @@
 # Contacts+ Photo Sync
 
-Private, disabled-by-default pilot for copying reviewed Contacts+ photos into Apple Contacts. This repository is separate from [Contacts+ Photo Review](https://github.com/dgitman/contactsplus-photo-review), which reads and writes Contacts+ only.
+Private, on-demand sync of missing macOS contact photos from Contacts+. This repository is separate from [Contacts+ Photo Review](https://github.com/dgitman/contactsplus-photo-review).
 
-## Status
+No hourly job, automatic startup, or recurring sync is installed. Running with `--apply` is an explicit write operation through the Contacts app scripting interface, never Address Book SQLite. Apple Contacts may sync saved photos through its configured accounts.
 
-No scheduled job, hourly sync, automatic startup, or full-address-book sync is installed by this repository. Moving these scripts here does not execute them or change contacts.
+## Workflow
 
-The AppleScript pilot previously saved one missing photo and verified that the note remained unchanged. It accepts an already-downloaded TIFF image; it does not yet fetch Contacts+ photos itself. The complete automated Contacts+-to-Apple-Contacts pipeline remains future work.
+1. `scripts/inventory.js` exports an exact-ID local contact inventory and vCards into a private output file.
+2. `scripts/fetch-source.py` reads every Contacts+ page using a 1Password token reference supplied in a private config file.
+3. `scripts/plan-sync.py` selects only missing-image records with matching names and a unique email on both sides. Records without email may match by a unique exact phone number; it does not guess country codes or extensions. Existing photos, shared identifiers, name mismatches, and absent source photos are skipped.
+4. `scripts/run-sync.py` refetches source records, checks versions and primary URLs, downloads and decodes TIFF images, and prepares a private plan. Without `--apply`, it stops there.
+5. With `--apply`, it calls the AppleScript writer serially, makes a fresh vCard backup, rechecks identity and absence of a photo, saves, and verifies all non-photo vCard fields. Only PHOTO and REV changes are permitted. An unexpected failure stops the run; no uncertain write is automatically retried.
 
-## Pilot
+The runner appends durable results to the run directory. It will not repeat recorded attempts or overwrite unresolved backups. Always inspect failures before resuming. Source preparation failures are recorded separately in `prepared.json`.
 
-`scripts/set-missing-photo.applescript` requires six arguments: exact Apple Contacts identifier, TIFF path, backup vCard path, expected first name, expected last name, and expected email. It checks identity, refuses to replace an existing photo, saves a vCard backup, then writes and verifies the photo and note.
+## Usage
 
-Running this script performs a real Apple Contacts write. There is no dry-run flag. Use only an explicitly reviewed contact and image, and use a fresh backup path; the legacy pilot overwrites the supplied backup path. Apple Contacts may sync that change through its configured accounts.
-
-No personal identifiers, manifests, downloaded images, credentials, or vCards are included. Keep private inputs and backups in ignored `outputs/`.
-
-## Experimental Swift helper
-
-`experimental/PhotoSync.swift` is retained for investigation. Reads were successful, but the tested save failed with Cocoa error 134092. It is not the working sync path. Do not clear notes or disable macOS security to work around that failure.
-
-## Validation without contact changes
-
-Compile the AppleScript without running it:
+Requires macOS, Python 3, the 1Password CLI, and Contacts automation access. Credentials stay in 1Password. Private configuration must provide `oauth_item`, the ID of an authorized Contacts+ token item. Token refresh is not implemented.
 
 ```sh
+osascript -l JavaScript scripts/inventory.js /absolute/private/path/inventory.json
+python3 scripts/fetch-source.py --config /absolute/private/config.json --output outputs/source.json
+python3 scripts/plan-sync.py --local /absolute/private/path/inventory.json --source outputs/source.json --output outputs/plan.json
+python3 scripts/run-sync.py --config /absolute/private/config.json --plan outputs/plan.json --run-dir outputs/RUN_NAME
+# After reviewing the plan, repeat the last command with --apply.
+```
+
+`scripts/set-missing-photo.applescript` is the low-level writer. It requires local contact ID, TIFF path, new backup path, first name, last name, and matching email. An optional seventh argument `phone` uses the sixth argument as a phone instead. It performs a real write and has no dry-run flag.
+
+## Private data and validation
+
+Keep all inputs, source snapshots, images, identifiers, reports, and vCards in ignored `outputs/`. Never commit credentials or contact data. Local inventory and before/after backups remain available for recovery.
+
+```sh
+python3 -m unittest discover -s tests
 osacompile -o /tmp/contactsplus-photo-sync-check.scpt scripts/set-missing-photo.applescript
 ```
 
-macOS Contacts/Automation permission is needed when explicitly running the pilot. No credentials, access grants, or contact data were migrated from the review app.
+Compilation does not execute a contact write. `experimental/PhotoSync.swift` remains an unused prototype: its tested save failed with Cocoa error 134092. Do not clear notes or disable macOS security to work around that failure.

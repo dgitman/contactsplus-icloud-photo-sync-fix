@@ -10,3 +10,6 @@ manifest*.json
 *.scpt
 photo-sync
 .DS_Store
+
+__pycache__/
+*.pyc
