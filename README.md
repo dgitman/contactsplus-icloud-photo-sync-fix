@@ -4,6 +4,12 @@ An on-demand macOS tool that copies missing contact photos from Contacts+ into A
 
 No hourly job, automatic startup, or recurring sync is installed. Running with `--apply` is an explicit write operation through the Contacts app scripting interface, never Address Book SQLite. Apple Contacts may sync saved photos through its configured accounts.
 
+## Why this exists
+
+We built this tool to work around missing profile photos when syncing Contacts+ with iCloud Contacts. In the affected setup, Contacts+ supplied profile photos as URLs, but Apple Contacts did not load those URL-based images. The photos were available in Contacts+ yet missing from the contacts synced through iCloud to macOS, iOS, and iPadOS. This describes the compatibility issue we observed, rather than a claim about every version or configuration of either service.
+
+This script downloads the primary photo stored in Contacts+ and saves the actual image data to the matching contact in Apple Contacts on your Mac. For contacts stored in iCloud, iCloud can then sync the saved image to your other Apple devices. It fills in missing photos and preserves existing contact images.
+
 ## Workflow
 
 1. `scripts/inventory.js` exports an exact-ID local contact inventory and vCards into a private output file.
