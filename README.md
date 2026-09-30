@@ -1,6 +1,6 @@
 # Contacts+ Photo Sync
 
-Private, on-demand sync of missing macOS contact photos from Contacts+. This repository is separate from [Contacts+ Photo Review](https://github.com/dgitman/contactsplus-photo-review).
+An on-demand macOS tool that copies missing contact photos from Contacts+ into Apple Contacts. It runs locally and is separate from the Contacts+ Photo Review application.
 
 No hourly job, automatic startup, or recurring sync is installed. Running with `--apply` is an explicit write operation through the Contacts app scripting interface, never Address Book SQLite. Apple Contacts may sync saved photos through its configured accounts.
 
@@ -30,7 +30,9 @@ python3 scripts/run-sync.py --config /absolute/private/config.json --plan output
 
 ## Private data and validation
 
-Keep all inputs, source snapshots, images, identifiers, reports, and vCards in ignored `outputs/`. Never commit credentials or contact data. Local inventory and before/after backups remain available for recovery.
+Keep all inputs, source snapshots, images, identifiers, reports, and vCards in ignored `outputs/`. Never commit credentials or contact data. Local inventory and before/after backups remain available for recovery. Exported JSON, CSV, contact databases, image files, and common credential files are also ignored as a precaution; ignore rules do not protect files that are already tracked or force-added.
+
+Examples and tests use synthetic contact data. Git author names and GitHub noreply addresses remain part of the public commit history. Before publishing changes, inspect the staged files and scan the full history with `gitleaks git --redact --log-opts=--all .`. Do not attach real run outputs to public issues.
 
 ```sh
 python3 -m unittest discover -s tests
@@ -43,6 +45,6 @@ Compilation does not execute a contact write. `experimental/PhotoSync.swift` rem
 
 The active run writes `results.jsonl` after each verified save. Its My Card identity is pinned in `my-card-id.txt`; a change stops further updates. `--prepared` resumes an already downloaded, source-checked plan without retrieving credentials again. Inspect every failed attempt before retrying; recorded attempts are not repeated automatically.
 
-`scripts/tag-updated.applescript` adds only verified updates to the user-approved **Contacts+** list and checks membership and My Card afterward. `scripts/follow-tags.py` follows one running process and adds newly verified contacts in batches. `scripts/finish-run.py` waits for that process, finishes newly prepared entries, updates the list, and writes `final-report.json` after a final macOS inventory. These are bounded helpers for one run, not a recurring sync service.
+`scripts/tag-updated.applescript` adds only verified updates to the user-approved **Contacts+** list and checks membership and My Card afterward. `scripts/follow-tags.py` follows one running process and adds newly verified contacts in batches. If a contact temporarily has no readable photo, it defers that contact and continues with the others; later checks retry deferred membership additions. It records only memberships confirmed by readback. `scripts/finish-run.py` waits for that process, finishes newly prepared entries, updates the list, and writes `final-report.json` after a final macOS inventory. These are bounded helpers for one run, not a recurring sync service.
 
 Image hosts include current `img.contactsplus.com` and legacy `img.fullcontact.com`. Source URLs returning access errors are left unchanged. Background progress notifications, when requested, monitor the existing run only and do not schedule another sync.

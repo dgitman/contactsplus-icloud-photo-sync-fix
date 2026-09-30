@@ -13,3 +13,29 @@ photo-sync
 
 __pycache__/
 *.pyc
+
+# Private exports, contact photos, and credentials (including accidental root output).
+*.json
+*.jsonl
+*.csv
+*.tsv
+*.sqlite*
+*.db
+*.db-*
+*.abbu/
+*.tif
+*.tiff
+*.jpg
+*.jpeg
+*.png
+*.heic
+*.webp
+*.original
+*.original-image
+*.original-thumbnail
+*.pem
+*.key
+*.p12
+*.pfx
+credentials*
+secrets*
