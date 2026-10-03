@@ -21,9 +21,14 @@ A second Make-only disposable-contact test verified:
 - Readback: the new title persisted; all other vCard content was unchanged.
 - Delete with the current ETag: HTTP 204, followed by HTTP 404 readback.
 
-The disposable contact and temporary scenario were deleted afterward. This test
-used text fields only; photo transfer was not tested through Make. Durable contact
-mapping, photo handling, and end-to-end event-driven sync are still required.
+The disposable contact and temporary scenario were deleted afterward. A subsequent disposable-contact test uploaded an embedded PNG through Make.
+iCloud returned a PHOTO URI; Make fetched that URI successfully, and the downloaded
+78-byte PNG matched the uploaded bytes exactly (16 x 16 pixels). The response MIME
+type said JPEG despite PNG bytes, so photo validation must inspect actual data.
+The test contact was deleted and HTTP 404 confirmed removal; the temporary scenario
+was also deleted. This verifies CardDAV storage, not display on an Apple device.
+Durable contact mapping, production photo handling, and end-to-end event-driven
+sync are still required.
 
 The abandoned AWS helper and three separate trigger scenarios have been removed.
 This design must run entirely in Make, with no local worker or AWS helper.
