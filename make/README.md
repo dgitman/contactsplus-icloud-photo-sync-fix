@@ -39,3 +39,8 @@ vCard fields and working photos, and verified readback. Deletion must use a know
 mapping, never a name or email guess. An event echo must not create a sync loop.
 
 Do not commit credentials, live webhook URLs, contact records, or execution payloads.
+
+## Mapping storage
+
+See [persistent contact mapping](contact-mapping.md) for the provisioned store schema,
+completed storage test, and remaining guards. The store is not wired to routes yet.
