@@ -5,9 +5,114 @@
       "module": "gateway:CustomWebHook",
       "version": 1,
       "parameters": {}
+    },
+    {
+      "id": 2,
+      "mapper": {
+        "array": "{{1.events}}"
+      },
+      "module": "builtin:BasicFeeder",
+      "version": 1
+    },
+    {
+      "id": 3,
+      "module": "builtin:BasicRouter",
+      "routes": [
+        {
+          "flow": [
+            {
+              "id": 4,
+              "filter": {
+                "name": "Contact added",
+                "conditions": [
+                  [
+                    {
+                      "a": "{{2.triggerId}}",
+                      "b": "contact.added",
+                      "o": "text:equal"
+                    }
+                  ]
+                ]
+              },
+              "mapper": {
+                "name": "verifiedEventType",
+                "value": "contact.added"
+              },
+              "module": "util:SetVariable2",
+              "version": 1,
+              "metadata": {
+                "designer": {
+                  "name": "Verify added event — no writes"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "flow": [
+            {
+              "id": 5,
+              "filter": {
+                "name": "Contact updated",
+                "conditions": [
+                  [
+                    {
+                      "a": "{{2.triggerId}}",
+                      "b": "contact.updated",
+                      "o": "text:equal"
+                    }
+                  ]
+                ]
+              },
+              "mapper": {
+                "name": "verifiedEventType",
+                "value": "contact.updated"
+              },
+              "module": "util:SetVariable2",
+              "version": 1,
+              "metadata": {
+                "designer": {
+                  "name": "Verify updated event — no writes"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "flow": [
+            {
+              "id": 6,
+              "filter": {
+                "name": "Contact deleted",
+                "conditions": [
+                  [
+                    {
+                      "a": "{{2.triggerId}}",
+                      "b": "contact.deleted",
+                      "o": "text:equal"
+                    }
+                  ]
+                ]
+              },
+              "mapper": {
+                "name": "verifiedEventType",
+                "value": "contact.deleted"
+              },
+              "module": "util:SetVariable2",
+              "version": 1,
+              "metadata": {
+                "designer": {
+                  "name": "Verify deleted event — no writes"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "version": 1
     }
   ],
-  "name": "Contacts+ → iCloud — unified sync (setup)",
+  "name": "Contacts+ → iCloud — event routing verification",
   "metadata": {
     "instant": true,
     "version": 1,
@@ -15,7 +120,7 @@
       "orphans": []
     },
     "scenario": {
-      "dlq": true,
+      "dlq": false,
       "dataloss": false,
       "maxErrors": 3,
       "autoCommit": true,

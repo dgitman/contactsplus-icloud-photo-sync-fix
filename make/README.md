@@ -4,10 +4,16 @@ The intended architecture is one Contacts+ webhook feeding one Make scenario,
 with separate routes for `contact.added`, `contact.updated`, and `contact.deleted`.
 Contacts+ accepted a webhook registration for all three event types.
 
-`unified.blueprint.json` is the inactive trigger-only scaffold exported from Make.
-Its account-specific webhook ID has been removed. It is not a working sync yet:
-real event capture, route implementation, CardDAV authentication, and end-to-end
-verification are still required. Create a new webhook when importing it.
+`unified.blueprint.json` is the verified event-routing scaffold exported from Make.
+Its account-specific webhook ID has been removed. Create a new webhook when importing.
+A disposable contact lifecycle test on October 3, 2026 confirmed that real Contacts+
+create, update, and delete events each ran only their matching branch successfully.
+The route endpoints currently set a verification variable; they do not write contacts.
+The scenario was switched off after verification.
+
+A separate temporary Make test successfully read an iCloud vCard using Basic Auth.
+That test scenario was deleted afterward. CardDAV writes, durable contact mapping,
+conflict handling, and end-to-end sync verification are still required.
 
 The abandoned AWS helper and three separate trigger scenarios have been removed.
 This design must run entirely in Make, with no local worker or AWS helper.
