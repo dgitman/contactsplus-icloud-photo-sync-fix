@@ -12,8 +12,18 @@ The route endpoints currently set a verification variable; they do not write con
 The scenario was switched off after verification.
 
 A separate temporary Make test successfully read an iCloud vCard using Basic Auth.
-That test scenario was deleted afterward. CardDAV writes, durable contact mapping,
-conflict handling, and end-to-end sync verification are still required.
+That test scenario was deleted afterward.
+
+A second Make-only disposable-contact test verified:
+- Create with `If-None-Match: *`: HTTP 201, followed by HTTP 200 readback.
+- Update with the current `If-Match` ETag: HTTP 204.
+- Reusing the stale ETag: rejected with Precondition Failed.
+- Readback: the new title persisted; all other vCard content was unchanged.
+- Delete with the current ETag: HTTP 204, followed by HTTP 404 readback.
+
+The disposable contact and temporary scenario were deleted afterward. This test
+used text fields only; photo transfer was not tested through Make. Durable contact
+mapping, photo handling, and end-to-end event-driven sync are still required.
 
 The abandoned AWS helper and three separate trigger scenarios have been removed.
 This design must run entirely in Make, with no local worker or AWS helper.
