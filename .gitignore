@@ -39,3 +39,6 @@ __pycache__/
 *.pfx
 credentials*
 secrets*
+
+# Sanitized Make scenario template; private exports remain ignored.
+!make/unified.blueprint.json
