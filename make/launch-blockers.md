@@ -349,3 +349,25 @@ This does not yet enable production photo updates: fresh source downloading,
 target-photo observation, durable photo baselines and event-route integration
 still need to be connected. The existing 94-contact shared-field rollout remains
 active. Automatic creation and deletion remain held.
+
+## Full missing-photo pipeline verified in Make
+
+Execution `afc046f69f7645f396b80ac38ea05b73` fetched a fresh Contacts+ primary
+photo without Apple authentication, converted and decoded it, reread the source
+version, and filled a disposable iCloud contact using a conditional PUT. It then
+downloaded iCloud's authenticated photo resource and verified exact saved bytes,
+decoded dimensions, and all non-photo fields. Verification produced a lightweight
+photo baseline. The disposable target was deleted and GET returned 404; the
+source contact was read only. The temporary scenario was removed.
+
+`prepare-photo-fill.js` refuses existing photos (including URI photos), legacy
+photo metadata, changed source versions, invalid decode evidence and drift on
+readback. `bundle-photo-fill.js` supplies the tested Make code. The portable
+`photo-fill-test.blueprint.json` requires a test source ID, iCloud endpoint/account,
+and existing Make connections before use. It is a disposable integration test,
+not an active production scenario; it creates and deletes one test target.
+
+Production mapping persistence and event routing for these photo results remain
+unconnected. The 94-contact shared-field rollout remains active; photos, automatic
+creation and deletion are not fully live. Private source data and execution
+blueprints remain outside Git. Local validation: 132 tests pass.

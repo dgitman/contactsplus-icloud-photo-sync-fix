@@ -1,0 +1,15 @@
+const test=require('node:test'),assert=require('node:assert/strict'),crypto=require('node:crypto');
+const {preparePhotoFill,verifyPhotoFill}=require('./prepare-photo-fill');
+const b64='iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aU1kAAAAASUVORK5CYII=';
+const h=x=>crypto.createHash('sha256').update(x).digest('hex');
+const url='https://img.contactsplus.com/current';
+const args={source:{contactId:'s',etag:'v1',contactData:{photos:[{value:url}]}},sourceContactId:'s',uid:'t',targetEtag:'"v1"',existingVcard:'BEGIN:VCARD\r\nVERSION:3.0\r\nUID:t\r\nFN:Test\r\nNOTE:Keep\r\nEND:VCARD\r\n',selection:{sourceContactId:'s',sourceEtag:'v1',primaryUrl:url},download:{requestedUrl:url,statusCode:200,imageBase64:b64,decodedImage:{decoded:true,mime:'image/png',width:1,height:1,byteHash:h(Buffer.from(b64,'base64'))}}};
+const prepared=preparePhotoFill(args);
+const actual=prepared.vcard;
+const photos=actual.replace(/\r\n /g,'').split('\r\n').filter(l=>l.startsWith('PHOTO;'));
+const verify={prepared,actual,targetEtag:'"v2"',download:{propertyHash:h(JSON.stringify(photos)),statusCode:200,decoded:true,width:1,height:1,imageBase64:b64}};
+test('fill and exact readback establish photo baseline',()=>{const r=verifyPhotoFill(verify);assert.equal(r.verified,true);assert.equal(r.photoBaseline.sourceContactId,'s');});
+test('source version or primary changed during download holds',()=>{for(const patch of [{etag:'v2'},{contactData:{photos:[{value:url+'2'}]}}])assert.equal(preparePhotoFill({...args,source:{...args.source,...patch}}).reason,'source_changed_during_download');});
+test('any existing photo or legacy photo metadata preserves',()=>{for(const line of ['PHOTO;VALUE=uri:https://gateway.icloud.com/photo','item1.PHOTO:abc','X-IMAGEHASH:hash'])assert.equal(preparePhotoFill({...args,existingVcard:args.existingVcard.replace('END:VCARD',line+'\r\nEND:VCARD')}).reason,'existing_photo_preserved');});
+test('403, wrong download, undecoded image cannot prepare',()=>{for(const change of [{statusCode:403},{requestedUrl:url+'old'},{decodedImage:null}])assert.equal(preparePhotoFill({...args,download:{...args.download,...change}}).status,'held');});
+test('readback requires unchanged text, exact bytes, decoded dimensions and new etag',()=>{for(const change of [{actual:actual.replace('NOTE:Keep','NOTE:Changed')},{targetEtag:'"v1"'},{download:{...verify.download,imageBase64:'AAAA'}},{download:{...verify.download,width:2}},{download:{...verify.download,propertyHash:'wrong'}}])assert.throws(()=>verifyPhotoFill({...verify,...change}));});
