@@ -57,3 +57,23 @@ identity-bound replacement baselines, and target-side changes. All 87 local test
 pass. This is decision logic only: photo download/decoding, vCard embedding and
 cloud end-to-end verification remain outstanding, and no production photo writes
 have been enabled by this change.
+
+## Cloud image conversion verified
+
+On October 4, a temporary Make-only synthetic test converted a 2x2 PNG to JPEG
+using `image:Convert`, confirmed dimensions with `image:ExtractMetadata`, and ran
+`embed-photo.js` in Make Code. It embedded the exact 286 output bytes as folded
+base64 PHOTO data and preserved the non-photo fields. Execution
+`f3aabce3b58a4266b6b167aed141ddfb` succeeded. A separate HTML-error-page fixture
+was rejected at conversion (`16240f1d9e9149a184b3746dbd88d96c`), before preparation.
+The temporary scenario was deleted after verification.
+
+The credential-free test blueprint is `photo-conversion-test.blueprint.json`.
+It declares a text output named `result` when imported as an on-demand scenario.
+It contains no contact writes. `embed-photo.js` requires decoder evidence bound to
+the converted bytes, exact target identity and a strong ETag. Grouped/ambiguous
+PHOTO and legacy image metadata remain held. All 93 local tests pass.
+
+This verifies cloud conversion and serialization, not primary-photo selection,
+HTTP download, pixel-equivalence normalization, iCloud save/readback or production
+integration. Those remain launch requirements.

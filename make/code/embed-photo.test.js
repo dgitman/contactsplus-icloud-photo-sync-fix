@@ -1,0 +1,11 @@
+const test=require('node:test'),assert=require('node:assert/strict'),crypto=require('node:crypto');
+const embed=require('./embed-photo');
+const imageBase64='iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aU1kAAAAASUVORK5CYII=';
+const card='BEGIN:VCARD\r\nVERSION:3.0\r\nUID:test\r\nFN:Test\r\nNOTE:Keep\\nthis\r\nEND:VCARD\r\n';
+const args={uid:'test',existingVcard:card,targetEtag:'"v1"',action:'fill',imageBase64,decodedImage:{decoded:true,mime:'image/png',width:1,height:1,byteHash:crypto.createHash('sha256').update(Buffer.from(imageBase64,'base64')).digest('hex')}};
+test('embeds bytes rather than a URL and preserves other fields',()=>{const r=embed(args);assert.match(r.vcard,/PHOTO;ENCODING=b;TYPE=PNG:/);assert.ok(r.vcard.includes('NOTE:Keep\\nthis\r\n'));assert.ok(r.vcard.split('\r\n').every(l=>Buffer.byteLength(l)<=75));assert.equal(r.writesApplied,false);});
+test('encoding roundtrip retains exact image bytes',()=>{const r=embed(args);assert.equal(r.vcard.replace(/\r\n /g,'').split('\r\n').find(l=>l.startsWith('PHOTO:')||l.startsWith('PHOTO;')).split(':')[1],imageBase64);});
+test('fill cannot overwrite existing photo',()=>assert.throws(()=>embed({...args,existingVcard:card.replace('END:VCARD','PHOTO;VALUE=uri:https://example.test/p\r\nEND:VCARD')}),/Fill/));
+test('unverified or mismatched bytes never embed',()=>{for(const decodedImage of [null,{...args.decodedImage,decoded:false},{...args.decodedImage,byteHash:'wrong'},{...args.decodedImage,mime:'image/jpeg'}])assert.throws(()=>embed({...args,decodedImage}));});
+test('unknown policy result, weak ETag and wrong UID fail',()=>{for(const p of [{action:'hold'},{targetEtag:'W/"v1"'},{uid:'other'}])assert.throws(()=>embed({...args,...p}));});
+test('photo metadata blocks until reconciled explicitly',()=>assert.throws(()=>embed({...args,existingVcard:card.replace('END:VCARD','X-IMAGEHASH:old\r\nEND:VCARD')}),/metadata/));

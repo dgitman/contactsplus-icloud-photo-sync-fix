@@ -113,3 +113,16 @@ A `fill` or `replace` result is only a plan. The cloud adapter still needs fresh
 primary selection, decoding, byte embedding, conditional ETag write, delayed
 readback, and baseline advancement after successful verification. No local
 service is introduced. Run the complete suite with `node --test make/code/*.test.js`.
+
+## Embedded-photo serialization
+
+`embed-photo.js` binds converter output bytes to decoder evidence and embeds PNG
+or JPEG bytes in a folded vCard PHOTO property. It preserves other raw fields,
+requires exact UID and a strong ETag, and refuses a fill over an existing PHOTO.
+Grouped photos and legacy image metadata are held for explicit reconciliation.
+
+The signature check supplements a successful decoder; it is not itself a decoder.
+The Make synthetic blueprint uses built-in image conversion and metadata modules,
+then passes their output directly to the serializer. Successful conversion and
+HTML rejection were verified in Make; see ../launch-blockers.md. The temporary
+cloud test was removed. Production image downloads and writes are not wired yet.
