@@ -7,7 +7,7 @@ The newest verification evidence is at the end; older sections describe historic
 implementation stages, not the current enabled state.
 
 This is event-driven synchronization, not a claim that every historical record is
-identical. There are 7,032 accepted existing mappings. Ambiguous/unmapped identities,
+identical. There are 7,053 accepted existing mappings. Ambiguous/unmapped identities,
 malformed supported fields, mixed photo/text changes and independent target edits remain
 held rather than guessed or overwritten. New-contact creation requires a structured
 name and email and a successful bounded duplicate query.
@@ -1073,3 +1073,20 @@ to 7,032. 107 records from the earlier inventory remain outside coverage. Contac
 contents were preserved and historical differences remain separately baselined.
 256 local tests passed; the portable reviewer bundle was regenerated and syntax
 checked. Temporary review and enrollment scenarios were removed after verification.
+
+
+## Business number identity independent of labels — October 4
+
+The business short-code evidence rule now compares the complete multiset of phone
+values after ordinary punctuation removal, independently of labels, grouping and
+preferred flags. It still requires the exact supported primary organization, no
+personal name and at least one short code. Extra or duplicate numbers cannot be
+hidden by set comparison, and partial lists do not qualify. Labels and all other
+representational differences remain in separate source/target baselines.
+
+21 more pairs passed fresh review with one qualifying target and no competing
+qualifying source, followed by complete store readback. Live coverage is 7,053;
+86 records from the earlier inventory remain outside coverage. No contact data
+was changed. Historical differences remain outstanding. 258 local tests passed;
+the portable reviewer was regenerated and syntax checked. Both temporary
+scenarios were removed after verification.

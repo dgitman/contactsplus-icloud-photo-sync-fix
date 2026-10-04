@@ -18,7 +18,11 @@ function bootstrapEvidence({contactData,existingVcard}){
     const uid=value(lines.find(l=>key(l)==='UID')||'');
     const data={organizations:contactData.organizations,phoneNumbers:contactData.phoneNumbers};
     const projected=patchSharedFields({uid,existingVcard,contactData:data,projectionOnly:true});
-    if(projected.organizations&&projected.phoneNumbers&&!patchSharedFields({uid,existingVcard,contactData:data}).changed)return 'exact_business_and_short_code_group';
+    const number=v=>typeof v==='string'&&/^[+0-9 ().-]+$/.test(v)?v.replace(/[ ().-]/g,''):null;
+    const sourceNumbers=contactData.phoneNumbers.map(p=>number(p.value));
+    const targetNumbers=lines.filter(l=>key(l)==='TEL').map(l=>number(value(l)));
+    const sameNumbers=sourceNumbers.length>0&&sourceNumbers.every(Boolean)&&targetNumbers.every(Boolean)&&JSON.stringify(sourceNumbers.sort())===JSON.stringify(targetNumbers.sort());
+    if(projected.organizations&&projected.phoneNumbers&&sameNumbers&&!patchSharedFields({uid,existingVcard,contactData:{organizations:projected.organizations}}).changed)return 'exact_business_and_short_code_group';
   }
   if(!matched) {
     // National numbers are compared literally after punctuation removal; no
