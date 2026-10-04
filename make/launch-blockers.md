@@ -648,3 +648,20 @@ only the exact-image case advanced. Temporary records and test scenario were
 removed, and production readback confirmed active/unpaused status. Older receipts
 without dimensions remain held; creation-loop prevention, merge/deletion,
 existing-photo replacement, and expanded field coverage still block full sync.
+
+
+## New-contact loop-prevention decision prepared
+
+`code/new-contact-query.js` is tested offline but **not deployed**. It prepares a
+single bounded CardDAV addressbook query for an unmapped `contact.added` event,
+using exact emails plus a broad structured-family-name candidate check. It holds
+contacts without valid email/name evidence. Any returned resource, truncation,
+failed query or unrecognized response is held; an empty result is only a candidate
+assessment and never authorizes a write. The query requests ETags, not full cards.
+
+This follows [RFC 6352 addressbook-query and result limits](https://www.rfc-editor.org/rfc/rfc6352.html#section-8.6).
+A complete creation route still requires stable UID reservation, conditional PUT,
+readback, interrupted-create recovery, and an end-to-end create/import-echo test.
+The user previously declined live duplicate checks. A decision is pending on the
+narrow exception for **unmapped new contacts only**; no lookup or creation route
+has been activated. Existing mapped updates keep their current lookup behavior.
