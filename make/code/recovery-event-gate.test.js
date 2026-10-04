@@ -4,3 +4,7 @@ const input={event,inbox:{eventId:'e',sourceAccountId:'contactsplus-primary',sou
 test('only an unfinished matching receipt allows reads',()=>assert.equal(gate(input).eligible,true));
 test('completed unknown and photo events stop before contact reads',()=>{for(const state of ['verified_shared_fields','verified_shared_fields_recovered','held_needs_identity','photo_write_pending'])assert.equal(gate({...input,inbox:{...input.inbox,state}}).eligible,false);});
 test('wrong event source target namespace and receipt are held',()=>{for(const changed of [{event:{...event,triggerId:'contact.deleted'}},{inbox:{...input.inbox,eventId:'different'}},{mapping:{...input.mapping,sourceContactId:'other'}},{mapping:{...input.mapping,targetHref:'https://evil.test/t.vcf'}},{mapping:{...input.mapping,sourceAccountId:'other'}},{inbox:{...input.inbox,writeReceiptJson:'{}'}}])assert.equal(gate({...input,...changed}).eligible,false);});
+test('encoded UID basename allows only its exact recovery identity',()=>{
+ assert.equal(gate({...input,mapping:{...input.mapping,targetHref:input.bookUrl+Buffer.from('t').toString('base64')+'.vcf'}}).eligible,true);
+ assert.equal(gate({...input,mapping:{...input.mapping,targetHref:input.bookUrl+'b3RoZXI=.vcf'}}).eligible,false);
+});

@@ -9,7 +9,7 @@ function buildEnrollment({records,storeId}){
   if(keys.has(key)||uids.has(d.targetUid))throw Error('Pairs must be one-to-one');keys.add(key);uids.add(d.targetUid);
   const b=JSON.parse(d.baselineJson);
   if(b.version!==1||b.sourceContactId!==d.sourceContactId||b.uid!==d.targetUid||!b.fields)throw Error('Invalid accepted baseline');
-  if(!d.targetHref.endsWith('/'+d.targetUid+'.vcf')||!/^"[^"\r\n]+"$/.test(d.targetEtag))throw Error('Missing target evidence');
+  if(![d.targetUid,Buffer.from(d.targetUid).toString('base64')].some(leaf=>d.targetHref.endsWith('/'+leaf+'.vcf'))||!/^"[^"\r\n]+"$/.test(d.targetEtag))throw Error('Missing target evidence');
  }
  const fields=Object.keys(records[0].data);
  if(records.some(r=>JSON.stringify(Object.keys(r.data))!==JSON.stringify(fields)))throw Error('Mixed mapping schemas');

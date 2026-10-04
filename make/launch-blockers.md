@@ -7,7 +7,7 @@ The newest verification evidence is at the end; older sections describe historic
 implementation stages, not the current enabled state.
 
 This is event-driven synchronization, not a claim that every historical record is
-identical. There are 6,004 accepted existing mappings. Ambiguous/unmapped identities,
+identical. There are 6,005 accepted existing mappings. Ambiguous/unmapped identities,
 malformed supported fields, mixed photo/text changes and independent target edits remain
 held rather than guessed or overwritten. New-contact creation requires a structured
 name and email and a successful bounded duplicate query.
@@ -900,3 +900,19 @@ before enrollment. Do not create a replacement based on that lookup failure.
 The earlier inventory also had 311 name conflicts, 47 ambiguous records and
 772 unmatched sources outside the matched cohort; these counts need refreshing
 before further enrollment. Live event coverage is not historical convergence.
+
+## Encoded iCloud resource address — October 4
+
+The apparent missing record was found at the href in the saved iCloud inventory.
+Its basename is the Base64 encoding of its UID, rather than the UID itself. Fresh
+REPORT and HTTP GET reads confirmed the exact card UID and matching identifier.
+The reviewer, enrollment validator, delete guard, recovery guard and all mapped
+HTTP reads/writes now support both observed basename forms. HTTP URLs remain
+anchored to the configured address book; they use the recorded final path segment.
+New-contact creation still chooses its original deterministic UID filename.
+
+The mapping was enrolled and read back, bringing coverage to 6,005. No contact
+was created, deleted or edited. Four cases remain in the prior matched cohort:
+three actual name differences and one malformed social URL. Broader unmatched
+records are not included in that number. Validation includes 233 local tests,
+exact deployed-code readback, and a successful Make HTTP read using the new mapper.

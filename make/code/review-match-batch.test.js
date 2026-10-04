@@ -29,3 +29,10 @@ test('accepting initial differences does not weaken name identity when skipping 
  x.sourceResponse.body.contacts[0].contactData.gender='other';
  assert.equal(review(x)[0].status,'eligible');
 });
+
+test('encoded resource basename is distinct from UID and verified against the card',()=>{
+ const x=structuredClone(args);x.targetResponse.body.multistatus.response[0].href=['/book/'+Buffer.from('t').toString('base64')+'.vcf'];
+ const r=review(x)[0];assert.equal(r.status,'eligible');assert.equal(r.resourceName,'dA==.vcf');
+ x.targetResponse.body.multistatus.response[0].propstat[0].prop[0]['address-data']=[card.replace('UID:t','UID:other')];assert.equal(review(x)[0].status,'held');
+ x.targetResponse.body.multistatus.response[0].href=['/other/dA==.vcf'];assert.throws(()=>review(x));
+});

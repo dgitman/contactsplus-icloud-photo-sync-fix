@@ -14,7 +14,7 @@ function deleteIdentity({event,mapping,bookUrl}){
  return event?.triggerId==='contact.deleted'&&typeof event.eventId==='string'&&!!event.eventId&&
  mapping?.sourceAccountId==='contactsplus-primary'&&event.data?.contactId===mapping.sourceContactId&&
  ['verified','delete_pending','deleted'].includes(mapping.state)&&/^[A-Za-z0-9_-]{1,128}$/.test(mapping.targetUid||'')&&
- /^https:\/\/[^\s?#]+\/$/.test(bookUrl||'')&&mapping.targetHref===bookUrl+mapping.targetUid+'.vcf';
+ /^https:\/\/[^\s?#]+\/$/.test(bookUrl||'')&&[mapping.targetUid,Buffer.from(mapping.targetUid).toString('base64')].some(leaf=>mapping.targetHref===bookUrl+leaf+'.vcf');
 }
 function prepareDelete(input){
  const {event,mapping:m,response,statusCode,actual,targetEtag}=input;

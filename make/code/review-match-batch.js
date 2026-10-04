@@ -17,10 +17,10 @@ function reviewMatchBatch({candidates,sourceResponse,targetResponse,bookPath,acc
  const sources=new Map(),targets=new Map();
  for(const row of sourceBody.contacts){if(!sourceIds.includes(row.contactId)||sources.has(row.contactId))throw Error('Unexpected or duplicate source');sources.set(row.contactId,row);}
  for(const row of arr(targetBody.multistatus.response)){
-  const href=scalar(row.href),targetId=targetIds.find(uid=>href===bookPath+uid+'.vcf');
+  const href=scalar(row.href),targetId=targetIds.find(uid=>[uid,Buffer.from(uid).toString('base64')].some(leaf=>href===bookPath+leaf+'.vcf'));
   if(!targetId||targets.has(targetId))throw Error('Unexpected or duplicate target resource');
   const ps=arr(row.propstat).find(p=>/^HTTP\/1\.[01] 200(?: |$)/.test(scalar(p.status)||''));
-  const prop=arr(ps?.prop)[0];targets.set(targetId,{card:scalar(prop?.['address-data']),etag:scalar(prop?.getetag)});
+  const prop=arr(ps?.prop)[0];targets.set(targetId,{resourceName:href.slice(bookPath.length),card:scalar(prop?.['address-data']),etag:scalar(prop?.getetag)});
  }
  return candidates.map(({sourceId,targetId:uid})=>{
   const hold=reason=>({status:'held',sourceId,uid,reason});
@@ -34,7 +34,7 @@ function reviewMatchBatch({candidates,sourceResponse,targetResponse,bookPath,acc
    // source edits still require an unchanged target field. Never use this option
    // to relax identity: differing structured names remain held.
    if(diff.changed&&(!acceptInitialDifferences||diff.changedFields.includes('name')))return {...hold('shared_field_differences'),fields:diff.changedFields};
-   return {status:'eligible',sourceId,uid,sourceEtag:source.etag,targetEtag:target.etag,baselineJson:JSON.stringify(snapshot({sourceContactId:sourceId,uid,existingVcard:target.card,contactData:source.contactData}))};
+   return {status:'eligible',sourceId,uid,resourceName:target.resourceName,sourceEtag:source.etag,targetEtag:target.etag,baselineJson:JSON.stringify(snapshot({sourceContactId:sourceId,uid,existingVcard:target.card,contactData:source.contactData}))};
   }catch(e){return hold(String(e.message));}
  });
 }

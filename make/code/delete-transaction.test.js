@@ -5,3 +5,8 @@ test('delete requires absent source and unchanged exact mapped resource',()=>{a.
 test('uncertain delete recovery is read only and requires confirmed absence',()=>{const receipt=prepareDelete(x).receipt;a.equal(recoverDelete({...x,receipt,statusCode:404}).status,'verified_deleted');a.equal(recoverDelete({...x,receipt}).status,'held');a.equal(recoverDelete({...x,receipt:{...receipt,uid:'other'},statusCode:404}).status,'held');});
 
 test('advanced ETag cannot hide an independent field change',()=>{const b={version:1,sourceContactId:'s',uid:'u',fields:{name:{source:'0'.repeat(64),target:require('./sync-state').hash(['FN:Old'])}}};a.equal(prepareDelete({...x,mapping:{...mapping,baselineJson:JSON.stringify(b)}}).reason,'independent_target_field_change');});
+test('encoded UID basename supports guarded deletion without accepting other resources',()=>{
+ const y={...x,mapping:{...mapping,targetHref:x.bookUrl+Buffer.from(mapping.targetUid).toString('base64')+'.vcf'}};
+ a.equal(prepareDelete(y).status,'delete_prepared');
+ a.equal(prepareDelete({...y,mapping:{...y.mapping,targetHref:x.bookUrl+'other.vcf'}}).status,'held');
+});
