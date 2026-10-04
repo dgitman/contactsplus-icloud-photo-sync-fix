@@ -30,3 +30,23 @@ and are not yet activated as production mappings.
 - Run disposable lifecycle and echo/merge tests before enabling production writes.
 
 Full per-contact backups remain omitted under the user's storage policy.
+
+## Shared-field preparation (local, not deployed)
+
+`code/shared-fields.js` prepares text-field updates for names/nicknames, notes,
+email/phone labels, addresses, ordinary/social URLs without extra profile metadata,
+primary organization/title, birthdays, Messenger handles, and related people.
+Yearless birthdays retain Apple's omit-year marker. Alternate jobs are intentionally
+excluded. Existing photos and unrelated vCard properties are preserved.
+
+`code/prepare-shared-update.js` binds per-field source/target hashes to both contact
+IDs. An explicitly accepted baseline is required. Source-only edits can prepare an
+update; independent target edits are preserved; competing edits, newly present or
+missing fields, and photo changes hold the contact. Baselines are never advanced
+by preparation: conditional write and verified readback must precede that step.
+
+These modules are not connected to the live Make scenario. Anniversary/custom
+dates, other messaging services, social username/user-ID metadata, custom fields,
+list/tag synchronization, and primary-photo replacement still need implementation
+or explicit handling. The 72 local tests do not establish cloud deployment or
+end-to-end synchronization.
