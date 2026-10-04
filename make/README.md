@@ -30,7 +30,9 @@ establish a recurring allowance upgrade. Reserve credits for other active scenar
 
 The verified bootstrap review uses approximately five credits per batch of up to
 100 candidates, plus one startup credit. Mapping registration and explicit readback
-currently use three credits per accepted record, plus one startup credit. Budget
+using `scripts/build-enrollment.js` use about two credits per record plus batch
+overhead (6,952 credits for 3,390 records on October 4). The builder uses
+non-overwriting inserts and compares every saved field with a fresh store read. Budget
 for every candidate passing before starting a review, then recalculate from actual
 accepted counts before registration. Allow margin for other scenario usage and
 errors. These are measured estimates, not platform guarantees.
@@ -139,7 +141,9 @@ This pilot used synthetic source data and a notes-only change. It does not verif
 Contacts+ webhook-to-write behavior, photo preservation through a real update,
 or display on Apple devices. Production remains inactive with no contact writes.
 
-## Event-driven write pilots and launch blockers
+## Historical event-driven write pilots and launch blockers
+
+This section records an earlier stage; the live status above supersedes it.
 
 On October 3, 2026 (October 4 UTC), a real Contacts+ update webhook traversed the
 main scenario and reached `verified_name_notes`. The target-only email survived.

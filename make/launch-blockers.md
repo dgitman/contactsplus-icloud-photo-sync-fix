@@ -7,7 +7,7 @@ The newest verification evidence is at the end; older sections describe historic
 implementation stages, not the current enabled state.
 
 This is event-driven synchronization, not a claim that every historical record is
-identical. There are 1,990 accepted existing mappings. Ambiguous/unmapped identities,
+identical. There are 5,380 accepted existing mappings. Ambiguous/unmapped identities,
 unsupported fields, mixed photo/text changes and independent target edits remain
 held rather than guessed or overwritten. New-contact creation requires a structured
 name and email and a successful bounded duplicate query.
@@ -846,3 +846,19 @@ The observed cause of that extra source record was not independently established
 All disposable target contacts, test mappings/inbox rows and the temporary scenario
 were removed. Private audit evidence remains outside Git. No provider sync setting
 was changed. Local regression tests consume no Make credits.
+
+## October 4 enrollment completed
+
+The recurring Core allowance was verified at 20,000 credits and 20 MB of data
+store capacity. The mapping store was expanded to 12 MB. All 3,390 additional
+reviewed pairs were registered with non-overwriting inserts and complete field
+readback, bringing the store to 5,380 mappings. Enrollment used 6,952 credits
+and made no contact-content writes. Initial source/target differences were
+accepted as separate baselines; they were not reconciled or overwritten.
+
+The 629 remaining pairs in this review cohort stay held (624 earlier unsupported
+or missing-resource cases, plus five rejected by the fresh review). Other
+unmatched and ambiguous inventory records are also not covered by this count.
+Production was active and unpaused with zero queued deliveries and zero incomplete
+runs at final verification. The temporary enrollment scenario was deleted.
+These checks verify Make storage and server state, not Apple-device display.
