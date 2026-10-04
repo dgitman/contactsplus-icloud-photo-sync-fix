@@ -12,4 +12,4 @@ for (const key of ["name", "notes"]) {
 if (!Object.keys(patch).length) throw new Error("No supported source fields");
 const prepared = convert({mode:"patch-name-notes",uid:input.uid,existingVcard:input.existingVcard,contactData:patch});
 return {...prepared, beforeVcard:input.existingVcard, targetEtag:input.targetEtag,
-  sourceEtag:source.etag, eventId:input.eventId, status:"prepared-only", writesApplied:false};
+  sourceEtag:source.etag, eventId:input.eventId, status:prepared.changed ? "prepared-only" : "unchanged", writesApplied:false};

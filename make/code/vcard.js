@@ -47,16 +47,22 @@ function convert(input) {
     if (logical.filter(l=>/^UID[;:]/i.test(l)).length !== 1 || !logical.includes('UID:'+uid)) throw new Error('Target UID mismatch');
     const requested = Object.keys(data);
     if (!requested.length || requested.some(k=>!['name','notes'].includes(k))) throw new Error('Patch supports only explicit name and notes');
-    const replace = new Set(requested.flatMap(k=>k==='name'?['N','FN']:['NOTE']));
-    const kept = records.filter(r=> {
-      const head = r.logical.split(':')[0];
-      const prop = head.split(';')[0].split('.').at(-1).toUpperCase();
-      if (replace.has(prop) && (head.includes(';') || head.includes('.'))) throw new Error('Qualified managed property needs manual handling');
-      return !replace.has(prop);
-    }).map(r=>r.raw);
-    const additions = [...(requested.includes('name')?nameLines():[]), ...(requested.includes('notes')?['NOTE:'+escape(data.notes)]:[])];
+    const desired = [...(requested.includes('name')?nameLines():[]), ...(requested.includes('notes')?['NOTE:'+escape(data.notes)]:[])];
+    const property = r => r.logical.split(':')[0].split(';')[0].split('.').at(-1).toUpperCase();
+    const additions = desired.filter(line => {
+      const key = line.slice(0,line.indexOf(':'));
+      const current = records.filter(r => property(r) === key);
+      if (current.some(r => /[;.]/.test(r.logical.split(':')[0]))) throw new Error('Qualified managed property needs manual handling');
+      if (current.length > 1) throw new Error('Ambiguous repeated managed property');
+      // An absent note and an explicitly empty note have the same effect.
+      if (!current.length && line === 'NOTE:') return false;
+      return !current.length || current[0].logical.slice(current[0].logical.indexOf(':')+1) !== line.slice(line.indexOf(':')+1);
+    });
+    if (!additions.length) return {vcard:prior,uid,mode:input.mode,changed:false};
+    const replace = new Set(additions.map(line => line.slice(0,line.indexOf(':'))));
+    const kept = records.filter(r => !replace.has(property(r))).map(r=>r.raw);
     kept.splice(kept.length-1,0,...additions.map(fold));
-    return {vcard:kept.join('\r\n')+'\r\n',uid,mode:input.mode};
+    return {vcard:kept.join('\r\n')+'\r\n',uid,mode:input.mode,changed:true};
   }
   if (input.mode !== 'create') throw new Error('Explicit create or patch-name-notes mode required');
   const allowed = ['name','notes','emails','phoneNumbers'];

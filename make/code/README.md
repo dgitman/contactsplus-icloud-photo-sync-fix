@@ -46,3 +46,17 @@ The adapter prepare-update.js follows the converter with its CommonJS export
 removed. Run all tests with `node --test make/code/*.test.js`. The adapter uses
 only non-null source name and notes; other target fields stay untouched.
 This is not a full-field sync yet.
+
+## No-change handling
+
+The patch converter returns changed=false and the original card bytes when the
+requested name/notes already match. It unfolds lines for comparison, treats an
+absent note like an empty note, and changes only differing properties. Repeated
+managed properties are rejected as ambiguous. Other differences in equivalent
+escaping may conservatively count as a change.
+
+The update adapter reports status=unchanged or prepared-only. These are result
+values, not persisted event states yet. A future writer must require changed=true;
+the current scenario has no writer. This avoids future unnecessary PUTs but does
+not eliminate the existing source/target reads or their Make credit usage.
+Sixteen tests now cover conversion and preparation, including no-change cases.
