@@ -3,7 +3,8 @@ const bundlePrepare=require('../code/bundle-prepared-receipt');
 const bundleVerify=require('../code/bundle-shared-verification');
 function guardSharedRoutes(blueprint){
   const b=JSON.parse(JSON.stringify(blueprint));
-  const main=b.flow.find(x=>x.id===60)?.routes[0].flow||b.flow;
+  const eventFlow=b.flow.find(x=>x.id===71)?.routes[0].flow||b.flow;
+  const main=eventFlow.find(x=>x.id===60)?.routes[0].flow||eventFlow;
   const router=main.find(m=>m.id===3);
   if(!router?.routes)throw Error('Expected event router');
   const update=router.routes.find(r=>r.flow.some(m=>m.id===5)).flow;

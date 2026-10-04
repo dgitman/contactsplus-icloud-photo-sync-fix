@@ -46,11 +46,10 @@ scenario and record were removed afterward; no contacts were written.
 
 ## Remaining work
 
-- A pending-event processor and explicit completed/conflict states are not built.
-  Duplicate delivery does not retry a pending event; retained records must be
-  processed explicitly. Do not enable production until that path exists.
-- This does not guarantee exactly-once writes or handle out-of-order source changes.
-  Reconciliation and conditional writes are still needed.
+- Shared-field receipts now have redelivery recovery and an on-demand pending
+  sweep. Photo/create/delete recovery and periodic scheduling remain unfinished.
+- This does not guarantee exactly-once writes or handle every out-of-order source
+  change. Conditional writes and exact shared-field readback are deployed.
 - Invalid events currently stop at validation; malformed-event quarantine remains
   unimplemented. A reused event ID with changed content is not separately detected.
 - The store holds event metadata, not source contact contents or deletion backups.
@@ -125,3 +124,18 @@ Recovery currently requires another delivery of the same event. It does not
 periodically sweep stalled records, guarantee Contacts+ redelivery, or recover
 photo/create/delete operations. Failed source reads leave the unfinished receipt
 available; no retry of a contact write is authorized.
+
+
+## On-demand pending recovery sweep
+
+Send `{"recoverPending":true}` to the existing private scenario webhook to check
+up to 25 oldest `prepared_shared_fields` receipts. Normal event processing is
+excluded for this command. The stored event supplies identity; incoming contact
+payloads cannot select a target. Recovery performs source/target reads and updates
+only mapping/inbox bookkeeping after exact verification. It never repeats a
+contact write. Uncertain results become `held_recovery`; completed and held rows
+are excluded from later sweeps. No timer or additional production scenario exists.
+
+Synthetic Make integration verified saved, unchanged, and drifted targets, with
+actual Data Store readback. A repeat used one credit and accessed no contacts.
+An empty production webhook sweep also passed (two credits including webhook).

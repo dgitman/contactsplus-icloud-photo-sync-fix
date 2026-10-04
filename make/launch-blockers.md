@@ -22,15 +22,16 @@ and are not yet activated as production mappings.
 
 ## Remaining launch work
 
-- The initial unique-candidate review is complete: 1,750 mappings are registered.
+- The initial unique-candidate review is complete: 1,990 mappings are registered.
   Resolve held shared-field differences and unsupported metadata before expanding
   further. Name-only, ambiguous, conflicting and many-to-one matches remain held.
   Bootstrap is not a per-event duplicate search.
 - Implement creation/import loop prevention while iCloud pull-in remains enabled.
 - Missing-photo fills are deployed; existing-photo replacement remains unfinished.
-- Add interrupted-operation readback and merge-aware deletion. Shared-field
-  baselines and successful-write readback are already deployed.
-- Add pending-event processing and event-store retention/capacity monitoring.
+- Shared-field interrupted-operation readback is deployed. Finish photo recovery
+  and merge-aware deletion; successful-write readback is already deployed.
+- On-demand shared-field pending processing is deployed. Finish other operation
+  recovery and event-store retention/capacity monitoring.
 - Run creation/echo and merge tests before enabling those operations. A real
   disposable notes-update event and deletion hold already passed end to end.
 
@@ -603,3 +604,14 @@ The production route was read back active and unpaused with GET-only recovery.
 All 176 tests pass. Testing used 45 credits; 8,088 remain. Coverage remains 1,990.
 Recovery requires redelivery; a scheduled pending sweep, photo recovery,
 creation/import loop handling and merge-aware deletion remain launch work.
+
+
+## Bounded pending sweep deployed
+
+The existing production scenario now accepts an explicit pending-recovery command.
+It checks at most 25 prepared shared-field receipts without contact writes.
+Synthetic saved/unchanged/drift cases passed, including actual stored baseline
+readback; a repeat skipped all three. The empty production sweep passed as well.
+180 local tests passed. Synthetic records and the temporary test scenario were
+removed. Coverage remains 1,990 mappings; this does not enable creation, deletion,
+existing-photo replacement, or a scheduled sweep.
