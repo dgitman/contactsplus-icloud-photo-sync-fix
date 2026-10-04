@@ -48,3 +48,11 @@ completed tests, and remaining guards. The store lookup now gates all three rout
 Only exact verified mappings proceed; unmapped events currently stop without writes.
 Valid unmapped events are retained in the [event inbox](event-inbox.md).
 Production creation and pending-event processing are still unfinished.
+
+## Contact conversion
+
+[Make Code conversion](code/README.md) now covers basic new cards and targeted
+name/notes edits that preserve existing photos and unrelated properties. It passed
+local tests and a synthetic Make cloud test. It is not yet wired to the routes;
+the event-to-iCloud pilot still requires access to a disposable source contact.
+Live duplicate searches are intentionally omitted at the user's request.
