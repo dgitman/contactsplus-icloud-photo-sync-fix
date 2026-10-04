@@ -7,7 +7,7 @@ The newest verification evidence is at the end; older sections describe historic
 implementation stages, not the current enabled state.
 
 This is event-driven synchronization, not a claim that every historical record is
-identical. There are 6,976 accepted existing mappings. Ambiguous/unmapped identities,
+identical. There are 6,992 accepted existing mappings. Ambiguous/unmapped identities,
 malformed supported fields, mixed photo/text changes and independent target edits remain
 held rather than guessed or overwritten. New-contact creation requires a structured
 name and email and a successful bounded duplicate query.
@@ -1023,3 +1023,19 @@ merged or changed. Live coverage is 6,976 mappings, with 163 records from the pr
 inventory outside coverage. Historical field differences remain preserved, not
 asserted to be converged. 248 local tests passed. Both temporary scenarios were
 deleted after successful verification.
+
+
+## Unique national phones with matching identities — October 4
+
+Global inventory checks found 20 remaining candidates with unique exact national
+phone numbers on both sides and unused target resources. Fresh review accepted
+16 using exact supported names or, for unnamed business cards, an exact supported
+primary organization group. Phone labels may differ. Comparison removes ordinary
+punctuation only, requires 10–15 digits and never infers a country prefix. A phone
+alone does not authorize enrollment; four such candidates remain held.
+
+All 16 mappings passed complete store readback, bringing coverage to 6,992.
+147 records from the earlier inventory remain outside coverage. No contact
+contents were rewritten; historical differences remain separately baselined.
+252 local tests passed and the portable reviewer bundle was regenerated and
+syntax-checked. Both temporary scenarios were removed after verification.

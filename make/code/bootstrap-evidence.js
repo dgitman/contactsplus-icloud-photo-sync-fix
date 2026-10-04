@@ -10,6 +10,21 @@ function bootstrapEvidence({contactData,existingVcard}){
   const phone=v=>{if(typeof v!=='string'||!/^[+0-9 ().-]+$/.test(v))return null;const n=v.replace(/[ ().-]/g,'');return /^\+[1-9]\d{7,14}$/.test(n)?n:null;};
   const targetPhones=new Set(lines.filter(l=>key(l)==='TEL').map(l=>phone(value(l))).filter(Boolean));
   const matched=(contactData.phoneNumbers||[]).some(p=>phone(p.value)&&targetPhones.has(phone(p.value)));
+  if(!matched) {
+    // National numbers are compared literally after punctuation removal; no
+    // country inference. Candidate uniqueness is established by the caller.
+    const national=v=>typeof v==='string'&&/^[0-9 ().-]+$/.test(v)&&/^\d{10,15}$/.test(v.replace(/[ ().-]/g,''))?v.replace(/[ ().-]/g,''):null;
+    const ns=new Set(lines.filter(l=>key(l)==='TEL').map(l=>national(value(l))).filter(Boolean));
+    const shared=(contactData.phoneNumbers||[]).some(p=>national(p.value)&&ns.has(national(p.value)));
+    if(shared){
+      const uid=value(lines.find(l=>key(l)==='UID')||'');
+      if(contactData.name&&!patchSharedFields({uid,existingVcard,contactData:{name:contactData.name}}).changed)return 'exact_national_phone_and_name';
+      if(!contactData.name&&lines.filter(l=>key(l)==='N').every(l=>value(l).replace(/;/g,'')==='')&&contactData.organizations?.[0]?.name?.trim()){
+        const projected=patchSharedFields({uid,existingVcard,contactData:{organizations:contactData.organizations},projectionOnly:true});
+        if(projected.organizations&&!patchSharedFields({uid,existingVcard,contactData:projected}).changed)return 'exact_national_phone_and_company';
+      }
+    }
+  }
   if(matched&&!contactData.name&&lines.filter(l=>key(l)==='N').every(l=>value(l).replace(/;/g,'')==='')) {
     const company=contactData.organizations?.[0]?.name;
     const escaped=typeof company==='string'?company.replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').trim().toLowerCase():'';

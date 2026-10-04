@@ -1,0 +1,7 @@
+const test=require('node:test'),assert=require('node:assert/strict'),evidence=require('./bootstrap-evidence');
+const card=extra=>'BEGIN:VCARD\r\nVERSION:3.0\r\nUID:t\r\n'+extra+'TEL;TYPE=OTHER:2125550123\r\nEND:VCARD\r\n';
+const person={name:{givenName:'Alex',familyName:'Example'},phoneNumbers:[{value:'(212) 555-0123',type:'mobile'}]};
+test('national phone corroborates exact name despite phone label differences',()=>assert.equal(evidence({contactData:person,existingVcard:card('N:Example;Alex;;;\r\nFN:Alex Example\r\n')}),'exact_national_phone_and_name'));
+test('national phone alone and unrelated name are rejected',()=>{assert.equal(evidence({contactData:person,existingVcard:card('N:Other;Alex;;;\r\nFN:Alex Other\r\n')}),null);assert.equal(evidence({contactData:{phoneNumbers:person.phoneNumbers},existingVcard:card('')}),null);});
+test('unnamed companies require exact supported organization group',()=>{const d={phoneNumbers:person.phoneNumbers,organizations:[{name:'Example Company'}]};assert.equal(evidence({contactData:d,existingVcard:card('ORG:Example Company\r\n')}),'exact_national_phone_and_company');assert.equal(evidence({contactData:d,existingVcard:card('ORG:Other Company\r\n')}),null);});
+test('national comparison never infers a country code',()=>assert.equal(evidence({contactData:{...person,phoneNumbers:[{value:'+12125550123'}]},existingVcard:card('N:Example;Alex;;;\r\nFN:Alex Example\r\n')}),null));
