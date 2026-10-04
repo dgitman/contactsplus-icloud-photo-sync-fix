@@ -6,3 +6,12 @@ test('XML values cannot add filters or elements',()=>{const r=prepare({source:{.
 test('empty successful envelope is only a candidate decision, not write authorization',()=>{assert.deepEqual(review({plan,source,event,response:{statusCode:207,body:{multistatus:{response:[]}}}}).status,'no_candidates');assert.equal(review({plan,source,event,response:{statusCode:207,body:{multistatus:{}}}}).writesAllowed,false);});
 test('existing records, truncation, failed or malformed queries stay held',()=>{for(const response of [{statusCode:403},{statusCode:207,body:{}},{statusCode:207,body:{multistatus:{response:[{status:['HTTP/1.1 507 Insufficient Storage']}]}}},{statusCode:207,body:{multistatus:{response:[{href:['/book/existing.vcf']}]}}},{statusCode:207,body:{multistatus:{error:{}}}}])assert.equal(review({plan,source,event,response}).status,'held');});
 test('source or event changes invalidate query results',()=>{for(const patch of [{source:{...source,etag:'v2'}},{source:{...source,contactData:{...source.contactData,notes:'new'}}},{event:{...event,eventId:'new'}}])assert.equal(review({plan,source,event,response:{statusCode:207,body:{multistatus:{response:[]}}},...patch}).status,'held');});
+const {duplicateContactQuery,reviewDuplicateContactQuery}=require('./new-contact-query');
+test('duplicate checks support updated contacts without allowing creation on an update event',()=>{
+ const updated={...event,triggerId:'contact.updated'},p=duplicateContactQuery({source,event:updated});
+ assert.equal(p.status,'query_prepared');
+ const input={source,event:updated,plan:p,response:{statusCode:207,body:{multistatus:{_attributes:{xmlns:'DAV:'}}}}};
+ assert.equal(reviewDuplicateContactQuery(input).status,'no_candidates');
+ assert.equal(review(input).status,'held');
+ assert.equal(reviewDuplicateContactQuery({...input,event:{...updated,eventId:'different'}}).status,'held');
+});

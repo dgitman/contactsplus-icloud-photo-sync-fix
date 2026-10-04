@@ -1,0 +1,53 @@
+{
+  "name": "Read-only duplicate-query pilot",
+  "metadata": {
+    "version": 1
+  },
+  "flow": [
+    {
+      "id": 1,
+      "module": "code:ExecuteCode",
+      "version": 1,
+      "mapper": {
+        "language": "javascript",
+        "inputFormat": "editor",
+        "input": [],
+        "codeEditorJavascript": "// Lightweight sync decisions: no contact bodies or photos are persisted here.\nconst crypto = require('node:crypto');\nfunction stable(value) {\n  if (value === undefined) throw new Error('Incomplete snapshot');\n  if (value === null || typeof value !== 'object') return JSON.stringify(value);\n  if (Array.isArray(value)) return '[' + value.map(stable).join(',') + ']';\n  return '{' + Object.keys(value).sort().map(k=>JSON.stringify(k)+':'+stable(value[k])).join(',') + '}';\n}\nfunction hash(value) { return crypto.createHash('sha256').update(stable(value)).digest('hex'); }\n\n// Bounded read-only duplicate checks. Permission covers all contacts; a query\n// never authorizes a write or links identities by itself.\n\nfunction duplicateContactQuery({source,event}){\n const hold=reason=>({status:'held',reason,writesAllowed:false});\n if(!['contact.added','contact.updated'].includes(event?.triggerId)||!event.eventId||!event.data?.contactId||source?.contactId!==event.data.contactId||typeof source.etag!=='string'||!source.etag.trim()||!source.contactData)return hold('fresh_added_contact_required');\n const d=source.contactData;\n if(!Array.isArray(d.emails)||!d.emails.length)return hold('email_identity_required');\n const emails=[...new Set(d.emails.map(e=>typeof e?.value==='string'?e.value.trim().toLowerCase():''))];\n if(emails.length>10||emails.some(e=>e.length>254||/[\\x00-\\x1f\\x7f]/.test(e)||!/^[^@\\s<>]+@[^@\\s<>]+\\.[^@\\s<>]+$/.test(e)))return hold('email_identity_invalid_or_unbounded');\n const n=d.name;if(!n||typeof n.givenName!=='string'||typeof n.familyName!=='string'||!n.givenName.trim()||!n.familyName.trim())return hold('structured_name_required');\n const family=n.familyName.trim();if(family.length>100||/[\\x00-\\x1f\\x7f]/.test(family))return hold('name_invalid');\n const xml=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&apos;');\n const match=(property,value,type)=>'<c:prop-filter name=\"'+property+'\"><c:text-match collation=\"i;unicode-casemap\" match-type=\"'+type+'\">'+xml(value)+'</c:text-match></c:prop-filter>';\n // A broad structured-name candidate also prevents a changed/missing email from\n // silently making a second card. Any result is held, not automatically merged.\n const query='<?xml version=\"1.0\" encoding=\"UTF-8\"?><c:addressbook-query xmlns:d=\"DAV:\" xmlns:c=\"urn:ietf:params:xml:ns:carddav\"><d:prop><d:getetag/></d:prop><c:filter test=\"anyof\">'+emails.map(e=>match('EMAIL',e,'equals')).join('')+match('N',family,'contains')+'</c:filter><c:limit><c:nresults>2</c:nresults></c:limit></c:addressbook-query>';\n return {status:'query_prepared',writesAllowed:false,query,queryHash:hash(query),sourceHash:hash(source.contactData),sourceContactId:source.contactId,sourceEtag:source.etag,eventId:event.eventId};\n}\nfunction newContactQuery(input){\n if(input.event?.triggerId!=='contact.added')return {status:'held',reason:'fresh_added_contact_required',writesAllowed:false};\n return duplicateContactQuery(input);\n}\nfunction reviewDuplicateContactQuery({plan,response,source,event}){\n const hold=reason=>({status:'held',reason,writesAllowed:false});\n const current=duplicateContactQuery({source,event});\n if(current.status!=='query_prepared'||!plan||['query','queryHash','sourceHash','sourceContactId','sourceEtag','eventId'].some(k=>current[k]!==plan[k]))return hold('query_binding_changed');\n if(response?.statusCode!==207)return hold('query_failed');\n let body;try{body=typeof response.body==='string'?JSON.parse(response.body):response.body;}catch{return hold('query_unparseable');}\n const m=body?.multistatus;\n // An unrecognized/partial response must never be mistaken for no matches.\n if(!m||typeof m!=='object'||Array.isArray(m)||Object.keys(m).some(k=>!['response','_attributes'].includes(k)))return hold('query_incomplete');\n if(m.response!=null&&(!Array.isArray(m.response)||m.response.length))return hold('existing_or_incomplete_results');\n return {status:'no_candidates',writesAllowed:false,sourceContactId:plan.sourceContactId,sourceEtag:plan.sourceEtag,eventId:plan.eventId,queryHash:plan.queryHash};\n}\nfunction reviewNewContactQuery(input){\n if(input.event?.triggerId!=='contact.added')return {status:'held',reason:'fresh_added_contact_required',writesAllowed:false};\n return reviewDuplicateContactQuery(input);\n}\n\nconst source={contactId:'synthetic-query-only',etag:'test',contactData:{name:{givenName:'Codex',familyName:'NoSuchContactQuery7b839cae'},emails:[{value:'codex-query-7b839cae@example.invalid'}]}};const event={eventId:'query-pilot',triggerId:'contact.updated',data:{contactId:source.contactId}};return duplicateContactQuery({source,event});"
+      }
+    },
+    {
+      "id": 2,
+      "module": "app#icloud-carddav-sync-ctnuju:queryAddressBook",
+      "version": 1,
+      "parameters": {},
+      "mapper": {
+        "method": "REPORT",
+        "body": "{{1.result.query}}"
+      }
+    },
+    {
+      "id": 3,
+      "module": "code:ExecuteCode",
+      "version": 1,
+      "mapper": {
+        "language": "javascript",
+        "inputFormat": "editor",
+        "input": [
+          {
+            "name": "plan",
+            "value": "{{1.result}}"
+          },
+          {
+            "name": "statusCode",
+            "value": "{{2.statusCode}}"
+          },
+          {
+            "name": "body",
+            "value": "{{2.body}}"
+          }
+        ],
+        "codeEditorJavascript": "// Lightweight sync decisions: no contact bodies or photos are persisted here.\nconst crypto = require('node:crypto');\nfunction stable(value) {\n  if (value === undefined) throw new Error('Incomplete snapshot');\n  if (value === null || typeof value !== 'object') return JSON.stringify(value);\n  if (Array.isArray(value)) return '[' + value.map(stable).join(',') + ']';\n  return '{' + Object.keys(value).sort().map(k=>JSON.stringify(k)+':'+stable(value[k])).join(',') + '}';\n}\nfunction hash(value) { return crypto.createHash('sha256').update(stable(value)).digest('hex'); }\n\n// Bounded read-only duplicate checks. Permission covers all contacts; a query\n// never authorizes a write or links identities by itself.\n\nfunction duplicateContactQuery({source,event}){\n const hold=reason=>({status:'held',reason,writesAllowed:false});\n if(!['contact.added','contact.updated'].includes(event?.triggerId)||!event.eventId||!event.data?.contactId||source?.contactId!==event.data.contactId||typeof source.etag!=='string'||!source.etag.trim()||!source.contactData)return hold('fresh_added_contact_required');\n const d=source.contactData;\n if(!Array.isArray(d.emails)||!d.emails.length)return hold('email_identity_required');\n const emails=[...new Set(d.emails.map(e=>typeof e?.value==='string'?e.value.trim().toLowerCase():''))];\n if(emails.length>10||emails.some(e=>e.length>254||/[\\x00-\\x1f\\x7f]/.test(e)||!/^[^@\\s<>]+@[^@\\s<>]+\\.[^@\\s<>]+$/.test(e)))return hold('email_identity_invalid_or_unbounded');\n const n=d.name;if(!n||typeof n.givenName!=='string'||typeof n.familyName!=='string'||!n.givenName.trim()||!n.familyName.trim())return hold('structured_name_required');\n const family=n.familyName.trim();if(family.length>100||/[\\x00-\\x1f\\x7f]/.test(family))return hold('name_invalid');\n const xml=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&apos;');\n const match=(property,value,type)=>'<c:prop-filter name=\"'+property+'\"><c:text-match collation=\"i;unicode-casemap\" match-type=\"'+type+'\">'+xml(value)+'</c:text-match></c:prop-filter>';\n // A broad structured-name candidate also prevents a changed/missing email from\n // silently making a second card. Any result is held, not automatically merged.\n const query='<?xml version=\"1.0\" encoding=\"UTF-8\"?><c:addressbook-query xmlns:d=\"DAV:\" xmlns:c=\"urn:ietf:params:xml:ns:carddav\"><d:prop><d:getetag/></d:prop><c:filter test=\"anyof\">'+emails.map(e=>match('EMAIL',e,'equals')).join('')+match('N',family,'contains')+'</c:filter><c:limit><c:nresults>2</c:nresults></c:limit></c:addressbook-query>';\n return {status:'query_prepared',writesAllowed:false,query,queryHash:hash(query),sourceHash:hash(source.contactData),sourceContactId:source.contactId,sourceEtag:source.etag,eventId:event.eventId};\n}\nfunction newContactQuery(input){\n if(input.event?.triggerId!=='contact.added')return {status:'held',reason:'fresh_added_contact_required',writesAllowed:false};\n return duplicateContactQuery(input);\n}\nfunction reviewDuplicateContactQuery({plan,response,source,event}){\n const hold=reason=>({status:'held',reason,writesAllowed:false});\n const current=duplicateContactQuery({source,event});\n if(current.status!=='query_prepared'||!plan||['query','queryHash','sourceHash','sourceContactId','sourceEtag','eventId'].some(k=>current[k]!==plan[k]))return hold('query_binding_changed');\n if(response?.statusCode!==207)return hold('query_failed');\n let body;try{body=typeof response.body==='string'?JSON.parse(response.body):response.body;}catch{return hold('query_unparseable');}\n const m=body?.multistatus;\n // An unrecognized/partial response must never be mistaken for no matches.\n if(!m||typeof m!=='object'||Array.isArray(m)||Object.keys(m).some(k=>!['response','_attributes'].includes(k)))return hold('query_incomplete');\n if(m.response!=null&&(!Array.isArray(m.response)||m.response.length))return hold('existing_or_incomplete_results');\n return {status:'no_candidates',writesAllowed:false,sourceContactId:plan.sourceContactId,sourceEtag:plan.sourceEtag,eventId:plan.eventId,queryHash:plan.queryHash};\n}\nfunction reviewNewContactQuery(input){\n if(input.event?.triggerId!=='contact.added')return {status:'held',reason:'fresh_added_contact_required',writesAllowed:false};\n return reviewDuplicateContactQuery(input);\n}\n\nconst source={contactId:'synthetic-query-only',etag:'test',contactData:{name:{givenName:'Codex',familyName:'NoSuchContactQuery7b839cae'},emails:[{value:'codex-query-7b839cae@example.invalid'}]}};const event={eventId:'query-pilot',triggerId:'contact.updated',data:{contactId:source.contactId}};const result=reviewDuplicateContactQuery({plan:input.plan,response:{statusCode:input.statusCode,body:input.body},source,event});return {result,statusCode:input.statusCode,bodyKeys:Object.keys(input.body||{})};"
+      }
+    }
+  ]
+}

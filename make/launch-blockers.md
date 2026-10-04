@@ -700,3 +700,23 @@ photos, field drift, source changes and failed or altered downloads. These are
 synthetic offline tests, not an iCloud server test. Nothing new was deployed.
 Cloud storage ordering and end-to-end create/import-echo tests remain, as does
 the pending policy choice for new-contact-only duplicate checks.
+
+## Duplicate checks authorized for all contacts and cloud transport tested
+
+The user explicitly authorized duplicate checks for **all contacts** on October 4.
+This supersedes the earlier no-live-lookup preference and removes the pending
+permission decision. Checks may be used for new and existing contacts; a candidate
+match alone never authorizes an automatic merge or identity reassignment.
+
+The bounded query now supports both added and updated events, while creation
+preparation still accepts only added events. Make execution
+`02d584e8f8c94db28c7512590903936d` tested the repository query and response review
+against iCloud using synthetic identity values. HTTP 207 with an empty DAV
+multistatus produced `no_candidates` and `writesAllowed: false`. It consumed five
+credits, changed no contacts, and its temporary scenario was deleted.
+
+The credential-free `duplicate-query-pilot.blueprint.json` and its builder are
+committed for repeatable testing. 213 local tests pass. Production still needs
+query routing, storage ordering and positive-match/create/import-echo integration
+tests before automatic creation can be enabled. This is remaining implementation
+work, not a permission blocker. Existing mapped production routes are unchanged.

@@ -1,9 +1,9 @@
-// Offline preparation only. This never authorizes creation, links an identity,
-// or calls a service. Production activation requires the new-contact lookup policy.
+// Bounded read-only duplicate checks. Permission covers all contacts; a query
+// never authorizes a write or links identities by itself.
 const {hash}=require('./sync-state');
-function newContactQuery({source,event}){
+function duplicateContactQuery({source,event}){
  const hold=reason=>({status:'held',reason,writesAllowed:false});
- if(event?.triggerId!=='contact.added'||!event.eventId||!event.data?.contactId||source?.contactId!==event.data.contactId||typeof source.etag!=='string'||!source.etag.trim()||!source.contactData)return hold('fresh_added_contact_required');
+ if(!['contact.added','contact.updated'].includes(event?.triggerId)||!event.eventId||!event.data?.contactId||source?.contactId!==event.data.contactId||typeof source.etag!=='string'||!source.etag.trim()||!source.contactData)return hold('fresh_added_contact_required');
  const d=source.contactData;
  if(!Array.isArray(d.emails)||!d.emails.length)return hold('email_identity_required');
  const emails=[...new Set(d.emails.map(e=>typeof e?.value==='string'?e.value.trim().toLowerCase():''))];
@@ -17,9 +17,13 @@ function newContactQuery({source,event}){
  const query='<?xml version="1.0" encoding="UTF-8"?><c:addressbook-query xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:carddav"><d:prop><d:getetag/></d:prop><c:filter test="anyof">'+emails.map(e=>match('EMAIL',e,'equals')).join('')+match('N',family,'contains')+'</c:filter><c:limit><c:nresults>2</c:nresults></c:limit></c:addressbook-query>';
  return {status:'query_prepared',writesAllowed:false,query,queryHash:hash(query),sourceHash:hash(source.contactData),sourceContactId:source.contactId,sourceEtag:source.etag,eventId:event.eventId};
 }
-function reviewNewContactQuery({plan,response,source,event}){
+function newContactQuery(input){
+ if(input.event?.triggerId!=='contact.added')return {status:'held',reason:'fresh_added_contact_required',writesAllowed:false};
+ return duplicateContactQuery(input);
+}
+function reviewDuplicateContactQuery({plan,response,source,event}){
  const hold=reason=>({status:'held',reason,writesAllowed:false});
- const current=newContactQuery({source,event});
+ const current=duplicateContactQuery({source,event});
  if(current.status!=='query_prepared'||!plan||['query','queryHash','sourceHash','sourceContactId','sourceEtag','eventId'].some(k=>current[k]!==plan[k]))return hold('query_binding_changed');
  if(response?.statusCode!==207)return hold('query_failed');
  let body;try{body=typeof response.body==='string'?JSON.parse(response.body):response.body;}catch{return hold('query_unparseable');}
@@ -29,4 +33,8 @@ function reviewNewContactQuery({plan,response,source,event}){
  if(m.response!=null&&(!Array.isArray(m.response)||m.response.length))return hold('existing_or_incomplete_results');
  return {status:'no_candidates',writesAllowed:false,sourceContactId:plan.sourceContactId,sourceEtag:plan.sourceEtag,eventId:plan.eventId,queryHash:plan.queryHash};
 }
-module.exports={newContactQuery,reviewNewContactQuery};
+function reviewNewContactQuery(input){
+ if(input.event?.triggerId!=='contact.added')return {status:'held',reason:'fresh_added_contact_required',writesAllowed:false};
+ return reviewDuplicateContactQuery(input);
+}
+module.exports={newContactQuery,reviewNewContactQuery,duplicateContactQuery,reviewDuplicateContactQuery};
