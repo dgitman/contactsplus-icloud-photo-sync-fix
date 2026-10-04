@@ -38,3 +38,24 @@ test('unverified social service and unsafe parameter values remain held',()=>{
     assert.throws(()=>run({urls:[{type:'linkedin',value:'https://example.test',username}]}),/parameter|Invalid text/);
 });
 test('unknown target parameters cannot be silently removed',()=>assert.throws(()=>run({emails:[{value:'new@example.test'}]},'EMAIL;X-CUSTOM=keep:old@example.test\r\n'),/target parameter/));
+test('omitted empty department does not rewrite an equivalent company',()=>{
+  for(const org of ['ORG:Example','ORG:Example;','ORG:Example;;;'])
+    assert.equal(run({organizations:[{name:'Example'}]},org+'\r\n').changed,false);
+});
+test('real department and title changes are not formatting equivalence',()=>{
+  assert.equal(run({organizations:[{name:'Example'}]},'ORG:Example;Sales\r\n').changed,true);
+  assert.equal(run({organizations:[{name:'Example',title:'Lead'}]},'ORG:Example\r\nTITLE:Manager\r\n').changed,true);
+});
+test('escaped trailing company semicolon remains meaningful',()=>{
+  assert.equal(run({organizations:[{name:'Example;'}]},'ORG:Example\\;\r\n').changed,false);
+  assert.equal(run({organizations:[{name:'Example'}]},'ORG:Example\\;\r\n').changed,true);
+});
+test('Mobile and Apple CELL VOICE are equivalent without rewriting the card',()=>{
+  const r=run({phoneNumbers:[{type:'Mobile',value:'+1 (202) 555-0123'}]},'TEL;type=CELL;type=VOICE;type=pref:+1 (202) 555-0123\r\n');
+  assert.equal(r.changed,false);assert.match(r.vcard,/type=CELL;type=VOICE;type=pref/);
+});
+test('mobile equivalence never hides number, fax or custom label differences',()=>{
+  const data={phoneNumbers:[{type:'Mobile',value:'+12025550123'}]};
+  for(const tel of ['TEL;TYPE=CELL,VOICE:+12025550124','TEL;TYPE=CELL,FAX:+12025550123','item1.TEL:+12025550123\r\nitem1.X-ABLabel:Cell'])
+    assert.equal(run(data,tel+'\r\n').changed,true);
+});

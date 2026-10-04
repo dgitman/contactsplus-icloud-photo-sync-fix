@@ -142,3 +142,12 @@ The serializer preserves case and accepts only tested, delimiter-free parameter
 values. Unknown services, unsupported quoting, and unknown target parameters stay
 held. A disposable CardDAV create/update/readback/cleanup test verified the
 representation before deployment; see the launch verification record.
+
+## Equivalent representations
+
+Comparison treats omitted empty trailing ORG components as equivalent to explicit
+empty departments, and standard Mobile as equivalent to Apple's CELL/VOICE type.
+Equivalent cards are returned unchanged. Custom labels remain distinct from
+standard types; literal escaped semicolons, populated departments, titles, phone
+numbers and fax types remain meaningful. This comparison does not infer country
+codes, strip phone extensions, or accept actual field differences as a baseline.

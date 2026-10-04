@@ -99,13 +99,28 @@ function patchSharedFields({uid,existingVcard,contactData}) {
     // Compare semantics, not group ids, folding, type-case, or preferred flags.
     const semantic=rs=>rs.filter(r=>key(r.line)!=='X-ABLABEL').map(r=>{
       const pos=r.line.indexOf(':'),head=r.line.slice(0,pos);let types=[...head.matchAll(/;type=([^;:]+)/gi)].flatMap(m=>m[1].toLowerCase().split(',')).filter(t=>!['pref','internet'].includes(t)).sort();
-      const label=rs.find(x=>group(x.line)===group(r.line)&&group(r.line)&&key(x.line)==='X-ABLABEL');if(label)types=[label.line.slice(label.line.indexOf(':')+1).toLowerCase()];
+      const label=rs.find(x=>group(x.line)===group(r.line)&&group(r.line)&&key(x.line)==='X-ABLABEL');if(label)types=['label:'+label.line.slice(label.line.indexOf(':')+1).toLowerCase()];
+      if(key(r.line)==='TEL'&&!label){
+        types=[...new Set(types.map(t=>t==='mobile'?'cell':t))];
+        // Apple emits CELL,VOICE for the same Mobile label. Do not remove
+        // voice from other label combinations or conflate fax/pager numbers.
+        if(types.includes('cell'))types=types.filter(t=>t!=='voice');
+        types.sort();
+      }
       const params=head.split(';').slice(1).filter(p=>!/^type=/i.test(p)&&!/^value=(date|text)$/i.test(p)).map(p=>{
         const i=p.indexOf('='),k=p.slice(0,i).toLowerCase(),v=p.slice(i+1);
         // Social IDs are opaque and case-sensitive; retain their exact value.
         return ['x-user','x-userid'].includes(k)?k+'='+v:p.toLowerCase();
       }).sort();
-      return key(r.line)+';'+types.join(',')+';'+params.join(';')+':'+r.line.slice(pos+1);
+      let value=r.line.slice(pos+1);
+      // ORG is structured: an omitted empty trailing department is equivalent
+      // to an explicit empty component. Escaped literal semicolons are data.
+      if(key(r.line)==='ORG')while(value.endsWith(';')){
+        let slashes=0;for(let i=value.length-2;i>=0&&value[i]==='\\';i--)slashes++;
+        if(slashes%2)break;
+        value=value.slice(0,-1);
+      }
+      return key(r.line)+';'+types.join(',')+';'+params.join(';')+':'+value;
     }).sort();
     const proposed=wanted.get(field).map(line=>({line,raw:fold(line)}));
     if(JSON.stringify(semantic([...selected,...ancillary]))===JSON.stringify(semantic(proposed)))continue;

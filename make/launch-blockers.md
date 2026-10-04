@@ -261,3 +261,20 @@ event-existence checks. Test inbox records were read back and removed after
 private evidence was saved. These are synthetic routing tests, not evidence of
 a natural provider import cycle. All 110 local tests pass; 18 real mappings remain
 enabled for the limited update rollout.
+
+## Formatting equivalence expands coverage to 31 contacts
+
+Fresh comparison identified two representation-only differences: an omitted empty
+department in ORG, and standard Mobile versus Apple's CELL/VOICE phone types.
+The converter now recognizes these without rewriting equivalent cards. Escaped
+literal semicolons, populated departments, titles, phone values, fax types and
+custom labels remain distinct. Field baselines still hash actual stored content;
+this does not waive independent-edit conflict checks.
+
+Read-only execution `a3e74081b1d24896ad1062e14b1e2f19` rechecked 18 previously
+held candidates. Thirteen passed and their mapping/baseline records were inserted
+and verified by readback, bringing limited coverage to 31. Five remained held
+for address, name/phone, name/email or URL differences. No contact content was
+changed during bootstrap. Both deployed code bundles were read back exactly,
+the main scenario remains active, and the temporary review scenario was deleted.
+All 115 local tests pass, including negative cases for real data differences.
