@@ -47,7 +47,7 @@ scenario and record were removed afterward; no contacts were written.
 ## Remaining work
 
 - Shared-field receipts now have redelivery recovery and an on-demand pending
-  sweep. URI-photo/create/delete recovery and periodic scheduling remain unfinished.
+  sweep. Create/delete recovery and periodic scheduling remain unfinished.
 - This does not guarantee exactly-once writes or handle every out-of-order source
   change. Conditional writes and exact shared-field readback are deployed.
 - Invalid events currently stop at validation; malformed-event quarantine remains
@@ -159,3 +159,27 @@ decode recovery path. Historical photo events without receipts are not retried.
 Synthetic Make testing confirmed saved/missing/drift outcomes and read back the
 actual stored photo baseline. No real contact was read or written by this test.
 Temporary records and the test scenario were removed after verification.
+
+
+## iCloud URL-photo recovery deployed
+
+New photo receipts also preserve the previously decoded image's byte hash and
+width/height. Recovery admits one ungrouped URI PHOTO only when every non-photo
+property matches the pre-write digest, source identity/content/version remains
+unchanged, and target version changed. Only the configured account's
+`https://gateway.icloud.com/contacts/.../ck/card/` path is allowed.
+
+The authenticated GET disables redirects and cookie sharing. Its original bytes
+are hashed; a separate image conversion/metadata step proves decoding and checks
+recorded dimensions. Only an exact byte match advances the photo baseline and
+marks the event recovered. The baseline uses the actual URI property's hash.
+The event is marked held before downloading, so download/decode errors cannot
+cause the pending sweep to repeatedly consume credits. Redelivery can recheck a
+held receipt without writing the contact.
+
+Older receipts without dimensions remain held for explicit review. This path
+never changes a photo, retries an uncertain PUT, or repairs missing/deleted data.
+The cloud integration test used synthetic contacts and a public image download;
+it did not read or change real contacts. Actual iCloud URL fetches use the existing
+Apple connection and account-bound path, whose photo access was verified during
+the original photo-fill rollout.

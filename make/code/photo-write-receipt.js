@@ -1,5 +1,5 @@
 // Persist only identity and hashes before a photo fill. Recovery never writes a
-// contact. URI-only or reformatted server photos remain held for decoded review.
+// contact. URI readback uses the separate decoded recovery path.
 const {hash}=require('./sync-state');
 const {snapshot}=require('./prepare-shared-update');
 const {cardDigest,reconcileSharedWrite}=require('./shared-write-receipt');
@@ -17,7 +17,7 @@ function createPhotoWriteReceipt({prepared,source,baseline,eventId,before}){
  if(!current.fields.photos)throw Error('Source photo required');
  const next=JSON.parse(JSON.stringify(baseline));next.fields.photos=current.fields.photos;
  next.photoBaseline={version:1,sourceContactId,uid,sourceContentHash:prepared.byteHash,targetPropertyHash:hash(photos)};
- return {version:1,operation:'photo_fill',eventId,sourceContactId,uid,sourceEtag:source.etag,sourceHash:hash(source.contactData),beforeTargetEtag:prepared.targetEtag,beforeHash:cardDigest(before,uid),expectedHash:cardDigest(prepared.vcard,uid),baselineHash:hash(baseline),expectedBaselineJson:JSON.stringify(next)};
+ return {version:1,operation:'photo_fill',byteHash:prepared.byteHash,width:prepared.width,height:prepared.height,eventId,sourceContactId,uid,sourceEtag:source.etag,sourceHash:hash(source.contactData),beforeTargetEtag:prepared.targetEtag,beforeHash:cardDigest(before,uid),expectedHash:cardDigest(prepared.vcard,uid),baselineHash:hash(baseline),expectedBaselineJson:JSON.stringify(next)};
 }
 function reconcilePhotoWrite(input){
  if(input.receipt?.operation!=='photo_fill')return {status:'held',reason:'receipt_identity',writesAllowed:false};

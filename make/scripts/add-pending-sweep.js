@@ -3,7 +3,7 @@
 function addPendingSweep(blueprint){
  const b=JSON.parse(JSON.stringify(blueprint));if(b.flow.some(x=>x.id===71))throw Error('Sweep already installed');
  const recovery=b.flow.find(x=>x.id===60)?.routes[1].flow;if(!recovery)throw Error('Recovery route required');
- const source=recovery.find(x=>x.id===61),ids={61:161,62:162,63:163,64:164,65:165,66:166,67:167,68:168,69:169,70:170};
+ const source=recovery.find(x=>x.id===61),ids={61:161,62:162,63:163,64:164,65:165,66:166,67:167,68:168,69:169,70:170,...Object.fromEntries(Array.from({length:10},(_,i)=>[80+i,180+i]))};
  const remap=s=>s.replace(/\{\{[^}]*\}\}/g,expression=>expression.replace(/\{\{`2`\}\}/g,'{{73.result}}').replace(/(?<![A-Za-z0-9_])2\./g,'73.result.').replace(/(?<![A-Za-z0-9_])(\d+)(?=\.)/g,(all,n)=>ids[n]||n).replace(/`(\d+)`/g,(all,n)=>'`'+(ids[n]||n)+'`'));
  const clone=JSON.parse(remap(JSON.stringify(recovery)));function renumber(flow){for(const x of flow){x.id=ids[x.id]||x.id;for(const r of x.routes||[])renumber(r.flow);}}renumber(clone);
  clone[0].filter={name:'Valid stored event identity',conditions:[[{a:'{{73.result.valid}}',o:'boolean:equal',b:true}]]};

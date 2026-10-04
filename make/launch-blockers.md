@@ -28,8 +28,8 @@ and are not yet activated as production mappings.
   Bootstrap is not a per-event duplicate search.
 - Implement creation/import loop prevention while iCloud pull-in remains enabled.
 - Missing-photo fills are deployed; existing-photo replacement remains unfinished.
-- Shared-field interrupted-operation readback is deployed. Finish URI-photo recovery
-  and merge-aware deletion; successful-write readback is already deployed.
+- Shared-field and new photo-fill interrupted-operation readback are deployed.
+  Finish merge-aware deletion; old photo receipts without decode evidence remain held.
 - On-demand shared-field pending processing is deployed. Finish other operation
   recovery and event-store retention/capacity monitoring.
 - Run creation/echo and merge tests before enabling those operations. A real
@@ -631,3 +631,20 @@ production scenario was read back active and unpaused after deployment. No real
 contacts changed; temporary test data and scenario were deleted. URI-photo
 recovery, creation-loop prevention, merge/deletion handling and broader mapping
 coverage remain launch work.
+
+
+## iCloud URI photo-fill recovery deployed
+
+Both recovery entry points now verify iCloud URI photos by an account-bound,
+redirect-disabled GET followed by image decoding and original-byte hashing. A
+matching source/version, unchanged non-photo fields, new target version, and
+exact decoded image evidence are required before bookkeeping advances. No
+contact writes are part of recovery.
+
+197 local tests passed. The Make integration used synthetic records with real
+public image downloads: exact image recovered, altered bytes held, unrelated
+contact drift held before download. All three stored baselines were read back;
+only the exact-image case advanced. Temporary records and test scenario were
+removed, and production readback confirmed active/unpaused status. Older receipts
+without dimensions remain held; creation-loop prevention, merge/deletion,
+existing-photo replacement, and expanded field coverage still block full sync.
