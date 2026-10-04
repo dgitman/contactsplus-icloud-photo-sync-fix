@@ -541,3 +541,23 @@ All 154 local tests pass, including ordinary label preservation and negative
 cases for service types, labels and phone values. Portable blueprints were
 updated, the temporary scenario deleted, and private evidence retained outside
 Git. Existing creation/deletion and photo-replacement restrictions remain.
+
+## Observed social service aliases: 1,990 contacts live
+
+Saved evidence distinguishes real URL/label/opaque-ID differences from Apple's
+GitHub and Instagram service aliases. The comparator treats only github.com and
+instagram.com as equivalent to github and instagram in X-SOCIALPROFILE TYPE.
+It retains exact URL, username, user ID and custom-label comparisons. No generic
+domain stripping or missing-ID equivalence was introduced.
+
+Fresh review `2f13d583285e4f4da0402f393f5354cd` checked 1,232 URL-only holds
+for 66 credits. Nine passed all checks; the other 1,223 remain held. Registration
+and exact nine-record readback `aee9ecec45f34b19aec8ac31d127ad13` used 28 credits.
+The six live code bundles and portable blueprints contain the fix. All 158 tests
+pass, including negative URL, username, ID, custom-label and unknown-domain cases.
+
+Live coverage is 1,990 mappings; the final check confirmed active and unpaused,
+with 8,144 credits remaining. No contact contents changed. The temporary scenario
+was deleted and detailed evidence kept private. Broader bootstrap differences
+need explicit reconciliation; they are not all formatting issues. Creation,
+deletion/merge handling and existing-photo replacement remain unfinished.

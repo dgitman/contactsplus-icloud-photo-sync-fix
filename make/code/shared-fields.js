@@ -100,6 +100,10 @@ function patchSharedFields({uid,existingVcard,contactData}) {
     const semantic=rs=>rs.filter(r=>key(r.line)!=='X-ABLABEL').map(r=>{
       const pos=r.line.indexOf(':'),head=r.line.slice(0,pos);let types=[...head.matchAll(/;type=([^;:]+)/gi)].flatMap(m=>m[1].toLowerCase().split(',')).filter(t=>!['pref','internet'].includes(t)).sort();
       const label=rs.find(x=>group(x.line)===group(r.line)&&group(r.line)&&key(x.line)==='X-ABLABEL');if(label)types=['label:'+label.line.slice(label.line.indexOf(':')+1).toLowerCase()];
+      // Observed Apple service aliases. Only these two exact service names
+      // are equivalent; URLs, usernames, IDs and custom labels stay exact.
+      if(key(r.line)==='X-SOCIALPROFILE'&&!label)types=types.map(t=>
+        t==='github.com'?'github':t==='instagram.com'?'instagram':t).sort();
       if(key(r.line)==='TEL'&&!label){
         types=[...new Set(types.map(t=>t==='mobile'?'cell':t))];
         // Apple adds VOICE to ordinary Home/Work/Mobile numbers. Preserve
