@@ -158,3 +158,18 @@ are unfinished. Current failures need manual reconciliation; replaying an event 
 not a recovery procedure.
 Contacts+ iCloud pull-in was visibly active at this check, so automatic creation
 also needs a loop-prevention decision before implementation/activation.
+
+### Enrolling matched contacts with existing differences
+
+The read-only batch reviewer supports `acceptInitialDifferences: true` for pairs
+whose one-to-one identity was already established. This records separate source
+and target field hashes without reconciling historical differences. Structured
+name differences, unsupported fields, missing resources and invalid identities
+remain held. With the resulting baseline, unchanged source fields cause no write;
+a later source edit can update its corresponding field only if the target field
+still matches its accepted hash. Independent edits on both sides hold the contact.
+This option does not authorize a historical overwrite or photo replacement.
+
+Before registering a batch, calculate serialized mapping size against the live
+store quota. Make can reject a size increase when the team's allocation is full;
+purchased extra credits do not necessarily increase the recurring storage quota.

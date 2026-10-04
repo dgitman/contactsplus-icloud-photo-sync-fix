@@ -9,3 +9,23 @@ test('duplicate and foreign responses fail whole batch',()=>{for(const response 
 test('HTTP failure cannot become an empty successful review',()=>assert.throws(()=>review({...args,sourceResponse:{statusCode:403}})));
 test('UID mismatch and actual field changes are held',()=>{for(const text of [card.replace('UID:t','UID:other'),card.replace('N:Test;Alex','N:Other;Alex')])assert.equal(review({...args,targetResponse:{statusCode:207,body:{multistatus:{response:[{...target,propstat:[{status:['HTTP/1.1 200 OK'],prop:[{'address-data':[text],getetag:['"v2"']}]}]}]}}}})[0].status,'held');});
 test('portable batch bundle compiles and produces same decision',()=>{const code=require('./bundle-match-review')();const bundled=new Function('require',code+';return reviewMatchBatch;')(require);assert.deepEqual(bundled(args),review(args));});
+test('explicit enrollment preserves initial differences and guards later independent edits',()=>{
+ const modified=structuredClone(args);modified.acceptInitialDifferences=true;
+ modified.sourceResponse.body.contacts[0].contactData.notes='source note';
+ const r=review(modified)[0];assert.equal(r.status,'eligible');
+ const baseline=JSON.parse(r.baselineJson),prepare=require('./prepare-shared-update').prepareSharedUpdate;
+ const input={source:modified.sourceResponse.body.contacts[0],sourceContactId:'s',uid:'t',existingVcard:card,targetEtag:'"v1"',baseline};
+ assert.equal(prepare(input).status,'unchanged');
+ const edited=structuredClone(input);edited.source.contactData.notes='new source note';
+ assert.equal(prepare(edited).status,'prepared-only');
+ edited.existingVcard=card.replace('END:VCARD','NOTE:independent target note\r\nEND:VCARD');
+ assert.equal(prepare(edited).status,'conflict');
+});
+test('accepting initial differences does not weaken name identity or unsupported-field guards',()=>{
+ const x=structuredClone(args);x.acceptInitialDifferences=true;
+ x.sourceResponse.body.contacts[0].contactData.name.givenName='Other';
+ assert.equal(review(x)[0].status,'held');
+ x.sourceResponse.body.contacts[0].contactData.name.givenName='Alex';
+ x.sourceResponse.body.contacts[0].contactData.gender='other';
+ assert.equal(review(x)[0].status,'held');
+});

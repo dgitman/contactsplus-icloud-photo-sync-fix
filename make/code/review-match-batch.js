@@ -3,7 +3,7 @@
 const patchSharedFields=require('./shared-fields');
 const {snapshot}=require('./prepare-shared-update');
 const bootstrapEvidence=require('./bootstrap-evidence');
-function reviewMatchBatch({candidates,sourceResponse,targetResponse,bookPath}){
+function reviewMatchBatch({candidates,sourceResponse,targetResponse,bookPath,acceptInitialDifferences=false}){
  const parse=x=>typeof x==='string'?JSON.parse(x):x,arr=x=>x==null?[]:Array.isArray(x)?x:[x];
  const scalar=x=>{x=arr(x)[0];return x&&typeof x==='object'?x._value:x;};
  const s=parse(sourceResponse),t=parse(targetResponse);candidates=parse(candidates);
@@ -30,7 +30,10 @@ function reviewMatchBatch({candidates,sourceResponse,targetResponse,bookPath}){
    if(typeof source.etag!=='string'||!source.etag||!/^"[^"\r\n]+"$/.test(target.etag||''))throw Error('Missing version evidence');
    if(!bootstrapEvidence({contactData:source.contactData,existingVcard:target.card}))return hold('no_strong_identifier');
    const diff=patchSharedFields({uid,existingVcard:target.card,contactData:source.contactData});
-   if(diff.changed)return {...hold('shared_field_differences'),fields:diff.changedFields};
+   // Enrollment records both current versions without modifying either. Future
+   // source edits still require an unchanged target field. Never use this option
+   // to relax identity: differing structured names remain held.
+   if(diff.changed&&(!acceptInitialDifferences||diff.changedFields.includes('name')))return {...hold('shared_field_differences'),fields:diff.changedFields};
    return {status:'eligible',sourceId,uid,sourceEtag:source.etag,targetEtag:target.etag,baselineJson:JSON.stringify(snapshot({sourceContactId:sourceId,uid,existingVcard:target.card,contactData:source.contactData}))};
   }catch(e){return hold(String(e.message));}
  });
