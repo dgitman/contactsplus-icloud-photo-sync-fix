@@ -7,7 +7,7 @@ The newest verification evidence is at the end; older sections describe historic
 implementation stages, not the current enabled state.
 
 This is event-driven synchronization, not a claim that every historical record is
-identical. There are 6,336 accepted existing mappings. Ambiguous/unmapped identities,
+identical. There are 6,892 accepted existing mappings. Ambiguous/unmapped identities,
 malformed supported fields, mixed photo/text changes and independent target edits remain
 held rather than guessed or overwritten. New-contact creation requires a structured
 name and email and a successful bounded duplicate query.
@@ -968,3 +968,23 @@ one source was absent from the fresh read. This leaves 803 records from the prio
 inventory outside coverage (772 unmatched, 26 from this cohort, and five previous
 holds); it is not a current full-address-book count. Both temporary scenarios were
 removed. Existing production code and contact content were unchanged.
+
+
+## Unique-name corroborated cohort — October 4
+
+The prior inventory's 772 unmatched records yielded 652 candidates with a unique
+normalized full name on both sides and an available, unmapped iCloud target.
+Fresh source and target reads accepted 556 using an exact supported name plus
+an exact complete address, full birthday, supported profile URL, primary company
+and title, or long notes. Name alone and company alone do not qualify. This
+review-only option requires global uniqueness screening and is off by default.
+
+All 556 mappings passed complete store readback in batches of 500 and 56, bringing
+live coverage to 6,892. Enrollment preserved contact contents and separate source
+and target baselines; it did not overwrite historical differences. 96 reviewed
+candidates lacked corroboration. Together with 120 without a unique-name candidate,
+26 earlier ambiguous holds and five prior holds, 247 records from the earlier
+inventory remain outside coverage. This is not a fresh full-inventory count.
+
+242 local tests passed. Both temporary scenarios were deleted after successful
+enrollment. Production remains active, unpaused, with zero incomplete executions.
