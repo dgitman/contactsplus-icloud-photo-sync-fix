@@ -1,13 +1,13 @@
 {
   "url": "https://icloud-carddav.example.invalid/book/",
-  "method": "REPORT",
+  "method": "{{parameters.method}}",
   "headers": {
     "authorization": "Basic {{base64(connection.username + ':' + connection.password)}}",
     "Depth": "1",
     "Content-Type": "application/xml; charset=utf-8"
   },
   "type": "text",
-  "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><c:addressbook-query xmlns:d=\"DAV:\" xmlns:c=\"urn:ietf:params:xml:ns:carddav\"><d:prop><d:getetag/><c:address-data><c:prop name=\"UID\"/><c:prop name=\"FN\"/></c:address-data></d:prop><c:filter><c:prop-filter name=\"FN\"><c:text-match collation=\"i;unicode-casemap\" match-type=\"equals\">Codex CardDAV Test</c:text-match></c:prop-filter></c:filter></c:addressbook-query>",
+  "body": "{{parameters.body}}",
   "response": {
     "output": {
       "statusCode": "{{statusCode}}",

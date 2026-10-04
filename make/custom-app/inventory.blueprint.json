@@ -1,0 +1,92 @@
+{
+  "flow": [
+    {
+      "id": 3,
+      "mapper": {
+        "body": "<?xml version=\"1.0\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:getetag/><d:resourcetype/></d:prop></d:propfind>",
+        "method": "PROPFIND"
+      },
+      "module": "app#icloud-carddav-sync-ctnuju:queryAddressBook",
+      "version": 1,
+      "parameters": {}
+    },
+    {
+      "id": 4,
+      "mapper": {
+        "input": [
+          {
+            "name": "body",
+            "value": "{{3.body}}"
+          }
+        ],
+        "language": "javascript",
+        "inputFormat": "editor",
+        "codeEditorJavascript": "const rows=input.body.multistatus.response;const scalar=x=>Array.isArray(x)?x[0]:x; const hrefs=rows.map(r=>{if(!r.propstat?.every(p=>scalar(p.status)==='HTTP/1.1 200 OK'))throw Error('Incomplete listing');return scalar(r.href);}).filter(h=>h.endsWith('.vcf')); if(new Set(hrefs).size!==hrefs.length)throw Error('Duplicate resource');if(hrefs.some(h=>!h.startsWith('/book/')))throw Error('Foreign resource');const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;');return {count:hrefs.length,chunks:Array.from({length:Math.ceil(hrefs.length/100)},(_,i)=>({offset:i*100,count:hrefs.slice(i*100,i*100+100).length,xml:'<?xml version=\"1.0\"?><c:addressbook-multiget xmlns:d=\"DAV:\" xmlns:c=\"urn:ietf:params:xml:ns:carddav\"><d:prop><d:getetag/><c:address-data><c:prop name=\"UID\"/><c:prop name=\"FN\"/><c:prop name=\"EMAIL\"/><c:prop name=\"TEL\"/></c:address-data></d:prop>'+hrefs.slice(i*100,i*100+100).map(h=>'<d:href>'+esc(h)+'</d:href>').join('')+'</c:addressbook-multiget>'}))};"
+      },
+      "module": "code:ExecuteCode",
+      "version": 1
+    },
+    {
+      "id": 5,
+      "mapper": {
+        "array": "{{4.result.chunks}}"
+      },
+      "module": "builtin:BasicFeeder",
+      "version": 1
+    },
+    {
+      "id": 6,
+      "mapper": {
+        "body": "{{5.xml}}",
+        "method": "REPORT"
+      },
+      "module": "app#icloud-carddav-sync-ctnuju:queryAddressBook",
+      "version": 1,
+      "parameters": {}
+    },
+    {
+      "id": 7,
+      "mapper": {
+        "input": [
+          {
+            "name": "body",
+            "value": "{{6.body}}"
+          },
+          {
+            "name": "expected",
+            "value": "{{5.count}}"
+          },
+          {
+            "name": "offset",
+            "value": "{{5.offset}}"
+          }
+        ],
+        "language": "javascript",
+        "inputFormat": "editor",
+        "codeEditorJavascript": "const root=typeof input.body==='string'?JSON.parse(input.body):input.body;\nconst arr=x=>x==null?[]:Array.isArray(x)?x:[x];\nconst scalar=x=>{x=arr(x)[0];return typeof x==='object'?x?._value:x;};\nconst rows=arr(root.multistatus?.response).map(r=>{\n const ps=arr(r.propstat).find(p=>/ 200 /.test(scalar(p.status)||''));\n if(!ps)throw Error('Inventory property failure');\n const p=arr(ps.prop)[0],v=scalar(p['address-data']);\n if(typeof v!=='string')throw Error('Missing vCard');\n const lines=v.replace(/\\r\\n[ \\t]/g,'').split(/\\r?\\n/);\n const values=k=>lines.filter(l=>l.split(':')[0].split(';')[0].split('.').at(-1).toUpperCase()===k).map(l=>l.slice(l.indexOf(':')+1));\n const uid=values('UID'); if(uid.length!==1)throw Error('Ambiguous UID');\n return {id:uid[0],href:scalar(r.href),etag:scalar(p.getetag),name:values('FN')[0]||'',emails:values('EMAIL'),phones:values('TEL')};\n}); if(new Set(rows.map(r=>r.id)).size!==rows.length)throw Error('Duplicate UID');\nif(rows.length!==Number(input.expected))throw Error('Incomplete batch');return {offset:input.offset,count:rows.length,compressed:require('node:zlib').gzipSync(JSON.stringify(rows)).toString('base64')};"
+      },
+      "module": "code:ExecuteCode",
+      "version": 1
+    }
+  ],
+  "name": "Temporary authorized iCloud inventory test",
+  "metadata": {
+    "instant": false,
+    "version": 1,
+    "designer": {
+      "orphans": []
+    },
+    "scenario": {
+      "slots": null,
+      "roundtrips": 1,
+      "confidential": false
+    }
+  },
+  "scheduling": {
+    "type": "on-demand"
+  },
+  "interface": {
+    "input": [],
+    "output": []
+  }
+}

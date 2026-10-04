@@ -1,1 +1,24 @@
-[]
+[
+  {
+    "name": "method",
+    "type": "select",
+    "label": "Read method",
+    "required": true,
+    "options": [
+      {
+        "label": "List resources",
+        "value": "PROPFIND"
+      },
+      {
+        "label": "Read contacts",
+        "value": "REPORT"
+      }
+    ]
+  },
+  {
+    "name": "body",
+    "type": "text",
+    "label": "XML request",
+    "required": true
+  }
+]

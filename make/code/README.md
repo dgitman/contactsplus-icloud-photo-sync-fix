@@ -81,7 +81,10 @@ must be normalized by the caller according to each field's semantics.
 ## Bootstrap matching
 
 `identity.js` is a pure, currently unwired bootstrap matcher. It requires a unique
-email or exact international phone plus normalized exact name agreement. Conflicting
-keys, shared identifiers and many-to-one matches are held. Name-only matching and
-phone-suffix guessing are never accepted. Inventory completeness must be verified
-by the caller. A match is not authority to propagate a deletion.
+email or exact international phone with compatible names, or independently unique
+email and phone evidence when names differ. Compatible names allow punctuation,
+accents, honorifics, omitted middle names and matching middle initials; nicknames
+and conflicting complete middle names are not guessed. Shared identifiers alone,
+conflicting unique evidence and many-to-one matches remain held. No name-only
+matching or phone-suffix guessing is allowed. The caller must verify inventory
+completeness. Matching never authorizes deletion.

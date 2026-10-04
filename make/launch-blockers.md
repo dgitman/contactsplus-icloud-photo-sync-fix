@@ -11,9 +11,12 @@ valid DAV multistatus for an exact-name disposable-contact query. This establish
 a Make-only CardDAV query route. No local worker or AWS helper is required.
 
 Detailed execution logging is enabled at the user's request; authorization headers
-remain sanitized. A full identity inventory query is configured but was blocked
-before execution by automatic approval review, pending specific authorization to
-send names, emails, phones, IDs and ETags to Make and retain them in execution logs.
+remain sanitized. The user specifically authorized both source and target inventories in Make logs.
+The iCloud inventory completed with 7,433 unique contact resources using bounded
+multiget reads. Contacts+ pagination completed with 7,139 unique records. Refined matching produced
+6,009 candidates, 311 name conflicts, 47 ambiguous cases, and 772 unmatched records.
+Of the unmatched records, 645 have neither email nor phone. Candidates remain private
+and are not yet activated as production mappings.
 
 ## Remaining launch work
 
