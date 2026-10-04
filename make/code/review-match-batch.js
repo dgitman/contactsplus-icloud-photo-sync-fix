@@ -34,7 +34,7 @@ function reviewMatchBatch({candidates,sourceResponse,targetResponse,bookPath,acc
    // Enrollment records both current versions without modifying either. Future
    // source edits still require an unchanged target field. Never use this option
    // to relax identity: differing structured names remain held.
-   if(diff.changed&&(!acceptInitialDifferences||(diff.changedFields.includes('name')&&!(acceptCorroboratedNames&&['exact_email_and_phone','exact_email_and_compatible_name'].includes(evidence)))))return {...hold('shared_field_differences'),fields:diff.changedFields};
+   if(diff.changed&&(!acceptInitialDifferences||(diff.changedFields.includes('name')&&!(acceptCorroboratedNames&&['exact_email_and_phone','exact_email_and_compatible_name','exact_email_and_structured_name'].includes(evidence)))))return {...hold('shared_field_differences'),fields:diff.changedFields};
    return {status:'eligible',sourceId,uid,resourceName:target.resourceName,sourceEtag:source.etag,targetEtag:target.etag,baselineJson:JSON.stringify(snapshot({sourceContactId:sourceId,uid,existingVcard:target.card,contactData:source.contactData}))};
   }catch(e){return hold(String(e.message));}
  });

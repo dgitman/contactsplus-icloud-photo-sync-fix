@@ -18,3 +18,10 @@ test('name differences require extra current corroboration',()=>{
  assert.equal(evidence({contactData:{emails:[{value:'test@example.invalid'}],name:{givenName:'Test Middle',familyName:'Person'}},existingVcard:target}),'exact_email_and_compatible_name');
  assert.equal(evidence({contactData:{emails:[{value:'test@example.invalid'}],name:{givenName:'Someone',familyName:'Else'}},existingVcard:target}),'exact_email');
 });
+test('unnamed businesses require exact international phone and primary company',()=>{
+ const target=card.replace('N:Person;Test;;;','N:;;;;').replace('FN:Test Person','FN:').replace('END:VCARD','ORG:Example Co;Support\r\nEND:VCARD');
+ const d={phoneNumbers:contactData.phoneNumbers,organizations:[{name:'Example Co'}]};
+ assert.equal(evidence({contactData:d,existingVcard:target}),'exact_international_phone_and_company');
+ assert.equal(evidence({contactData:{...d,organizations:[{name:'Other Co'}]},existingVcard:target}),null);
+ assert.equal(evidence({contactData:{...d,phoneNumbers:[{value:'2025550123'}]},existingVcard:target}),null);
+});

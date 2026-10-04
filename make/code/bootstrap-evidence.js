@@ -10,6 +10,18 @@ function bootstrapEvidence({contactData,existingVcard}){
   const phone=v=>{if(typeof v!=='string'||!/^[+0-9 ().-]+$/.test(v))return null;const n=v.replace(/[ ().-]/g,'');return /^\+[1-9]\d{7,14}$/.test(n)?n:null;};
   const targetPhones=new Set(lines.filter(l=>key(l)==='TEL').map(l=>phone(value(l))).filter(Boolean));
   const matched=(contactData.phoneNumbers||[]).some(p=>phone(p.value)&&targetPhones.has(phone(p.value)));
+  if(matched&&!contactData.name&&lines.filter(l=>key(l)==='N').every(l=>value(l).replace(/;/g,'')==='')) {
+    const company=contactData.organizations?.[0]?.name;
+    const escaped=typeof company==='string'?company.replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').trim().toLowerCase():'';
+    const orgs=lines.filter(l=>key(l)==='ORG').map(l=>value(l).split(/(?<!\\);/)[0].trim().toLowerCase());
+    if(escaped&&orgs.includes(escaped))return 'exact_international_phone_and_company';
+  }
+  if(email&&contactData.name) {
+    const uid=value(lines.find(l=>key(l)==='UID')||'');
+    const prepared=patchSharedFields({uid,existingVcard,contactData:{name:contactData.name}}).vcard.replace(/\r\n[ \t]/g,'').split('\r\n');
+    const actual=lines.filter(l=>key(l)==='N'),expected=prepared.filter(l=>key(l)==='N');
+    if(actual.length===1&&expected.length===1&&actual[0]===expected[0])return 'exact_email_and_structured_name';
+  }
   if(email&&matched)return 'exact_email_and_phone';
   if(email) {
     const n=lines.filter(l=>/^N:/.test(l));

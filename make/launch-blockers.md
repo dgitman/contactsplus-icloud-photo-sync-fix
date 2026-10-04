@@ -7,7 +7,7 @@ The newest verification evidence is at the end; older sections describe historic
 implementation stages, not the current enabled state.
 
 This is event-driven synchronization, not a claim that every historical record is
-identical. There are 6,009 accepted existing mappings. Ambiguous/unmapped identities,
+identical. There are 6,315 accepted existing mappings. Ambiguous/unmapped identities,
 malformed supported fields, mixed photo/text changes and independent target edits remain
 held rather than guessed or overwritten. New-contact creation requires a structured
 name and email and a successful bounded duplicate query.
@@ -935,3 +935,20 @@ fully enrolled, but this does not establish historical convergence or resolve th
 remaining 1,130 records classified as name conflicts, ambiguous or unmatched in
 the earlier inventory. Both temporary scenarios were removed. Validation: 236
 local tests, successful fresh cloud review and exact deployed-code readback.
+
+## Remaining unique-identifier cohort — October 4
+
+The earlier unmatched set contained 311 pairs with a globally unique identifier
+but differing names. Their target resources were not already mapped, and each
+candidate target was unique within the batch. Fresh cloud source/target reads
+accepted 255 under existing rules. A further 51 passed after adding corroboration
+for exact international phone plus exact primary company on unnamed business
+cards, or exact email plus identical structured name despite a different display
+name. Four lack corroboration and one actual name conflict remains held.
+
+All 306 additional mappings passed full store readback, bringing live coverage to
+6,315. No contact contents were changed or contacts created during enrollment.
+The remaining prior-inventory population is 824: 772 unmatched, 47 ambiguous, and
+five held from the refreshed cohort. Those counts are not a fresh full inventory.
+237 local tests passed; cloud review and enrollment succeeded. Temporary review
+and enrollment scenarios were removed.
