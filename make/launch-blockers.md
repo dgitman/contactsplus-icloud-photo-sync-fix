@@ -7,7 +7,7 @@ The newest verification evidence is at the end; older sections describe historic
 implementation stages, not the current enabled state.
 
 This is event-driven synchronization, not a claim that every historical record is
-identical. There are 6,315 accepted existing mappings. Ambiguous/unmapped identities,
+identical. There are 6,336 accepted existing mappings. Ambiguous/unmapped identities,
 malformed supported fields, mixed photo/text changes and independent target edits remain
 held rather than guessed or overwritten. New-contact creation requires a structured
 name and email and a successful bounded duplicate query.
@@ -952,3 +952,19 @@ The remaining prior-inventory population is 824: 772 unmatched, 47 ambiguous, an
 five held from the refreshed cohort. Those counts are not a fresh full inventory.
 237 local tests passed; cloud review and enrollment succeeded. Temporary review
 and enrollment scenarios were removed.
+
+## Ambiguous shared-identifier cohort — October 4
+
+Fresh reads covered 47 ambiguous Contacts+ records and 82 possible iCloud target
+resources. Already mapped targets were excluded. Every candidate was compared
+using supported fields without accepting initial differences. Enrollment required
+one exact available target, an exact supported name baseline, a shared identifier,
+and no other source with an exact claim to that target. Ties were not assigned
+arbitrarily and no duplicates were merged or deleted.
+
+21 pairs passed and were registered with complete store readback, bringing live
+coverage to 6,336 mappings. 26 remain held: 25 had no exact available match and
+one source was absent from the fresh read. This leaves 803 records from the prior
+inventory outside coverage (772 unmatched, 26 from this cohort, and five previous
+holds); it is not a current full-address-book count. Both temporary scenarios were
+removed. Existing production code and contact content were unchanged.
