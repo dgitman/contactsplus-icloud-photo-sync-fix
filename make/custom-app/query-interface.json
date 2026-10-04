@@ -1,0 +1,12 @@
+[
+  {
+    "name": "statusCode",
+    "type": "number",
+    "label": "HTTP status"
+  },
+  {
+    "name": "body",
+    "type": "any",
+    "label": "CardDAV response"
+  }
+]

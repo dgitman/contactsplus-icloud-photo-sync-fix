@@ -1,0 +1,26 @@
+{
+  "url": "https://icloud-carddav.example.invalid/book/",
+  "method": "PROPFIND",
+  "headers": {
+    "authorization": "Basic {{base64(parameters.username + ':' + parameters.password)}}",
+    "Depth": "0",
+    "Content-Type": "application/xml"
+  },
+  "type": "text",
+  "body": "<?xml version=\"1.0\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/></d:prop></d:propfind>",
+  "response": {
+    "metadata": {
+      "type": "email",
+      "value": "{{parameters.username}}"
+    },
+    "error": {
+      "message": "CardDAV authentication failed ({{statusCode}})"
+    }
+  },
+  "log": {
+    "sanitize": [
+      "request.headers.authorization",
+      "response.body"
+    ]
+  }
+}
