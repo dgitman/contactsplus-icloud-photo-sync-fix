@@ -521,3 +521,23 @@ Creation, deletion/merge recovery and existing-photo replacement remain disabled
 The next coverage work is reconciliation of held differences, not another scan of
 the same inventory. Credit budgeting is documented in the Make README. No runtime
 code changed in this rollout.
+
+## Ordinary phone-label equivalence: 1,981 contacts live
+
+Saved evidence showed iCloud's ordinary Home/Work phone labels carrying an extra
+VOICE type. The comparator now preserves exact numbers with a single Home, Work,
+or Mobile/Cell label with or without VOICE. It continues to distinguish fax,
+pager, messaging, unknown types, multiple locations, custom labels and changed
+numbers. This is representation equivalence, not a new identity-matching rule.
+The same comparator is deployed in all six bundled live code modules.
+
+Execution `b0177028dc2f4c4e9f1a2706265a4c6c` freshly reviewed 515 phone-only
+held pairs. 231 passed all checks; 284 remain held. Registration and readback
+execution `94cb3233edee4f279c21161b0c549ebf` confirmed every field of all 231
+new mappings. Coverage is 1,981; no contact contents were changed. Review and
+registration used 725 credits total. The scenario remains active and unpaused.
+
+All 154 local tests pass, including ordinary label preservation and negative
+cases for service types, labels and phone values. Portable blueprints were
+updated, the temporary scenario deleted, and private evidence retained outside
+Git. Existing creation/deletion and photo-replacement restrictions remain.

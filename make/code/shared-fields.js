@@ -102,9 +102,11 @@ function patchSharedFields({uid,existingVcard,contactData}) {
       const label=rs.find(x=>group(x.line)===group(r.line)&&group(r.line)&&key(x.line)==='X-ABLABEL');if(label)types=['label:'+label.line.slice(label.line.indexOf(':')+1).toLowerCase()];
       if(key(r.line)==='TEL'&&!label){
         types=[...new Set(types.map(t=>t==='mobile'?'cell':t))];
-        // Apple emits CELL,VOICE for the same Mobile label. Do not remove
-        // voice from other label combinations or conflate fax/pager numbers.
-        if(types.includes('cell'))types=types.filter(t=>t!=='voice');
+        // Apple adds VOICE to ordinary Home/Work/Mobile numbers. Preserve
+        // service distinctions (fax, pager, messaging, unknown types) and
+        // multi-location combinations; only a single ordinary label qualifies.
+        const ordinary=types.filter(t=>t!=='voice');
+        if(ordinary.length===1&&['cell','home','work'].includes(ordinary[0]))types=ordinary;
         types.sort();
       }
       const params=head.split(';').slice(1).filter(p=>!/^type=/i.test(p)&&!/^value=(date|text)$/i.test(p)).map(p=>{
