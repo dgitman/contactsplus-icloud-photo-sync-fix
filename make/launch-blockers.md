@@ -101,3 +101,21 @@ send Apple credentials to arbitrary source-photo hosts.
 This verifies a Make-to-iCloud disposable create/photo/read/delete transport test.
 It does not verify a Contacts+ event, primary-photo selection, existing-contact
 replacement, merge handling, device display, or full production synchronization.
+
+## Existing-contact photo replacement verified
+
+Make execution `594c3752e03d4529bed6ccca0d337037` completed the disposable
+replacement test on October 4. It created a contact with a 2x2 JPEG, read its
+current vCard/ETag, then replaced the photo with a distinct 4x3 JPEG using
+`If-Match`. Authenticated download of the new Apple-hosted image matched the
+uploaded bytes exactly and decoded with the expected dimensions.
+
+The comparison preserved every non-PHOTO vCard line, allowing only server REV
+and PRODID differences. A deliberate write with the old ETag returned 412,
+confirming stale-write protection. Conditional deletion succeeded and GET 404
+confirmed cleanup. The temporary scenario was removed. Full account-specific
+blueprint and execution evidence remain private outside Git.
+
+This verifies replacement transport and serialization on a disposable contact.
+Production source-photo selection, event routing, baseline integration, mapping
+installation, and merge/echo behavior remain separate unverified launch work.
