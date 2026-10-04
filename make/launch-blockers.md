@@ -453,3 +453,22 @@ next expansion. The main scenario remains active and unpaused. The temporary
 review scenario was deleted, private evidence preserved outside Git, and all 150
 local tests pass. Existing-photo replacement and automatic creation/deletion
 remain held.
+
+## Further batched bootstrap: 1,228 contacts live
+
+Execution `d3b975d56cba4c28bf9b4d593645ed63` freshly reviewed another 1,000
+previously unique pairs. 636 passed current identity, version and supported
+shared-field checks. The other 364 remain held: 354 shared-field differences,
+eight unsupported social metadata cases and two unsupported gender fields.
+
+Registration execution `18bf7aef91864d4cb6b5b3ea3557bcee` inserted and read back
+all 636 accepted mappings. All fields in every readback matched the expected
+record exactly. Registration/readback used 1,909 credits. The live store now
+contains 1,228 mappings and uses 1,416,439 bytes. Its allocation was increased
+to 5 MiB within the existing account limit. No contact contents were changed.
+
+An older pending deletion event was explicitly marked held for merge/deletion
+review; it was not replayed. The main scenario was confirmed active and unpaused,
+and the temporary review scenario was deleted. Private review evidence remains
+outside Git. No runtime code changed in this expansion. Existing-photo
+replacement and automatic creation/deletion remain held.
