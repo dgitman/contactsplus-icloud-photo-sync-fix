@@ -312,3 +312,18 @@ baselines and detailed outcomes remain outside Git. The temporary scenario was
 removed; the main scenario was confirmed active and unpaused. Mapping storage is
 106,913 bytes of its 1 MiB allocation, so this batch fits without changing storage.
 This expands coverage of supported updates, not photo/create/delete functionality.
+
+## Phone-based corroboration: 94 contacts live
+
+The read-only bootstrap gate now supports a shared international phone plus exact
+structured name when email is absent. All 46 candidates were first checked against
+the prior globally unique match inventory. No inferred country codes, extensions,
+national-number guesses or name-only matches were accepted. Existing full-field,
+UID and version checks still apply. No per-event duplicate lookup was added.
+
+Execution `973e8b98e3454ae5b1c0e872657ed841` freshly reviewed all 46 candidates.
+Fourteen passed and their mappings/baselines were installed and read back exactly,
+bringing coverage to 94. The other 32 had shared-field differences and stayed held.
+No contact content was changed. Private evidence was preserved and the temporary
+review scenario was removed. All 121 local tests pass. This improves identity
+coverage without enabling the unfinished photo/create/delete operations.

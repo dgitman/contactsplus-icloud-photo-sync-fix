@@ -159,3 +159,13 @@ target field is empty. Existing target data and new photos stay held. Verificati
 requires the pre-write card as well as exact post-write readback before adding a
 field to the baseline. Missing source fields remain held; explicit supported
 empty values continue through the existing conflict checks.
+
+## Bootstrap identity evidence
+
+`bootstrap-evidence.js` corroborates previously unique inventory matches using a
+shared email or an exact international phone plus exact structured name. It does
+not discover uniqueness by itself and must not authorize creation or deletion.
+National numbers, inferred country codes, extensions and name-only matches do
+not qualify. Full fresh shared-field comparison and target UID/version checks
+are still required before installing a mapping. This is bootstrap work, not a
+per-event duplicate lookup.
