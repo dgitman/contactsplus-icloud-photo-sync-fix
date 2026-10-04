@@ -7,7 +7,7 @@ The newest verification evidence is at the end; older sections describe historic
 implementation stages, not the current enabled state.
 
 This is event-driven synchronization, not a claim that every historical record is
-identical. There are 6,926 accepted existing mappings. Ambiguous/unmapped identities,
+identical. There are 6,976 accepted existing mappings. Ambiguous/unmapped identities,
 malformed supported fields, mixed photo/text changes and independent target edits remain
 held rather than guessed or overwritten. New-contact creation requires a structured
 name and email and a successful bounded duplicate query.
@@ -1005,3 +1005,21 @@ contents were changed. Enrollment preserves historical differences as separate
 baselines rather than asserting full convergence. 244 local tests passed, and
 the portable review bundle was regenerated and syntax-checked. Temporary review
 and enrollment scenarios were removed after verification.
+
+
+## Escaped inventory names — October 4
+
+Some iCloud inventory display names retained vCard TEXT escapes, so a literal
+comma in Contacts+ failed to match an escaped comma in iCloud. The reusable
+inventory-name helper decodes only standard TEXT escapes on the vCard side,
+once. It retains credentials, unknown escapes and literal source backslashes.
+This normalization discovers candidates only; it is not identity authorization.
+
+After excluding prior candidates and mapped targets, whole-inventory uniqueness
+checks found 52 additional pairs. Fresh cloud review accepted 50 with the existing
+identity corroboration rules; two lack strong corroboration and remain held.
+All 50 were enrolled and passed complete store readback. No contacts were created,
+merged or changed. Live coverage is 6,976 mappings, with 163 records from the prior
+inventory outside coverage. Historical field differences remain preserved, not
+asserted to be converged. 248 local tests passed. Both temporary scenarios were
+deleted after successful verification.
