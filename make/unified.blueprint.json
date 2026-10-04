@@ -1,5 +1,5 @@
 {
-  "name": "Contacts+ to iCloud mapping gate scaffold",
+  "name": "Contacts+ to iCloud event inbox and mapping scaffold",
   "flow": [
     {
       "id": 1,
@@ -13,6 +13,135 @@
       "version": 1,
       "mapper": {
         "array": "{{1.events}}"
+      }
+    },
+    {
+      "id": 9,
+      "module": "datastore:ExistRecord",
+      "version": 1,
+      "mapper": {
+        "key": "contactsplus-primary:{{2.eventId}}"
+      },
+      "filter": {
+        "name": "Recognized event with IDs",
+        "conditions": [
+          [
+            {
+              "a": "{{2.eventId}}",
+              "o": "exist"
+            },
+            {
+              "a": "{{2.eventId}}",
+              "b": "",
+              "o": "text:notequal"
+            },
+            {
+              "a": "{{2.data.contactId}}",
+              "o": "exist"
+            },
+            {
+              "a": "{{2.data.contactId}}",
+              "b": "",
+              "o": "text:notequal"
+            },
+            {
+              "a": "{{2.triggerId}}",
+              "b": "contact.added",
+              "o": "text:equal"
+            }
+          ],
+          [
+            {
+              "a": "{{2.eventId}}",
+              "o": "exist"
+            },
+            {
+              "a": "{{2.eventId}}",
+              "b": "",
+              "o": "text:notequal"
+            },
+            {
+              "a": "{{2.data.contactId}}",
+              "o": "exist"
+            },
+            {
+              "a": "{{2.data.contactId}}",
+              "b": "",
+              "o": "text:notequal"
+            },
+            {
+              "a": "{{2.triggerId}}",
+              "b": "contact.updated",
+              "o": "text:equal"
+            }
+          ],
+          [
+            {
+              "a": "{{2.eventId}}",
+              "o": "exist"
+            },
+            {
+              "a": "{{2.eventId}}",
+              "b": "",
+              "o": "text:notequal"
+            },
+            {
+              "a": "{{2.data.contactId}}",
+              "o": "exist"
+            },
+            {
+              "a": "{{2.data.contactId}}",
+              "b": "",
+              "o": "text:notequal"
+            },
+            {
+              "a": "{{2.triggerId}}",
+              "b": "contact.deleted",
+              "o": "text:equal"
+            }
+          ]
+        ]
+      },
+      "parameters": {},
+      "metadata": {
+        "designer": {
+          "name": "Check previously received event"
+        }
+      }
+    },
+    {
+      "id": 10,
+      "module": "datastore:AddRecord",
+      "version": 1,
+      "mapper": {
+        "key": "contactsplus-primary:{{2.eventId}}",
+        "data": {
+          "state": "pending",
+          "eventId": "{{2.eventId}}",
+          "triggerId": "{{2.triggerId}}",
+          "receivedAt": "{{now}}",
+          "sourceAccountId": "contactsplus-primary",
+          "sourceContactId": "{{2.data.contactId}}"
+        },
+        "overwrite": false
+      },
+      "filter": {
+        "name": "First delivery only",
+        "conditions": [
+          [
+            {
+              "a": "{{9.exist}}",
+              "b": false,
+              "o": "boolean:equal"
+            }
+          ]
+        ]
+      },
+      "parameters": {},
+      "metadata": {
+        "designer": {
+          "name": "Retain new event for processing"
+        }
       }
     },
     {

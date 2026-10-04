@@ -40,7 +40,8 @@ State values and URL/UID validation still require explicit scenario guards.
   readback; do not create a second resource after an uncertain outcome.
 - Mark a mapping verified only after target readback. Retain a deletion tombstone
   so a delayed event cannot recreate a deliberately deleted contact.
-- A separate durable event ledger is still needed for replay/out-of-order handling.
+- The event inbox retains first deliveries; processing and out-of-order handling
+  remain unfinished.
   lastEventId alone cannot provide that guarantee.
 - Back up vCards before real writes. Preserve fields outside the agreed sync scope.
 
@@ -55,6 +56,6 @@ exact source contact ID. Unmapped records, pending records, mismatched source ID
 and empty contact IDs did not reach any route endpoint. The temporary records were
 removed and the scenario was disabled afterward. No target requests occurred.
 
-This is a routing guard, not completed synchronization: blocked events currently
-end silently, so a durable review queue is required before production activation.
+This is a routing guard, not completed synchronization. Valid unmapped events now
+remain pending in the [event inbox](event-inbox.md); a processor is still required.
 Target URL/UID checks and write conflict handling remain to be implemented.

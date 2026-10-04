@@ -46,4 +46,5 @@ Do not commit credentials, live webhook URLs, contact records, or execution payl
 See [persistent contact mapping](contact-mapping.md) for the provisioned store schema,
 completed tests, and remaining guards. The store lookup now gates all three routes.
 Only exact verified mappings proceed; unmapped events currently stop without writes.
-Production creation and a durable review queue are still pending.
+Valid unmapped events are retained in the [event inbox](event-inbox.md).
+Production creation and pending-event processing are still unfinished.
