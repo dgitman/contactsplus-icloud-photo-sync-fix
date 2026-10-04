@@ -23,16 +23,19 @@ function prepareCreateTransaction({source,event,plan,response,sourceAccountId,bo
   const u=new URL(bookUrl);if(u.protocol!=='https:'||u.username||u.password||u.search||u.hash||!u.pathname.endsWith('/')||u.pathname==='/')return hold('configured_book_required');
   const uid=creationUid(sourceAccountId,source.contactId),targetHref=bookUrl+uid+'.vcf';
   const empty='BEGIN:VCARD\r\nVERSION:3.0\r\nUID:'+uid+'\r\nEND:VCARD\r\n';
+  let photoEvidence;
   let vcard=patchSharedFields({uid,existingVcard:empty,contactData:source.contactData}).vcard;
   const selection=selectPrimaryPhoto({source,sourceContactId:source.contactId});let photoBaseline;
   if(selection.status==='download'){
    const p=preparePhotoFill({source,sourceContactId:source.contactId,uid,existingVcard:vcard,targetEtag:'"creation-preflight"',selection,download:photoDownload});
-   if(p.status!=='prepared-only')return hold(p.reason);vcard=p.vcard;
+   if(p.status!=='prepared-only')return hold(p.reason);
+   photoEvidence={byteHash:p.byteHash,width:p.width,height:p.height,nonPhotoHash:cardDigest(vcard,uid)};vcard=p.vcard;
    const photo=vcard.replace(/\r\n[ \t]/g,'').split('\r\n').filter(l=>l.startsWith('PHOTO;'));
    photoBaseline={version:1,sourceContactId:source.contactId,uid,sourceContentHash:p.byteHash,targetPropertyHash:hash(photo)};
   }else if(selection.status!=='preserve')return hold(selection.reason);
   const baseline=snapshot({sourceContactId:source.contactId,uid,existingVcard:vcard,contactData:source.contactData});if(photoBaseline)baseline.photoBaseline=photoBaseline;
   const reservation={version:1,operation:'create',state:'create_reserved',sourceAccountId,sourceContactId:source.contactId,sourceEtag:source.etag,sourceHash:hash(source.contactData),eventId:event.eventId,uid,targetHref,queryHash:plan.queryHash,checkedAt,expectedHash:cardDigest(vcard,uid),baselineJson:JSON.stringify(baseline)};
+  if(photoEvidence)reservation.photoEvidence=photoEvidence;
   return {status:'reservation_prepared',writesAllowed:false,reservation,vcard};
  }catch(e){return hold(String(e.message));}
 }
@@ -60,3 +63,38 @@ function reconcileCreateTransaction({reservation,source,statusCode,actual,target
  }catch{return hold('invalid_create_readback');}
 }
 module.exports={creationUid,prepareCreateTransaction,prepareFirstCreateAttempt,reconcileCreateTransaction};
+
+// URI representation recovery is read-only. Download only this validated URL,
+// with redirects disabled, and decode the original bytes before finishing.
+function planCreatePhotoRecovery(input){
+ const {reservation:r,actual}=input,e=r?.photoEvidence;
+ if(!e||! /^[a-f0-9]{64}$/.test(e.byteHash||'')||!Number.isInteger(e.width)||!Number.isInteger(e.height)||e.width<1||e.height<1||e.width*e.height>40000000)return hold('photo_evidence_required');
+ try{
+  cardDigest(actual,r.uid);
+  const lines=actual.replace(/\r\n[ \t]/g,'').split('\r\n').filter(Boolean);
+  const photos=lines.filter(l=>/^(?:[^.;:]+\.)?PHOTO[;:]/i.test(l));
+  if(photos.length!==1||!/^PHOTO;/i.test(photos[0]))return hold('photo_property_ambiguous');
+  const colon=photos[0].indexOf(':'),params=photos[0].slice(0,colon).split(';').slice(1);
+  if(params.filter(p=>/^VALUE=uri$/i.test(p)).length!==1||params.some(p=>!/^VALUE=uri$|^TYPE=(JPEG|PNG|image\/(?:jpeg|png))$/i.test(p)))return hold('photo_representation_unsupported');
+  const url=photos[0].slice(colon+1),u=new URL(url),prefix=input.photoPathPrefix;
+  if(typeof prefix!=='string'||!/^\/contacts\/[0-9]+\/ck\/card\/$/.test(prefix)||u.origin!=='https://gateway.icloud.com'||u.username||u.password||u.hash||!u.pathname.startsWith(prefix)||u.pathname===prefix)return hold('photo_url_not_allowed');
+  if(cardDigest(lines.filter(l=>l!==photos[0]).join('\r\n')+'\r\n',r.uid)!==e.nonPhotoHash)return hold('non_photo_drift');
+  const baseline=JSON.parse(r.baselineJson),propertyHash=hash(photos);
+  if(baseline.photoBaseline?.sourceContentHash!==e.byteHash||!baseline.fields?.photos)return hold('photo_baseline_missing');
+  baseline.fields.photos.target=propertyHash;baseline.photoBaseline.targetPropertyHash=propertyHash;
+  const result=reconcileCreateTransaction({...input,reservation:{...r,expectedHash:cardDigest(actual,r.uid),baselineJson:JSON.stringify(baseline)}});
+  if(result.status!=='verified_create')return result;
+  return {status:'uri_photo_download',writesAllowed:false,url};
+ }catch{return hold('invalid_create_photo_readback');}
+}
+function finishCreatePhotoRecovery(input){
+ const planned=planCreatePhotoRecovery(input),d=input.download,e=input.reservation?.photoEvidence;
+ if(planned.status!=='uri_photo_download')return planned;
+ if(!d||d.requestedUrl!==planned.url||d.statusCode!==200||d.decoded!==true||d.width!==e.width||d.height!==e.height||typeof d.imageBase64!=='string'||!d.imageBase64.length||d.imageBase64.length>8*1024*1024||!/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(d.imageBase64))return hold('photo_download_or_decode');
+ if(require('node:crypto').createHash('sha256').update(Buffer.from(d.imageBase64,'base64')).digest('hex')!==e.byteHash)return hold('photo_bytes_changed');
+ const r=input.reservation,baseline=JSON.parse(r.baselineJson),photos=input.actual.replace(/\r\n[ \t]/g,'').split('\r\n').filter(l=>/^PHOTO;/i.test(l));
+ const propertyHash=hash(photos);baseline.fields.photos.target=propertyHash;baseline.photoBaseline.targetPropertyHash=propertyHash;
+ return reconcileCreateTransaction({...input,reservation:{...r,expectedHash:cardDigest(input.actual,r.uid),baselineJson:JSON.stringify(baseline)}});
+}
+module.exports.planCreatePhotoRecovery=planCreatePhotoRecovery;
+module.exports.finishCreatePhotoRecovery=finishCreatePhotoRecovery;

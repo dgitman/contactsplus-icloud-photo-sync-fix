@@ -684,3 +684,19 @@ Exact embedded-photo readback is supported by these primitives. Creation-specifi
 iCloud URI-photo reconciliation, cloud storage ordering tests, and an end-to-end
 create/import-echo test remain before activation. The pending permission choice
 for new-contact-only duplicate checks is unchanged. No creation was enabled.
+
+## Creation URI-photo recovery prepared offline
+
+Creation reservations now retain the decoded image dimensions, byte hash and
+non-photo digest needed to verify iCloud's URI representation. The read-only
+planner accepts only the configured account's iCloud gateway photo path and
+requires unchanged source identity/version and non-photo fields. The caller must
+disable redirects, decode the returned image, and provide the original bytes.
+Only exact bytes and dimensions allow the creation mapping to become verified.
+Failed downloads, source changes and unrelated edits remain held without retries.
+
+All 212 local tests pass, including URI readback, wrong-account URLs, grouped
+photos, field drift, source changes and failed or altered downloads. These are
+synthetic offline tests, not an iCloud server test. Nothing new was deployed.
+Cloud storage ordering and end-to-end create/import-echo tests remain, as does
+the pending policy choice for new-contact-only duplicate checks.
