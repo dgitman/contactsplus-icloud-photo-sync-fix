@@ -145,3 +145,25 @@ still not enabled: mapping/baseline bootstrap, event-to-contact pilot, primary
 photo integration, create/echo handling, merge resolution and retained-event
 processing remain. The stored mapping schema now includes optional baselineJson;
 capacity must be addressed before loading thousands of records.
+
+## Real Contacts+ event pilot verified
+
+On October 4, a disposable source contact was created in Contacts+, paired with
+an explicitly created iCloud test contact, and given a verified mapping/baseline.
+A real Contacts+ notes edit triggered the main scenario automatically. Execution
+`1aed0d1a1de143f5801e41f2629bb115` completed conditional iCloud update, exact
+readback, stored baseline advancement, and `verified_shared_fields` inbox state.
+A subsequent independent GET confirmed the updated notes on the mapped target.
+
+Deleting the disposable Contacts+ source triggered execution
+`7823cd3e7222434a929a091b4cead072`. It recorded `held_merge_or_delete` and made no
+HTTP request to iCloud; the iCloud test contact remained present. Source deletion
+was verified through an empty contacts.get result. Explicit conditional cleanup
+of the iCloud test contact returned 404 on follow-up GET, in execution
+`7a2cb714fb2e4ce5bed9e05fa49d43a8`.
+
+Private evidence was retained before removing the disposable mapping, its three
+inbox records, and temporary scenario. The production mapping store is empty
+again. This is a real event-to-target update test, not merely a synthetic webhook.
+It does not yet establish create propagation, photo-event integration, merge
+reconciliation, broad mapping installation, or automatic held-event recovery.
