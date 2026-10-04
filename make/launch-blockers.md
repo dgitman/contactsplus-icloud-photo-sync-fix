@@ -472,3 +472,25 @@ review; it was not replayed. The main scenario was confirmed active and unpaused
 and the temporary review scenario was deleted. Private review evidence remains
 outside Git. No runtime code changed in this expansion. Existing-photo
 replacement and automatic creation/deletion remain held.
+
+## Coverage expanded to 1,571; organization paused for credits
+
+Execution `855870cbfeaf48e1a0a84226dc159f03` freshly reviewed another 2,000
+previously unique candidate pairs (101 credits). 343 passed. The remaining
+1,657 were held: 1,420 shared-field differences, 208 unsupported social metadata
+cases, 19 unsupported social parameter values, nine unsupported gender fields,
+and one missing resource.
+
+Registration execution `24f751ea392248c8a6ef50abfe669bf6` added and read back
+all 343 mappings (1,030 credits). Every readback field matched the expected
+record. The store contains 1,571 mappings, using 1,855,879 of 5,242,880 bytes.
+No contact contents were changed. The temporary scenario was deleted; detailed
+evidence remains private outside Git. No runtime code changed.
+
+The final live check found the main scenario active but paused at organization
+level. The organization reports 10,393 credits consumed against a 10,000-credit
+allowance, no extra credits and automatic purchasing disabled. Its next reset
+is November 4, 2026 at 01:35 UTC. No failed runs or incomplete executions caused
+this pause, and the webhook queue was empty. Additional credits or the reset
+are required before syncing can resume. Check the credit balance before any
+further expansion; do not describe the current deployment as running.
