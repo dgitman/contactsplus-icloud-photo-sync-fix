@@ -7,7 +7,7 @@ The newest verification evidence is at the end; older sections describe historic
 implementation stages, not the current enabled state.
 
 This is event-driven synchronization, not a claim that every historical record is
-identical. There are 6,001 accepted existing mappings. Ambiguous/unmapped identities,
+identical. There are 6,004 accepted existing mappings. Ambiguous/unmapped identities,
 malformed supported fields, mixed photo/text changes and independent target edits remain
 held rather than guessed or overwritten. New-contact creation requires a structured
 name and email and a successful bounded duplicate query.
@@ -882,3 +882,21 @@ other unmatched or ambiguous inventory records remain outside coverage.
 
 Validation: 229 local tests passed, deployed converter code was read back exactly,
 and fresh cloud review plus mapping readback succeeded. Production stayed active.
+
+## Professional suffix equivalence — October 4
+
+Three additional pairs passed fresh source/target review after recognizing the
+observed Apple escaped-comma suffix-list representation with a blank display name.
+All other structured-name components must match exactly, and the suffix tokens
+must match in order and case. Real name edits remain differences. All three
+mappings passed store readback, bringing coverage to 6,004. No contact content
+was rewritten. 230 local tests passed, and deployed code matched its readback.
+
+Five cases remain in the prior matched cohort: three real name differences, one
+malformed social URL, and one resource lookup failure. The saved target inventory
+shows that the lookup failure used an encoded resource basename rather than
+`UID.vcf`; it needs a fresh read at the recorded href and end-to-end href support
+before enrollment. Do not create a replacement based on that lookup failure.
+The earlier inventory also had 311 name conflicts, 47 ambiguous records and
+772 unmatched sources outside the matched cohort; these counts need refreshing
+before further enrollment. Live event coverage is not historical convergence.

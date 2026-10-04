@@ -1,4 +1,16 @@
 // Pure, conservative Contacts+ -> vCard patching. No network or credentials.
+function equivalentStructuredName(actual,expected) {
+  if(actual===expected)return true;
+  if(!actual?.startsWith('N:')||!expected?.startsWith('N:'))return false;
+  const parts=s=>s.slice(2).split(/(?<!\\);/);
+  const a=parts(actual),b=parts(expected);
+  if(a.length!==5||b.length!==5||a.slice(0,4).some((v,i)=>v!==b[i]))return false;
+  // Observed Apple suffix lists use an escaped comma followed by a separator.
+  // Require that exact representation; do not normalize unrelated name fields.
+  if(!a[4].includes('\\,,'))return false;
+  const suffix=s=>s.replace(/\\,/g,',').split(',').map(v=>v.trim()).filter(Boolean);
+  return JSON.stringify(suffix(a[4]))===JSON.stringify(suffix(b[4]));
+}
 function patchSharedFieldsStrict({uid,existingVcard,contactData}) {
   const text=v=>{if(v==null)return '';if(typeof v!=='string'||/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/.test(v))throw Error('Invalid text');return v;};
   const esc=v=>text(v).replace(/\\/g,'\\\\').replace(/\r\n|\r|\n/g,'\\n').replace(/;/g,'\\;').replace(/,/g,'\\,');
@@ -134,7 +146,7 @@ function patchSharedFieldsStrict({uid,existingVcard,contactData}) {
     // A real name edit must still replace both fields; never infer identity here.
     if(field==='name'&&selected.length===2&&!ancillary.length&&
        selected.some(r=>r.line==='FN:')&&
-       selected.some(r=>r.line===proposed.find(p=>p.line.startsWith('N:'))?.line))continue;
+       selected.some(r=>equivalentStructuredName(r.line,proposed.find(p=>p.line.startsWith('N:'))?.line)))continue;
     if(JSON.stringify(semantic([...selected,...ancillary]))===JSON.stringify(semantic(proposed)))continue;
     const allowed=new Set(['TYPE','VALUE',...(field==='urls'?['X-USER','X-USERID']:[]),...(field==='ims'?['X-SERVICE-TYPE']:[]),...(field==='birthday'?['X-APPLE-OMIT-YEAR']:[])]);
     if(selected.some(r=>r.line.slice(0,r.line.indexOf(':')).split(';').slice(1).some(p=>!allowed.has(p.split('=')[0].toUpperCase()))))throw Error('Unsupported target parameter');
