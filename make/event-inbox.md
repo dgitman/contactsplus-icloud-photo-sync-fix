@@ -33,7 +33,9 @@ Module 14 updates only the existing event's state after name/notes preparation:
 
 Neither state means the contact is fully synchronized. The module has upsert
 turned off and preserves the original receipt timestamp and source identifiers.
-Unmapped events and the create/delete branches remain pending.
+Unmapped events and the create branch remain pending. Successful name/notes
+readback records `verified_name_notes`; confirmed deletion records
+`verified_deleted`. Neither provides general replay recovery.
 
 Both outcomes were tested in a temporary Make scenario with a synthetic inbox
 record. Readback confirmed that all other fields stayed unchanged. The temporary

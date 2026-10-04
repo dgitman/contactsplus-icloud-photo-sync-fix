@@ -9,9 +9,10 @@ Its account-specific webhook and data store IDs have been removed. Configure bot
 when importing; use the mapping schema documented below.
 A disposable contact lifecycle test on October 3, 2026 confirmed that real Contacts+
 create, update, and delete events each ran only their matching branch successfully.
-Create/delete endpoints still set verification variables. The update route now
-reads the exact mapped source and target and prepares a name/notes change.
-No route writes contacts.
+The create endpoint still sets a verification variable. The update route can
+apply name/notes changes to exact verified mappings. The delete route can back up
+and conditionally delete exact mapped targets. Both remain experimental; the
+scenario is inactive and has no production mappings.
 The scenario was switched off after verification.
 
 A separate temporary Make test successfully read an iCloud vCard using Basic Auth.
@@ -65,7 +66,8 @@ Modules 11–13 fetch the current Contacts+ record, GET the exact mapped iCloud
 resource, and prepare a name/notes-only patch. This read preserves existing fields;
 it is not a duplicate search. The route checks source identity, limits the target
 to the configured address book and UID, disables redirects, and retains the
-before-vCard and ETag in its result. There is no PUT module.
+before-vCard and ETag in its result. Modules 16–19 now conditionally PUT changed cards, GET them back, compare all
+properties except server REV/PRODID metadata, and mark the scoped event verified.
 
 On import, configure the Contacts+ connection on module 11 and iCloud Basic Auth
 on module 12. Replace both example.invalid book prefixes in module 12 (URL and
@@ -75,8 +77,8 @@ both data stores as described above.
 Module 13 combines code/vcard.js without its CommonJS export, followed by
 code/prepare-update.js. Source uses the whole-bundle reference for module 11.
 Three adapter tests cover before-image retention, absent vs empty notes, and
-identity/ETag rejection. The live route was saved and read back but has not been
-executed end-to-end; the main scenario is inactive. Module 15 saves original and prepared cards to a separate backup store before
+identity/ETag rejection. A real disposable Contacts+ update event executed the route successfully; the
+main scenario is inactive. Module 15 saves original and prepared cards to a separate backup store before
 module 14 records the scoped preparation outcome in the
 inbox; configure it to use the same store as modules 9 and 10. Neither outcome
 means a contact update was applied. See [event-inbox.md](event-inbox.md).
@@ -115,3 +117,23 @@ match the prepared card. The temporary scenario and synthetic backup were remove
 This pilot used synthetic source data and a notes-only change. It does not verify
 Contacts+ webhook-to-write behavior, photo preservation through a real update,
 or display on Apple devices. Production remains inactive with no contact writes.
+
+## Event-driven write pilots and launch blockers
+
+On October 3, 2026 (October 4 UTC), a real Contacts+ update webhook traversed the
+main scenario and reached `verified_name_notes`. The target-only email survived.
+A subsequent real deletion webhook saved the before-card, conditionally deleted
+the target, confirmed 404, marked the mapping `deleted`, and recorded
+`verified_deleted`. The source and target test contacts and temporary scenarios
+were removed. This is server readback, not Apple-device visual verification.
+
+Modules 20–27 implement the experimental deletion path. Configure their HTTP
+connection and book URLs, module 22's backup store, module 26's mapping store,
+and module 27's inbox store. A deleted mapping stops subsequent routing.
+
+**Do not enable production yet.** Existing contacts have not been mapped. Automatic
+creation, full field/photo updates, merge handling, and interrupted-write recovery
+are unfinished. Current failures need manual reconciliation; replaying an event is
+not a recovery procedure. The one-megabyte backup store is only suitable for pilots.
+Contacts+ iCloud pull-in was visibly active at this check, so automatic creation
+also needs a loop-prevention decision before implementation/activation.
