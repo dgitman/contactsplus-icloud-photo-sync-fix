@@ -427,3 +427,29 @@ Registration and final readback (`81aa0c45df2b4f7c86c9aa40c879891a`,
 changed. The comparator is deployed, the main scenario is active and unpaused,
 and the temporary review scenario was deleted. All 144 tests pass. Private
 candidate evidence is retained outside Git.
+
+## Batched bootstrap: 592 contacts live
+
+`review-match-batch.js` reviews at most 100 previously unique pairs using a
+Contacts+ multi-ID fetch and iCloud addressbook-multiget. It validates complete
+response envelopes, expected resource paths, unique source/target responses,
+UIDs, versions, strong identity evidence and every supported shared field.
+Missing resources and actual differences remain held. The portable
+`batch-review.blueprint.json` requires existing connections, accepted candidates
+and the configured account book path; it is read-only and is not a recurring job.
+
+Executions `f23de9f42dc549679ccfc40f6ae38e67` and
+`a9791dffd3664d0a818e595cb2d5dee1` freshly checked 500 candidates in five batches,
+using 27 review credits total. 351 passed. Registration execution
+`97adadd0d9ad4611a1bab835fb7b205b` inserted and read back those mappings; all 351
+readbacks matched their expected fields exactly. This registration/readback used
+1,054 additional credits. Active coverage is now 592. Contact contents were not
+changed. The 149 held contacts comprise 139 shared-field differences, eight
+unsupported social metadata cases, one unsafe social parameter and one unsupported
+gender field.
+
+The mapping store now uses 670,838 of 1,048,576 bytes; check capacity before the
+next expansion. The main scenario remains active and unpaused. The temporary
+review scenario was deleted, private evidence preserved outside Git, and all 150
+local tests pass. Existing-photo replacement and automatic creation/deletion
+remain held.

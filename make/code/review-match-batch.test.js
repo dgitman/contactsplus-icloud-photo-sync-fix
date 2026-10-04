@@ -1,0 +1,11 @@
+const test=require('node:test'),assert=require('node:assert/strict'),review=require('./review-match-batch');
+const card='BEGIN:VCARD\r\nVERSION:3.0\r\nUID:t\r\nFN:Alex Test\r\nN:Test;Alex;;;\r\nEMAIL:alex@example.test\r\nEND:VCARD\r\n';
+const source={contactId:'s',etag:'v1',contactData:{name:{givenName:'Alex',familyName:'Test'},emails:[{value:'alex@example.test'}]}};
+const target={href:['/book/t.vcf'],propstat:[{status:['HTTP/1.1 200 OK'],prop:[{'address-data':[card],getetag:['"v1"']}]}]};
+const args={bookPath:'/book/',candidates:[{sourceId:'s',targetId:'t'}],sourceResponse:{statusCode:200,body:{contacts:[source]}},targetResponse:{statusCode:207,body:{multistatus:{response:[target]}}}};
+test('eligible exact pair receives only lightweight baseline',()=>assert.equal(review(args)[0].status,'eligible'));
+test('missing source or target stays held',()=>{assert.equal(review({...args,sourceResponse:{statusCode:200,body:{contacts:[]}}})[0].reason,'missing_resource');assert.equal(review({...args,targetResponse:{statusCode:207,body:{multistatus:{response:[]}}}})[0].reason,'missing_resource');});
+test('duplicate and foreign responses fail whole batch',()=>{for(const response of [[target,target],[{...target,href:['/foreign/t.vcf']}]] )assert.throws(()=>review({...args,targetResponse:{statusCode:207,body:{multistatus:{response}}}}));});
+test('HTTP failure cannot become an empty successful review',()=>assert.throws(()=>review({...args,sourceResponse:{statusCode:403}})));
+test('UID mismatch and actual field changes are held',()=>{for(const text of [card.replace('UID:t','UID:other'),card.replace('N:Test;Alex','N:Other;Alex')])assert.equal(review({...args,targetResponse:{statusCode:207,body:{multistatus:{response:[{...target,propstat:[{status:['HTTP/1.1 200 OK'],prop:[{'address-data':[text],getetag:['"v2"']}]}]}]}}}})[0].status,'held');});
+test('portable batch bundle compiles and produces same decision',()=>{const code=require('./bundle-match-review')();const bundled=new Function('require',code+';return reviewMatchBatch;')(require);assert.deepEqual(bundled(args),review(args));});
