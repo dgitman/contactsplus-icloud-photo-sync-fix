@@ -7,3 +7,11 @@ const prepared=prepareSharedUpdate({source,sourceContactId:'source',uid:'test',e
 const input={source,uid:'test',baseline,updatedFields:prepared.updatedFields,expected:prepared.vcard,actual:prepared.vcard,targetEtag:'"new"'};
 test('verified write advances changed field only',()=>{const next=JSON.parse(advance(input).baselineJson);assert.notDeepEqual(next.fields.notes,baseline.fields.notes);assert.deepEqual(next.fields.phoneNumbers,baseline.fields.phoneNumbers);});
 test('drift or invalid verification cannot advance baseline',()=>{assert.throws(()=>advance({...input,actual:prepared.vcard.replace('TEL:456','TEL:789')}),/drift/);assert.throws(()=>advance({...input,targetEtag:''}));assert.throws(()=>advance({...input,updatedFields:['photos']}));});
+test('new field baseline requires empty pre-write evidence and verified readback',()=>{
+  const source={contactId:'source',contactData:{...old,emails:[{value:'new@example.test'}]}};
+  const p=prepareSharedUpdate({source,sourceContactId:'source',uid:'test',existingVcard:card,targetEtag:'"old"',baseline});
+  const args={source,uid:'test',baseline,updatedFields:p.updatedFields,before:card,actual:p.vcard,expected:p.vcard,targetEtag:'"new"'};
+  assert.ok(JSON.parse(advance(args).baselineJson).fields.emails);
+  assert.throws(()=>advance({...args,before:undefined}));
+  assert.throws(()=>advance({...args,before:card.replace('END:VCARD','EMAIL:local@example.test\r\nEND:VCARD')}),/not empty/);
+});

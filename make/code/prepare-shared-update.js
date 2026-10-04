@@ -39,7 +39,15 @@ function prepareSharedUpdate(input) {
   const patch={},conflicts=[];
   for(const field of new Set([...Object.keys(current.fields),...Object.keys(baseline.fields)])) {
     const now=current.fields[field],old=baseline.fields[field];
-    if(!now||!old||!['source','target'].every(k=>/^[a-f0-9]{64}$/.test(old[k]))) {conflicts.push(field);continue;}
+    if(!now) {conflicts.push(field);continue;}
+    if(!old){
+      // This field was absent from the accepted source snapshot. Permit an
+      // addition only when the fresh target has no corresponding property or
+      // grouped metadata. The conditional PUT protects against intervening edits.
+      if(field!=='photos'&&now.target===hash([])){patch[field]=source.contactData[field];continue;}
+      conflicts.push(field);continue;
+    }
+    if(!['source','target'].every(k=>/^[a-f0-9]{64}$/.test(old[k]))) {conflicts.push(field);continue;}
     if(now.source===old.source)continue; // Independent iCloud changes are retained.
     if(field==='photos'||now.target!==old.target) {conflicts.push(field);continue;}
     patch[field]=source.contactData[field];

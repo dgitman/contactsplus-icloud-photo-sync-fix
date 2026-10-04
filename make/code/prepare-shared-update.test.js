@@ -9,7 +9,16 @@ test('source-only edit prepares conditional update',()=>{const r=run({...data,no
 test('target-only edit remains unchanged',()=>{const target=card.replace('Original','Local');assert.equal(run(data,{existingVcard:target}).vcard,target);});
 test('independent edits to different fields combine without loss',()=>{const r=run({...data,notes:'New'},{existingVcard:card.replace('TEL:123','TEL:456')});assert.match(r.vcard,/NOTE:New/);assert.match(r.vcard,/TEL:456/);});
 test('both sides edit same field: entire contact held',()=>{const r=run({...data,notes:'Source'},{existingVcard:card.replace('Original','Target')});assert.equal(r.status,'conflict');assert.deepEqual(r.conflicts,['notes']);assert.equal(r.vcard,undefined);});
-test('new or missing source field requires explicit baseline reconciliation',()=>{assert.equal(run({...data,emails:[]}).status,'conflict');const {notes,...rest}=data;assert.equal(run(rest).status,'conflict');});
+test('new field can fill an empty target but missing source field remains held',()=>{assert.equal(run({...data,emails:[]}).status,'unchanged');const {notes,...rest}=data;assert.equal(run(rest).status,'conflict');});
+test('new email fills only a freshly empty target',()=>{
+  const source={...data,emails:[{value:'new@example.test'}]};
+  const r=run(source);assert.equal(r.status,'prepared-only');assert.match(r.vcard,/EMAIL:new@example.test/);
+  assert.equal(run(source,{existingVcard:card.replace('END:VCARD','EMAIL:local@example.test\r\nEND:VCARD')}).status,'conflict');
+});
+test('new photo field still requires separate photo verification',()=>{
+  const b=JSON.parse(JSON.stringify(baseline));delete b.fields.photos;
+  assert.equal(run(data,{baseline:b,existingVcard:card.replace(/PHOTO[^\r]+\r\n/,'')}).status,'conflict');
+});
 test('changed primary/alternate photo data cannot be silently ignored',()=>assert.deepEqual(run({...data,photos:[]}).conflicts,['photos']));
 test('wrong baseline identity and weak ETag fail',()=>{assert.throws(()=>run(data,{baseline:{...baseline,uid:'other'}}),/Baseline/);assert.throws(()=>run(data,{targetEtag:'W/"v1"'}),/ETag/);});
 test('baseline stores hashes rather than contact contents',()=>{const serialized=JSON.stringify(baseline);assert.doesNotMatch(serialized,/Original|https:|PHOTO/);assert.match(serialized,/[a-f0-9]{64}/);});

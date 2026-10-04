@@ -32,6 +32,7 @@ function guardSharedRoutes(blueprint){
   at(16).filter={name:'Baseline-approved prepared change only',conditions:[[{a:'{{13.result.changed}}',b:true,o:'boolean:equal'},{a:'{{13.result.status}}',b:'prepared-only',o:'text:equal'}]]};
   at(18).mapper.codeEditorJavascript=bundleVerify();
   at(18).mapper.input=[
+    {name:'before',value:'{{12.data}}'},
     {name:'actual',value:'{{17.data}}'},{name:'expected',value:'{{13.result.vcard}}'},
     {name:'targetEtag',value:'{{17.headers.etag}}'},{name:'uid',value:'{{8.targetUid}}'},
     {name:'source',value:'{{`11`}}'},{name:'baseline',value:'{{8.baselineJson}}'},

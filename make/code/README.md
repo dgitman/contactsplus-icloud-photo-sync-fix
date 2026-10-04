@@ -151,3 +151,11 @@ Equivalent cards are returned unchanged. Custom labels remain distinct from
 standard types; literal escaped semicolons, populated departments, titles, phone
 numbers and fax types remain meaningful. This comparison does not infer country
 codes, strip phone extensions, or accept actual field differences as a baseline.
+
+## Additions to empty fields
+
+An absent baseline field can receive a supported source value only when the fresh
+target field is empty. Existing target data and new photos stay held. Verification
+requires the pre-write card as well as exact post-write readback before adding a
+field to the baseline. Missing source fields remain held; explicit supported
+empty values continue through the existing conflict checks.

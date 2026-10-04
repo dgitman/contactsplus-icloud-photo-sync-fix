@@ -278,3 +278,21 @@ for address, name/phone, name/email or URL differences. No contact content was
 changed during bootstrap. Both deployed code bundles were read back exactly,
 the main scenario remains active, and the temporary review scenario was deleted.
 All 115 local tests pass, including negative cases for real data differences.
+
+## Empty-field additions enabled for mapped contacts
+
+A supported source field absent from the accepted baseline can now be added
+when a fresh target snapshot has no corresponding property or grouped metadata.
+Existing target values remain conflicts. Photo additions are excluded and missing
+source fields still do not imply deletion. Updates retain the current If-Match
+guard. A new field baseline is accepted only after exact readback and verification
+that the pre-write target field was empty; other field baselines are preserved.
+
+Disposable iCloud execution `d616b1bc220a449d84208c24a397734b` added an email,
+verified the resulting card and baseline advancement, checked rejection of a
+pre-existing target email, and completed conditional deletion plus 404 readback.
+This tested CardDAV directly, not a natural Contacts+ event or web UI display.
+All 118 local tests pass. The two deployed code bundles and pre-write evidence
+input were read back; the 31-contact rollout remains active. The disposable
+contact and temporary scenario were removed. Full photo/create/delete support
+and wider identity bootstrap remain outstanding.
