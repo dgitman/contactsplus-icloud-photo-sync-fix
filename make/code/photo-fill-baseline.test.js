@@ -1,0 +1,11 @@
+const test=require('node:test'),assert=require('node:assert/strict');
+const {snapshot}=require('./prepare-shared-update'),{photoFillGate}=require('./photo-fill-baseline');
+const card='BEGIN:VCARD\r\nVERSION:3.0\r\nUID:t\r\nFN:Test\r\nNOTE:Old\r\nEND:VCARD\r\n';
+const source={contactId:'s',etag:'v1',contactData:{notes:'Old',photos:[{value:'https://img.contactsplus.com/current'}]}};
+const baseline=snapshot({sourceContactId:'s',uid:'t',existingVcard:card,contactData:source.contactData});
+const args={source,sourceContactId:'s',uid:'t',existingVcard:card,baseline};
+test('missing photo with unchanged other source fields eligible',()=>assert.equal(photoFillGate(args).status,'eligible'));
+test('mixed source edits held',()=>assert.equal(photoFillGate({...args,source:{...source,contactData:{...source.contactData,notes:'New'}}}).reason,'mixed_source_changes'));
+test('independent target text retained while photo missing',()=>assert.equal(photoFillGate({...args,existingVcard:card.replace('NOTE:Old','NOTE:Local')}).status,'eligible'));
+test('independent target photo removal held',()=>assert.equal(photoFillGate({...args,baseline:{...baseline,fields:{...baseline.fields,photos:{...baseline.fields.photos,target:'a'.repeat(64)}}}}).reason,'independent_photo_removal'));
+test('existing remote PHOTO preserved',()=>assert.equal(photoFillGate({...args,existingVcard:card.replace('END:VCARD','PHOTO;VALUE=uri:https://example.test/p\r\nEND:VCARD')}).reason,'existing_photo_preserved'));

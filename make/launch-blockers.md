@@ -371,3 +371,27 @@ Production mapping persistence and event routing for these photo results remain
 unconnected. The 94-contact shared-field rollout remains active; photos, automatic
 creation and deletion are not fully live. Private source data and execution
 blueprints remain outside Git. Local validation: 132 tests pass.
+
+## Missing-photo event route enabled for accepted mappings
+
+The live scenario now fills missing photos for the 94 accepted mappings. The route
+requires an exact fresh source, unchanged non-photo source fields, an empty target
+photo, and no independent target photo removal since baseline. Mixed edits,
+existing photos and inaccessible source images remain held. It rechecks source
+and target after download, uses If-Match, verifies saved bytes and non-photo fields,
+and advances only the photo baseline in Make's mapping store.
+
+The disposable route test exposed and fixed a nested expression that read bytes
+from the wrong module. The saved image was reconciled without another photo PUT.
+Verification execution `3e681ec92b57401aaf0f4ac3e0395e48` verified exact image
+readback, persisted baseline readback, and target deletion (404). Temporary mapping,
+inbox record and scenario were removed. A failed Make run rolled back its store
+inserts but not its external iCloud write; this evidence reinforces the existing
+rule against blind retries. The fill route's fresh existing-photo guard prevents
+a repeated write after such an interruption. Automatic reconciliation is not yet
+implemented.
+
+The deployed scenario was read back active and unpaused with the photo route
+present. Portable blueprint and route builder are in the repository; all 140
+local tests pass. This is limited missing-photo support, not replacement of existing
+images, full address-book coverage, or automatic creation/deletion.

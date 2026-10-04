@@ -6,7 +6,8 @@ function guardSharedRoutes(blueprint){
   const router=b.flow.find(m=>m.id===3);
   if(!router?.routes)throw Error('Expected event router');
   const update=router.routes.find(r=>r.flow.some(m=>m.id===5)).flow;
-  const at=id=>{const m=update.find(x=>x.id===id);if(!m)throw Error('Missing update module '+id);return m;};
+  const writes=update.find(m=>m.id===30)?.routes.find(r=>r.flow.some(m=>m.id===16)).flow||update;
+  const at=id=>{const m=[...update,...writes].find(x=>x.id===id);if(!m)throw Error('Missing update module '+id);return m;};
   // An added event for a known identity is an upsert of that exact target,
   // never permission to create a second iCloud resource.
   router.routes=router.routes.filter(r=>!r.flow.some(m=>m.id===4));
@@ -40,8 +41,8 @@ function guardSharedRoutes(blueprint){
   const mapping=JSON.parse(JSON.stringify(at(19)));mapping.id=28;
   mapping.parameters=JSON.parse(JSON.stringify(b.flow.find(m=>m.id===8).parameters));
   mapping.mapper={key:'contactsplus-primary:{{2.data.contactId}}',upsert:false,overwriteArrays:false,data:{baselineJson:'{{18.result.baselineJson}}',targetEtag:'{{18.result.targetEtag}}',sourceEtag:'{{13.result.sourceEtag}}',lastEventId:'{{2.eventId}}',lastVerifiedAt:'{{now}}'}};
-  if(!update.some(x=>x.id===28))update.splice(update.findIndex(x=>x.id===19),0,mapping);
-  else update[update.findIndex(x=>x.id===28)]=mapping;
+  if(!writes.some(x=>x.id===28))writes.splice(writes.findIndex(x=>x.id===19),0,mapping);
+  else writes[writes.findIndex(x=>x.id===28)]=mapping;
   at(19).mapper.data.state='verified_shared_fields';
   const deletion=router.routes.find(r=>r.flow.some(m=>m.id===6));
   const entry=deletion.flow.find(m=>m.id===6),hold=deletion.flow.find(m=>m.id===27);
