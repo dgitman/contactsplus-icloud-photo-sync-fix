@@ -28,7 +28,7 @@ and are not yet activated as production mappings.
   Bootstrap is not a per-event duplicate search.
 - Implement creation/import loop prevention while iCloud pull-in remains enabled.
 - Missing-photo fills are deployed; existing-photo replacement remains unfinished.
-- Shared-field interrupted-operation readback is deployed. Finish photo recovery
+- Shared-field interrupted-operation readback is deployed. Finish URI-photo recovery
   and merge-aware deletion; successful-write readback is already deployed.
 - On-demand shared-field pending processing is deployed. Finish other operation
   recovery and event-store retention/capacity monitoring.
@@ -615,3 +615,19 @@ readback; a repeat skipped all three. The empty production sweep passed as well.
 180 local tests passed. Synthetic records and the temporary test scenario were
 removed. Coverage remains 1,990 mappings; this does not enable creation, deletion,
 existing-photo replacement, or a scheduled sweep.
+
+
+## Embedded photo-fill recovery deployed
+
+Missing-photo fills now persist a receipt before PUT. Exact embedded-photo
+readback can complete interrupted bookkeeping through redelivery or the existing
+on-demand sweep, without repeating a contact write. Missing/changed/URI-only
+results remain held. This does not replace existing photos or retry historical
+photo operations without receipts.
+
+189 local tests passed. Make synthetic integration recovered the saved image,
+held the absent and drifted cases, and verified the stored photo baseline. The
+production scenario was read back active and unpaused after deployment. No real
+contacts changed; temporary test data and scenario were deleted. URI-photo
+recovery, creation-loop prevention, merge/deletion handling and broader mapping
+coverage remain launch work.

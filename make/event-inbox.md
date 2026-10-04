@@ -47,7 +47,7 @@ scenario and record were removed afterward; no contacts were written.
 ## Remaining work
 
 - Shared-field receipts now have redelivery recovery and an on-demand pending
-  sweep. Photo/create/delete recovery and periodic scheduling remain unfinished.
+  sweep. URI-photo/create/delete recovery and periodic scheduling remain unfinished.
 - This does not guarantee exactly-once writes or handle every out-of-order source
   change. Conditional writes and exact shared-field readback are deployed.
 - Invalid events currently stop at validation; malformed-event quarantine remains
@@ -129,7 +129,7 @@ available; no retry of a contact write is authorized.
 ## On-demand pending recovery sweep
 
 Send `{"recoverPending":true}` to the existing private scenario webhook to check
-up to 25 oldest `prepared_shared_fields` receipts. Normal event processing is
+up to 25 oldest `prepared_shared_fields` or `photo_write_pending` receipts. Normal event processing is
 excluded for this command. The stored event supplies identity; incoming contact
 payloads cannot select a target. Recovery performs source/target reads and updates
 only mapping/inbox bookkeeping after exact verification. It never repeats a
@@ -139,3 +139,23 @@ are excluded from later sweeps. No timer or additional production scenario exist
 Synthetic Make integration verified saved, unchanged, and drifted targets, with
 actual Data Store readback. A repeat used one credit and accessed no contacts.
 An empty production webhook sweep also passed (two credits including webhook).
+
+
+## Interrupted photo-fill recovery
+
+Before a missing-photo PUT, module 38 now persists a lightweight `photo_fill`
+receipt from module 37. It binds the event, source version/content, target UID and
+version, whole expected card hash, and expected photo baseline. It stores no
+image bytes or full vCard. The image has already passed the existing download,
+conversion, and preflight gates.
+
+Both redelivery and the on-demand sweep can reconcile these receipts. Exact
+embedded-photo readback with unchanged source and a new target ETag advances
+bookkeeping to `verified_photo_fill_recovered`; it cannot repeat a PUT. Missing
+photos, unrelated field drift, changed source, and URI-only/reformatted photos
+remain `held_recovery`. URI readback still needs a separate bounded download and
+decode recovery path. Historical photo events without receipts are not retried.
+
+Synthetic Make testing confirmed saved/missing/drift outcomes and read back the
+actual stored photo baseline. No real contact was read or written by this test.
+Temporary records and the test scenario were removed after verification.
