@@ -24,11 +24,13 @@ function reconcileSharedWrite({receipt,eventId,sourceContactId,uid,source,baseli
  if(!/^"[^"\r\n]+"$/.test(targetEtag||''))return hold('readback_version');
  let digest,next;try{digest=cardDigest(actual,uid);next=JSON.parse(receipt.expectedBaselineJson);}catch{return hold('invalid_readback_or_receipt');}
  if(!next||next.version!==1||next.uid!==uid||next.sourceContactId!==sourceContactId||!next.fields)return hold('receipt_baseline_identity');
- if(!baseline||hash(baseline)!==receipt.baselineHash)return hold('baseline_changed');
+ // A previous recovery may have saved the baseline but stopped before marking
+ // its event complete. Accept that exact baseline too; never a third version.
+ if(!baseline||(hash(baseline)!==receipt.baselineHash&&hash(baseline)!==hash(next)))return hold('baseline_changed');
  if(digest===receipt.beforeHash)return hold('write_not_observed');
  if(digest!==receipt.expectedHash)return hold('readback_drift');
  if(targetEtag===receipt.beforeTargetEtag)return hold('write_version_not_observed');
  if(!source||source.contactId!==sourceContactId||source.etag!==receipt.sourceEtag||hash(source.contactData)!==receipt.sourceHash)return hold('source_changed');
- return {status:'verified_recovered',writesAllowed:false,baselineJson:receipt.expectedBaselineJson,targetEtag};
+ return {status:'verified_recovered',writesAllowed:false,baselineJson:receipt.expectedBaselineJson,targetEtag,sourceEtag:receipt.sourceEtag};
 }
 module.exports={cardDigest,createSharedWriteReceipt,reconcileSharedWrite};

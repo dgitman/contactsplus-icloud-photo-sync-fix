@@ -582,3 +582,24 @@ Production receipt generation/storage was read back active and unpaused. All
 168 local tests pass. Automatic receipt processing and baseline recovery still
 need integration, as do photo/create/delete recovery. Existing mapping coverage
 remains 1,990; this change does not enable creation, deletion or photo replacement.
+
+## Shared-write recovery on redelivery deployed
+
+The single production scenario now branches after duplicate detection. First
+deliveries retain their existing flow. Repeated unfinished shared receipts pass
+identity/path gates, fresh source and target reads, and exact receipt reconciliation.
+The recovery branch has no contact-writing modules. Confirmed prior saves advance
+the baseline and finish the event; unobserved or conflicting writes remain held.
+An already-saved expected baseline is accepted for idempotent bookkeeping recovery.
+
+Synthetic Make integration `6ac6ef96a7444c808a3cf32af98cccc6` exercised the
+actual inbox/mapping modules with simulated source and target reads. Saved,
+unchanged-before and drifted cases produced recovered, held and held respectively.
+Readback `134980164d78490e881d6df6ac4e3f18` confirmed the saved baseline alone
+advanced. No real contact requests were made by these tests. All synthetic records
+and the temporary scenario were removed.
+
+The production route was read back active and unpaused with GET-only recovery.
+All 176 tests pass. Testing used 45 credits; 8,088 remain. Coverage remains 1,990.
+Recovery requires redelivery; a scheduled pending sweep, photo recovery,
+creation/import loop handling and merge-aware deletion remain launch work.

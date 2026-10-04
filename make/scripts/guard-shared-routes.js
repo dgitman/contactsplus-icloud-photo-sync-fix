@@ -3,7 +3,8 @@ const bundlePrepare=require('../code/bundle-prepared-receipt');
 const bundleVerify=require('../code/bundle-shared-verification');
 function guardSharedRoutes(blueprint){
   const b=JSON.parse(JSON.stringify(blueprint));
-  const router=b.flow.find(m=>m.id===3);
+  const main=b.flow.find(x=>x.id===60)?.routes[0].flow||b.flow;
+  const router=main.find(m=>m.id===3);
   if(!router?.routes)throw Error('Expected event router');
   const update=router.routes.find(r=>r.flow.some(m=>m.id===5)).flow;
   const writes=update.find(m=>m.id===30)?.routes.find(r=>r.flow.some(m=>m.id===16)).flow||update;
@@ -15,11 +16,11 @@ function guardSharedRoutes(blueprint){
     [{a:'{{2.triggerId}}',b:'contact.added',o:'text:equal'}],
     [{a:'{{2.triggerId}}',b:'contact.updated',o:'text:equal'}]
   ]};
-  const lookup=b.flow.find(m=>m.id===7),intake=b.flow.find(m=>m.id===10);
+  const lookup=main.find(m=>m.id===7),intake=main.find(m=>m.id===10);
   if(!lookup||!intake)throw Error('Expected mapping lookup and event intake');
   lookup.filter={name:'First delivery only',conditions:[[{a:'{{9.exist}}',b:false,o:'boolean:equal'}]]};
-  b.flow=b.flow.filter(m=>m.id!==7);
-  b.flow.splice(b.flow.findIndex(m=>m.id===10),0,lookup);
+  main.splice(main.indexOf(lookup),1);
+  main.splice(main.findIndex(m=>m.id===10),0,lookup);
   intake.mapper.data.state='{{if(7.exist; "pending"; "held_needs_identity")}}';
   at(11).module='contactsplus:makeAPICall';
   at(11).mapper={url:'/v1/contacts.get',body:'{"contactIds":["{{8.sourceContactId}}"]}'};
@@ -40,7 +41,7 @@ function guardSharedRoutes(blueprint){
     {name:'source',value:'{{`11`}}'},{name:'baseline',value:'{{8.baselineJson}}'},
     {name:'updatedFields',value:'{{13.result.updatedFields}}'}];
   const mapping=JSON.parse(JSON.stringify(at(19)));mapping.id=28;
-  mapping.parameters=JSON.parse(JSON.stringify(b.flow.find(m=>m.id===8).parameters));
+  mapping.parameters=JSON.parse(JSON.stringify(main.find(m=>m.id===8).parameters));
   mapping.mapper={key:'contactsplus-primary:{{2.data.contactId}}',upsert:false,overwriteArrays:false,data:{baselineJson:'{{18.result.baselineJson}}',targetEtag:'{{18.result.targetEtag}}',sourceEtag:'{{13.result.sourceEtag}}',lastEventId:'{{2.eventId}}',lastVerifiedAt:'{{now}}'}};
   if(!writes.some(x=>x.id===28))writes.splice(writes.findIndex(x=>x.id===19),0,mapping);
   else writes[writes.findIndex(x=>x.id===28)]=mapping;

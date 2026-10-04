@@ -15,7 +15,8 @@ not supplied by an incoming event. Only contact.added, contact.updated, and
 contact.deleted with nonempty event and contact IDs enter the inbox.
 New records are saved as pending for known mappings or held_needs_identity for
 unknown contacts, without overwriting an existing record. A repeated event ID
-stops before mapping lookup or contact requests. The scenario runs sequentially; do not
+reads its inbox entry; only an unfinished shared-write receipt can proceed to
+read-only recovery. Other repeated events stop before contact requests. The scenario runs sequentially; do not
 add another writer to this inbox without addressing concurrent intake.
 
 ## Verified test
@@ -98,8 +99,29 @@ Synthetic Make tests confirmed that both a marker and the full generated receipt
 survive a later failing Code module with autoCommit enabled. These tests made no
 contact requests. The production configuration has the same autoCommit setting.
 
-Automatic receipt consumption/baseline recovery is not deployed yet. The durable
-receipt is preparation for that processor, not a claim of automatic recovery.
+The redelivery recovery route described below now consumes these receipts.
+A scheduled pending-event sweep is not deployed.
 Photo writes, creates and deletes are not covered by this receipt. Never remove
 an unresolved receipt during event retention cleanup. Historical events without
 a receipt cannot be retroactively treated as verified.
+
+## Recovery on repeated delivery
+
+Router 60 separates first deliveries from repeated events. First deliveries keep
+the existing guarded flow. Repeated events read the inbox; only
+prepared_shared_fields or held_recovery entries with receipts can proceed.
+Before authenticated reads, a pure gate checks the event, inbox, mapping,
+namespace, receipt identities and fixed target path. Completed, unmapped, photo,
+create/delete and receiptless entries cannot enter recovery contact reads.
+
+The route reads the current Contacts+ source and exact iCloud resource, then
+reconciles against the receipt. It contains only GET, never PUT or DELETE. Exact
+verified recovery advances the mapping and marks verified_shared_fields_recovered.
+Other outcomes become held_recovery, retaining the receipt. If baseline persistence
+previously succeeded but event completion failed, the exact expected baseline is
+accepted idempotently; unrelated baseline versions remain held.
+
+Recovery currently requires another delivery of the same event. It does not
+periodically sweep stalled records, guarantee Contacts+ redelivery, or recover
+photo/create/delete operations. Failed source reads leave the unfinished receipt
+available; no retry of a contact write is authorized.

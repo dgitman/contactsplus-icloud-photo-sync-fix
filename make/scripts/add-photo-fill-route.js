@@ -1,6 +1,6 @@
 const bundle=require('../code/bundle-photo-fill');
 function addPhotoFillRoute(blueprint,pilot){
- const b=JSON.parse(JSON.stringify(blueprint)),router=b.flow.find(x=>x.id===3);
+ const b=JSON.parse(JSON.stringify(blueprint)),router=(b.flow.find(x=>x.id===60)?.routes[0].flow||b.flow).find(x=>x.id===3);
  const route=router.routes.find(r=>r.flow.some(m=>m.id===5));
  if(route.flow.some(x=>x.id===30))throw Error('Photo route already installed');
  const old=route.flow.splice(route.flow.findIndex(x=>x.id===16));
