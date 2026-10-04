@@ -50,8 +50,10 @@ function guardSharedRoutes(blueprint){
   at(19).mapper.data.state='verified_shared_fields';
   const deletion=router.routes.find(r=>r.flow.some(m=>m.id===6));
   const entry=deletion.flow.find(m=>m.id===6),hold=deletion.flow.find(m=>m.id===27);
-  if(!entry||!hold)throw Error('Expected deletion route');
-  hold.mapper.data.state='held_merge_or_delete';deletion.flow=[entry,hold];
+  if(!entry)throw Error('Expected deletion route');
+  // Preserve the separately verified lifecycle route when refreshing field guards.
+  if(hold){hold.mapper.data.state='held_merge_or_delete';deletion.flow=[entry,hold];}
+  else if(!deletion.flow.some(m=>m.id===401))throw Error('Unknown deletion route');
   return b;
 }
 module.exports=guardSharedRoutes;

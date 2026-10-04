@@ -1,5 +1,15 @@
 # Durable event inbox
 
+Current production behavior: creation, mapped updates/photos and confirmed deletion
+are enabled. The receipt-based recovery router now covers shared/photo writes,
+creation (including URI image verification), and deletion. Redelivery and the
+bounded on-demand sweep only read contacts to reconcile uncertain operations;
+they never repeat a contact write. Deleted mappings are retained as tombstones.
+
+The remaining sections contain implementation history. The current lifecycle
+coverage and evidence are in [launch status](launch-blockers.md).
+
+
 The single scenario checks duplicate delivery and mapping existence, then records
 recognized Contacts+ events before any contact request. Verified mapped contacts
 use the limited shared-field update path; unknown identities remain held.

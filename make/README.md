@@ -1,11 +1,12 @@
-# Make cloud sync (in development)
+# Make cloud sync — live
 
 The architecture is one Contacts+ webhook feeding one Make scenario.
 Known `contact.added` and `contact.updated` events share guarded updates;
-`contact.deleted` events are held for merge/deletion reconciliation.
+`contact.deleted` events remove an unchanged verified target only after a fresh
+source read confirms that the exact source ID is gone.
 Contacts+ accepted a webhook registration for all three event types.
 
-`unified.blueprint.json` contains the deployed limited-rollout workflow.
+`unified.blueprint.json` contains the deployed production workflow.
 Its account-specific webhook and data store IDs have been removed. Configure both
 when importing; use the mapping schema documented below.
 A disposable contact lifecycle test on October 3, 2026 confirmed that real Contacts+
@@ -16,8 +17,9 @@ with conditional writes and exact readback. Eligible new contacts can be created
 with or without a primary photo after bounded duplicate checks. Missing photos
 can be filled; existing photos can be replaced only with a verified photo baseline,
 a changed source photo and an unchanged target photo. Unknown identities, mixed
-photo/text changes and independent target changes are held. Automatic merge/deletion
-and interrupted-creation recovery remain unfinished. See [launch status](launch-blockers.md)
+photo/text changes and independent target changes are held. Merged-away IDs use the same confirmed-deletion path, while survivor updates
+use their own exact mapping. Interrupted create/delete operations have read-only
+receipt recovery; an uncertain write is never blindly repeated. See [launch status](launch-blockers.md)
 for coverage, cloud evidence and remaining limitations.
 
 ## Credit budget for launch work

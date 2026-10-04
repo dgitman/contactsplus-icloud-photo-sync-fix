@@ -1,9 +1,16 @@
 # Launch verification status
 
-Full synchronization is not active. A limited production rollout now processes
-supported shared-field updates for explicitly verified mappings with field
-baselines. The latest rollout counts and evidence appear at the end of this
-document; earlier sections describe the staged implementation history.
+The Make-only production lifecycle is active as of October 4, 2026: eligible
+creation (including photos), verified mapped shared-field updates, guarded photo
+fills/replacements, confirmed deletion, and read-only interrupted-write recovery.
+The newest verification evidence is at the end; older sections describe historical
+implementation stages, not the current enabled state.
+
+This is event-driven synchronization, not a claim that every historical record is
+identical. There are 1,990 accepted existing mappings. Ambiguous/unmapped identities,
+unsupported fields, mixed photo/text changes and independent target edits remain
+held rather than guessed or overwritten. New-contact creation requires a structured
+name and email and a successful bounded duplicate query.
 
 ## Verified transport
 
@@ -20,23 +27,20 @@ multiget reads. Contacts+ pagination completed with 7,139 unique records. Refine
 Of the unmatched records, 645 have neither email nor phone. Candidates remain private
 and are not yet activated as production mappings.
 
-## Remaining launch work
+## Operational boundaries and follow-up improvements
 
-- The initial unique-candidate review is complete: 1,990 mappings are registered.
-  Resolve held shared-field differences and unsupported metadata before expanding
-  further. Name-only, ambiguous, conflicting and many-to-one matches remain held.
-  Bootstrap is not a per-event duplicate search.
-- Eligible new-contact creation with bounded duplicate checks is deployed. Finish
-  interrupted-create recovery and provider import-echo verification.
-- Missing-photo fills and baseline-verified existing-photo replacements are deployed.
-- Shared-field and new photo-fill interrupted-operation readback are deployed.
-  Finish merge-aware deletion; old photo receipts without decode evidence remain held.
-- On-demand shared-field pending processing is deployed. Finish other operation
-  recovery and event-store retention/capacity monitoring.
-- Run creation/echo and merge tests before enabling those operations. A real
-  disposable notes-update event and deletion hold already passed end to end.
-
-Full per-contact backups remain omitted under the user's storage policy.
+- All three event types are active. Retired IDs after a merge use the deletion
+  route only when the exact source is absent and the mapped target version and
+  per-field baselines are unchanged. The workflow does not guess a merge survivor
+  or merge existing ambiguous records itself.
+- Create/delete receipt recovery is read-only on redelivery and in the bounded
+  on-demand pending sweep. Uncertain writes remain held; no blind automatic retry.
+- Expand accepted identity mappings and field coverage separately. Held cases do
+  not prevent verified contacts from syncing.
+- Event-store automated retention/capacity alerts are a future operational
+  improvement. At launch the inbox was under 1% of its 1 MB capacity, with no
+  queued webhook deliveries. Completed test records were removed.
+- Full per-contact backups remain omitted under the user's storage policy.
 
 ## Shared-field preparation (local, not deployed)
 
@@ -808,3 +812,37 @@ full provider echo cycle. Production readback confirmed active/unpaused at
 Receipts retain the legacy `photo_fill` operation name with an explicit `action`
 for compatibility; replacement recovery compares the stored non-photo digest.
 Automatic merge/deletion handling and interrupted-creation recovery remain held.
+
+
+## Production lifecycle enabled — October 4
+
+The active single scenario is now named **Contacts+ → iCloud — Live sync**.
+Creation and update paths remain active; the test-only deletion restriction was
+removed after real provider-event verification. Deletion requires the exact stored
+mapping, authenticated source read returning no record, matching target ETag and
+unchanged per-field target hashes. A receipt is persisted and the mapping marked
+pending before conditional DELETE. A 404 readback precedes the deleted tombstone.
+If the source still exists, permissions fail, or the target changed, no deletion
+is authorized. This applies to both standalone removals and retired merge IDs;
+survivor updates are independent guarded operations.
+
+Verified real Contacts+ events (not injected fixtures):
+
+- Creation: `855ad4f2bf4f4dc184cf2c86fd0ef95e`, exact iCloud readback, 35 credits.
+- Update: `d4ae814683d84ca9a392d7b2b18f2ae3`, exact notes readback, 18 credits.
+- Deletion: `3a1becc87ebd4bd0af41071f8caef36c`, confirmed 404, 21 credits.
+- Second creation: `46578c07c07b405c8715b76b1426fb6e`, 35 credits.
+- Second deletion: `b4f4ac13a7354019b9c7248c93b89c85`, confirmed 404, 21 credits.
+
+Recovery execution `fcc28eb55c06449da3f77f4d5780e724` passed the deployed creation
+recovery branch against the second real saved contact, using its original receipt
+and a simulated pending inbox state. It performed source/target reads and verified
+bookkeeping, without another contact PUT. This was a recovery simulation, not an
+actual service outage. A first harness run stopped safely at its identity gate;
+correcting the test's expression mapping allowed the successful recovery check.
+
+A short-lived extra source test record was held, not used to create another target.
+The observed cause of that extra source record was not independently established.
+All disposable target contacts, test mappings/inbox rows and the temporary scenario
+were removed. Private audit evidence remains outside Git. No provider sync setting
+was changed. Local regression tests consume no Make credits.
