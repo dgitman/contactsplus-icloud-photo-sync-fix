@@ -327,3 +327,25 @@ bringing coverage to 94. The other 32 had shared-field differences and stayed he
 No contact content was changed. Private evidence was preserved and the temporary
 review scenario was removed. All 121 local tests pass. This improves identity
 coverage without enabling the unfinished photo/create/delete operations.
+
+## Primary-photo selection and cloud policy verification
+
+Contacts+ documents the first photo as primary. `select-primary-photo.js` validates
+fresh exact source identity/version and selects only that entry. Empty photos or
+an `absentPhoto` primary preserve the target; missing observations, invalid URLs,
+and unverified hosts hold. There is no fallback to an older secondary image.
+Source downloads must be unauthenticated and restricted to the observed Contacts+
+image hosts. See https://www.contactsplus.com/developers/contacts-api/.
+
+Cloud execution `820123c69dfd416080a92502bc73d729` exercised selection and photo
+policy with synthetic source observations and a disposable real iCloud contact.
+An unavailable source, absent baseline, and changed target were blocked before
+writing. A permitted replacement was read back with exact image bytes, decoded
+4x3 dimensions, unchanged non-photo fields, and stale-write rejection. The test
+contact was deleted and absence verified; the temporary scenario was removed.
+All 126 local tests pass. Private execution evidence stays outside Git.
+
+This does not yet enable production photo updates: fresh source downloading,
+target-photo observation, durable photo baselines and event-route integration
+still need to be connected. The existing 94-contact shared-field rollout remains
+active. Automatic creation and deletion remain held.
