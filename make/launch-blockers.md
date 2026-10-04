@@ -296,3 +296,19 @@ All 118 local tests pass. The two deployed code bundles and pre-write evidence
 input were read back; the 31-contact rollout remains active. The disposable
 contact and temporary scenario were removed. Full photo/create/delete support
 and wider identity bootstrap remain outstanding.
+
+## Larger verified batch: 80 contacts live
+
+Read-only execution `9de8274308fc4d378dc79effaecd4ef9` completed fresh source and
+target checks for 200 additional strong historical match candidates. Forty-nine
+passed the current identity and shared-field comparison gates. All 49 mapping
+and baseline records were inserted and verified by readback, bringing the limited
+live rollout to 80 contacts. No contact content was written during this review.
+
+The other 151 remained held: 104 shared-field differences, 36 without the required
+email evidence, seven unverified social-service mappings, three unsupported
+social parameter values, and one unsupported dates field. Private candidate IDs,
+baselines and detailed outcomes remain outside Git. The temporary scenario was
+removed; the main scenario was confirmed active and unpaused. Mapping storage is
+106,913 bytes of its 1 MiB allocation, so this batch fits without changing storage.
+This expands coverage of supported updates, not photo/create/delete functionality.

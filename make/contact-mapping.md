@@ -1,9 +1,10 @@
 # Persistent contact mapping
 
-A dedicated Make data store now exists for source-to-target identities. Synthetic
-create, read, partial-update, and delete operations passed; the store is empty.
-It is connected to all three event routes through existence and identity/state
-filters. No production contacts are mapped.
+A dedicated Make data store holds verified source-to-target identities and field
+baselines for the limited production rollout. Added and updated events share the
+guarded update route; deletion events are held. Unmapped identities cannot reach
+contact requests. See [launch status](launch-blockers.md) for current coverage and
+verification evidence; older sections below describe implementation milestones.
 
 The current single-account deployment uses a fixed logical namespace,
 `contactsplus-primary`, followed by `:` and the exact contact ID. This namespace

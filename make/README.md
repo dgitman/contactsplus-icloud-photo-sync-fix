@@ -1,18 +1,22 @@
 # Make cloud sync (in development)
 
-The intended architecture is one Contacts+ webhook feeding one Make scenario,
-with separate routes for `contact.added`, `contact.updated`, and `contact.deleted`.
+The architecture is one Contacts+ webhook feeding one Make scenario.
+Known `contact.added` and `contact.updated` events share guarded updates;
+`contact.deleted` events are held for merge/deletion reconciliation.
 Contacts+ accepted a webhook registration for all three event types.
 
-`unified.blueprint.json` is the verified event-routing scaffold exported from Make.
+`unified.blueprint.json` contains the deployed limited-rollout workflow.
 Its account-specific webhook and data store IDs have been removed. Configure both
 when importing; use the mapping schema documented below.
 A disposable contact lifecycle test on October 3, 2026 confirmed that real Contacts+
 create, update, and delete events each ran only their matching branch successfully.
-The create endpoint still sets a verification variable. The update route can
-apply name/notes changes to exact verified mappings. The delete route can conditionally delete exact mapped targets. Both remain experimental; the
-scenario is inactive and has no production mappings.
-The scenario was switched off after verification.
+The current scenario is active for explicitly verified mappings with per-field
+baselines. It supports guarded shared-field updates and additions to empty fields,
+with conditional writes and exact readback. It does not yet provide full photo,
+new-contact creation, deletion, or pending-event recovery. Unknown identities and
+conflicting changes are held. See [launch status](launch-blockers.md) for the latest
+coverage and evidence. Historical tests below do not imply those unfinished
+operations are enabled in production.
 
 A separate temporary Make test successfully read an iCloud vCard using Basic Auth.
 That test scenario was deleted afterward.
