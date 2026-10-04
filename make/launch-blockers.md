@@ -167,3 +167,27 @@ inbox records, and temporary scenario. The production mapping store is empty
 again. This is a real event-to-target update test, not merely a synthetic webhook.
 It does not yet establish create propagation, photo-event integration, merge
 reconciliation, broad mapping installation, or automatic held-event recovery.
+
+## Limited production update rollout enabled
+
+On October 4, fresh Contacts+ and exact iCloud reads reviewed ten strongly matched
+candidates. Nine passed; one remained held for a phone-field difference. Five of
+the passing candidates now have verified mappings and per-field baselines in the
+production store. Each inserted record was read back and compared. The main
+webhook scenario is active and not paused. Supported shared-field updates for
+these five contacts are live; full address-book synchronization is not live.
+
+The review accepted an empty iCloud FN only when its structured N line exactly
+matched the generated source N line and there were no other shared-field
+differences. It did not rewrite contact names. Baselines use the actual target
+state, so this formatting difference alone does not cause an update. Fresh source
+identity, email evidence, exact target UID and strong ETag were checked as well.
+
+Review execution `871d891ab7664081992bf4916b4fba10` completed without contact
+writes. Private candidate details and baseline evidence remain outside Git. The
+temporary review scenario was deleted after verification.
+
+New-contact creation, photo-event integration, merge/deletion propagation, wider
+mapping bootstrap and pending-event recovery remain outstanding. Existing guards
+continue to hold conflicting or unsupported changes. Increase and verify mapping
+store capacity before a broad rollout; the current store is only 1 MB.
