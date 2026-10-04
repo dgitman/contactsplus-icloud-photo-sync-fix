@@ -77,3 +77,27 @@ PHOTO and legacy image metadata remain held. All 93 local tests pass.
 This verifies cloud conversion and serialization, not primary-photo selection,
 HTTP download, pixel-equivalence normalization, iCloud save/readback or production
 integration. Those remain launch requirements.
+
+## Disposable iCloud photo lifecycle verified
+
+On October 4, Make created a uniquely identified disposable contact with embedded
+JPEG bytes using `If-None-Match: *` (HTTP 201). CardDAV readback returned an
+Apple-hosted PHOTO URI rather than inline base64. An unauthenticated image fetch
+returned Unauthorized; the existing Apple Basic Auth connection successfully
+retrieved the saved image. Make decoded it and verified its SHA-256 matched the
+exact uploaded 286-byte JPEG, with the expected 2x2 dimensions. Notes and UID
+were preserved. A conditional DELETE using the fresh target ETag succeeded, and
+subsequent GET returned 404. The temporary scenario was then deleted.
+
+Create execution: `25071f0b60d543ad86b35a29652166e7`.
+Verified image readback and cleanup: `6a051ab0a6ee4d6d972e87e44045975a`.
+Account-specific blueprints and evidence remain private, outside the repository.
+
+An Apple-hosted PHOTO URI is not itself a missing/broken image. Production photo
+verification must retrieve and decode supported Apple photo references with the
+appropriate connection; it must not classify every URL as a failed photo. Never
+send Apple credentials to arbitrary source-photo hosts.
+
+This verifies a Make-to-iCloud disposable create/photo/read/delete transport test.
+It does not verify a Contacts+ event, primary-photo selection, existing-contact
+replacement, merge handling, device display, or full production synchronization.
