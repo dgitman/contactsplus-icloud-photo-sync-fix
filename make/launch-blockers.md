@@ -48,5 +48,12 @@ by preparation: conditional write and verified readback must precede that step.
 These modules are not connected to the live Make scenario. Anniversary/custom
 dates, other messaging services, social username/user-ID metadata, custom fields,
 list/tag synchronization, and primary-photo replacement still need implementation
-or explicit handling. The 72 local tests do not establish cloud deployment or
+or explicit handling. The local tests do not establish cloud deployment or
 end-to-end synchronization.
+
+
+The pure photo policy now covers unavailable sources, content comparisons,
+identity-bound replacement baselines, and target-side changes. All 87 local tests
+pass. This is decision logic only: photo download/decoding, vCard embedding and
+cloud end-to-end verification remain outstanding, and no production photo writes
+have been enabled by this change.

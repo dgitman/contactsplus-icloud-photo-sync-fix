@@ -2,7 +2,7 @@
 
 This is pure conversion code for the native Make Code JavaScript module. It has
 no external dependencies, credentials, network calls, or local runtime service.
-It is connected to the update route for preparation only; writes remain disabled.
+The older name/notes converter is used by the mapped update route. The new shared-field and photo-policy modules are not deployed. See ../launch-blockers.md for deployment status.
 
 Paste `vcard.js` into `code:ExecuteCode` (JavaScript, editor input), replacing the
 last `module.exports = convert;` line with `return convert(input);`. Pass input
@@ -37,7 +37,7 @@ multiple-card rejection, and preservation during targeted edits.
 
 The same converter passed synthetic create and patch assertions in a temporary
 Make Code cloud scenario. That scenario was deleted afterward. This verifies the
-runtime, not an iCloud save or device display. The main scenario remains inactive.
+runtime, not an iCloud save or device display. Listener activation does not establish production synchronization.
 
 References: [Make Code](https://apps.make.com/code) and
 [vCard 3.0, RFC 2426](https://www.rfc-editor.org/rfc/rfc2426).
@@ -57,7 +57,7 @@ escaping may conservatively count as a change.
 
 The update adapter reports status=unchanged or prepared-only. These are result
 values, not persisted event states yet. A future writer must require changed=true;
-the current scenario has no writer. This avoids future unnecessary PUTs but does
+the deployed route must be assessed separately from these pure modules. This avoids future unnecessary PUTs but does
 not eliminate the existing source/target reads or their Make credit usage.
 Sixteen tests now cover conversion and preparation, including no-change cases.
 
@@ -88,3 +88,28 @@ and conflicting complete middle names are not guessed. Shared identifiers alone,
 conflicting unique evidence and many-to-one matches remain held. No name-only
 matching or phone-suffix guessing is allowed. The caller must verify inventory
 completeness. Matching never authorizes deletion.
+
+
+## Photo decision policy (not deployed)
+
+`photo-state.js` accepts fresh observations from the current primary source photo,
+a successful image decoder, and target readback. It does not download, decode,
+serialize, or write an image. Callers must not supply `decoded` or `readable`
+based on a URL, HTTP success, or Apple's image-availability flag alone.
+
+Image content hashes compare decoded/validated image content using the same
+hashing convention on both sides. Target property hashes cover PHOTO records
+and their grouped metadata. The baseline is bound to both contact IDs.
+
+- A missing primary or failed download, including 403/404, preserves the target.
+- Equal image content produces no change, even when its URL rotates.
+- A confirmed missing photo can be filled; an independent removal since the
+  accepted baseline is held.
+- Replacement requires a changed source and unchanged target since baseline.
+- Unknown target state, unvalidated images, mismatched identities, and uncertain
+  primary selection cannot authorize a write.
+
+A `fill` or `replace` result is only a plan. The cloud adapter still needs fresh
+primary selection, decoding, byte embedding, conditional ETag write, delayed
+readback, and baseline advancement after successful verification. No local
+service is introduced. Run the complete suite with `node --test make/code/*.test.js`.
