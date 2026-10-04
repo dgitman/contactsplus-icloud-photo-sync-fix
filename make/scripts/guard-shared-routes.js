@@ -5,7 +5,8 @@ function guardSharedRoutes(blueprint){
   const b=JSON.parse(JSON.stringify(blueprint));
   const eventFlow=b.flow.find(x=>x.id===71)?.routes[0].flow||b.flow;
   const main=eventFlow.find(x=>x.id===60)?.routes[0].flow||eventFlow;
-  const router=main.find(m=>m.id===3);
+  const mapped=main.find(m=>m.id===200)?.routes[0].flow||main;
+  const router=mapped.find(m=>m.id===3);
   if(!router?.routes)throw Error('Expected event router');
   const update=router.routes.find(r=>r.flow.some(m=>m.id===5)).flow;
   const writes=update.find(m=>m.id===30)?.routes.find(r=>r.flow.some(m=>m.id===16)).flow||update;
@@ -42,7 +43,7 @@ function guardSharedRoutes(blueprint){
     {name:'source',value:'{{`11`}}'},{name:'baseline',value:'{{8.baselineJson}}'},
     {name:'updatedFields',value:'{{13.result.updatedFields}}'}];
   const mapping=JSON.parse(JSON.stringify(at(19)));mapping.id=28;
-  mapping.parameters=JSON.parse(JSON.stringify(main.find(m=>m.id===8).parameters));
+  mapping.parameters=JSON.parse(JSON.stringify(mapped.find(m=>m.id===8).parameters));
   mapping.mapper={key:'contactsplus-primary:{{2.data.contactId}}',upsert:false,overwriteArrays:false,data:{baselineJson:'{{18.result.baselineJson}}',targetEtag:'{{18.result.targetEtag}}',sourceEtag:'{{13.result.sourceEtag}}',lastEventId:'{{2.eventId}}',lastVerifiedAt:'{{now}}'}};
   if(!writes.some(x=>x.id===28))writes.splice(writes.findIndex(x=>x.id===19),0,mapping);
   else writes[writes.findIndex(x=>x.id===28)]=mapping;

@@ -34,3 +34,4 @@ test('creation photo recovery rejects wrong accounts, grouped photos, changed fi
 test('creation photo recovery holds failed, redirected, undecoded and altered downloads',()=>{
  for(const patch of [{statusCode:403},{statusCode:302},{requestedUrl:savedUrl+'other'},{decoded:false},{width:2},{imageBase64:'AAAA'},{imageBase64:'!'}])assert.equal(finishPhoto({...recovery,download:{...download,...patch}}).status,'held');
 });
+test('only a complete source response can establish an omitted primary photo',()=>{const {photos,...contactData}=source.contactData,s={...source,contactData},a={...args,source:s,plan:newContactQuery({source:s,event})};assert.equal(prepare(a).reason,'photos_not_observed');assert.equal(prepare({...a,completeSource:true}).status,'reservation_prepared');});

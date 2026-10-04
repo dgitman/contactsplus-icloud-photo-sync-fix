@@ -14,7 +14,7 @@ function creationUid(account,id){
  return 'cp-'+hash({account,id});
 }
 function freshQuery(checkedAt,now){return Number.isFinite(now)&&Number.isFinite(checkedAt)&&now>=checkedAt&&now-checkedAt<=60000;}
-function prepareCreateTransaction({source,event,plan,response,sourceAccountId,bookUrl,lookupPolicyEnabled=false,existingMapping,checkedAt,now,photoDownload}){
+function prepareCreateTransaction({source,event,plan,response,sourceAccountId,bookUrl,lookupPolicyEnabled=false,existingMapping,checkedAt,now,photoDownload,completeSource=false}){
  if(!lookupPolicyEnabled)return hold('new_contact_lookup_policy_disabled');
  if(existingMapping!=null)return hold('identity_already_reserved_or_mapped');
  if(!freshQuery(checkedAt,now))return hold('query_expired');
@@ -25,7 +25,7 @@ function prepareCreateTransaction({source,event,plan,response,sourceAccountId,bo
   const empty='BEGIN:VCARD\r\nVERSION:3.0\r\nUID:'+uid+'\r\nEND:VCARD\r\n';
   let photoEvidence;
   let vcard=patchSharedFields({uid,existingVcard:empty,contactData:source.contactData}).vcard;
-  const selection=selectPrimaryPhoto({source,sourceContactId:source.contactId});let photoBaseline;
+  const selection=completeSource&&!Object.hasOwn(source.contactData,'photos')?{status:'preserve',reason:'complete_source_without_photo'}:selectPrimaryPhoto({source,sourceContactId:source.contactId});let photoBaseline;
   if(selection.status==='download'){
    const p=preparePhotoFill({source,sourceContactId:source.contactId,uid,existingVcard:vcard,targetEtag:'"creation-preflight"',selection,download:photoDownload});
    if(p.status!=='prepared-only')return hold(p.reason);

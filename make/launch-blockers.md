@@ -26,7 +26,8 @@ and are not yet activated as production mappings.
   Resolve held shared-field differences and unsupported metadata before expanding
   further. Name-only, ambiguous, conflicting and many-to-one matches remain held.
   Bootstrap is not a per-event duplicate search.
-- Implement creation/import loop prevention while iCloud pull-in remains enabled.
+- Eligible new-contact creation with bounded duplicate checks is deployed. Finish
+  creation-photo handling and interrupted-create recovery.
 - Missing-photo fills are deployed; existing-photo replacement remains unfinished.
 - Shared-field and new photo-fill interrupted-operation readback are deployed.
   Finish merge-aware deletion; old photo receipts without decode evidence remain held.
@@ -720,3 +721,39 @@ committed for repeatable testing. 213 local tests pass. Production still needs
 query routing, storage ordering and positive-match/create/import-echo integration
 tests before automatic creation can be enabled. This is remaining implementation
 work, not a permission blocker. Existing mapped production routes are unchanged.
+
+## Eligible new-contact creation deployed
+
+On October 4, creation was enabled for new, unmapped added events that have valid
+email and structured-name evidence, no iCloud duplicate candidate, and supported
+fields. A complete Contacts+ API response that omits photos is treated as having
+no primary photo for creation only. Contacts with primary photos currently remain
+held pending creation-photo download integration; missing or partial source
+responses are held. Existing contacts are not rematched or bulk-created.
+
+The Make-only route inserts a mapping reservation without overwrite, reads it,
+re-fetches the source, saves and reads an attempted marker, then issues exactly
+one conditional PUT. It re-fetches both sides and advances the mapping only after
+exact readback. A pending creation cannot enter mapped update routing. Interrupted
+creates remain held and are never blindly retried; automatic creation-receipt
+recovery is not wired yet.
+
+Verification:
+- Disposable lifecycle `91d3f249e1df41868b3a25f1bd9dbbdb` passed reservation ordering,
+  iCloud creation/readback, positive duplicate-query hold and conditional cleanup.
+- Real Contacts+ webhook `e62b94de0ef542d4beb5073fe104fb8d` reached `verified_created`
+  through the production route after exact source and target readback.
+- A second identical Contacts+ creation was no longer returned by the source API
+  when its webhook was processed. The route held it before an iCloud write. This
+  is not proof of a completed provider import-echo cycle or automatic merge cause.
+- Cleanup `e320076baee7472b9f2003999efa4427` confirmed iCloud 404, and
+  `2e182ff598a941f6a92b2de95a386fd4` confirmed both test source IDs absent.
+  Synthetic mappings/inbox records and temporary scenarios were removed after
+  retaining private evidence. No non-test contact was changed by these tests.
+- Production readback confirmed active, unpaused, and the pilot restriction
+  removed at `2026-10-04T19:47:03.551Z`. All 216 local tests pass.
+
+Full sync remains broader than this rollout: merge-aware deletion, creation with
+photos, existing-photo replacement, held mappings/fields, and automatic creation
+recovery remain unfinished. Duplicate checks for all contacts are authorized;
+that permission is no longer a blocker. No source sync settings changed.
