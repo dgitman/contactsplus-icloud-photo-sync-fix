@@ -28,7 +28,7 @@ and are not yet activated as production mappings.
   Bootstrap is not a per-event duplicate search.
 - Eligible new-contact creation with bounded duplicate checks is deployed. Finish
   interrupted-create recovery and provider import-echo verification.
-- Missing-photo fills are deployed; existing-photo replacement remains unfinished.
+- Missing-photo fills and baseline-verified existing-photo replacements are deployed.
 - Shared-field and new photo-fill interrupted-operation readback are deployed.
   Finish merge-aware deletion; old photo receipts without decode evidence remain held.
 - On-demand shared-field pending processing is deployed. Finish other operation
@@ -786,3 +786,25 @@ existing images, held field/identity conflicts, and automated interrupted-creati
 recovery. Broken/unsupported source photos remain held; creation never silently
 omits an observed primary photo. Existing mapped update and missing-photo routes
 remain enabled. No provider sync settings changed.
+
+
+## Guarded existing-photo replacement — October 4
+
+Photo-only source changes can replace an existing image when a previously verified
+photo baseline identifies the exact source and target, and the target PHOTO has
+not changed independently. Fresh source and conditional target reads are required.
+Identical decoded image bytes are held without a write. Unknown baselines, mixed
+text/photo edits, ambiguous properties and independent target edits preserve the image.
+
+Cloud execution `d37a5bbb2da9461cb130e7f5264c6836` passed the production photo
+route using synthetic source versions and real iCloud replacement/readback. Exact
+image bytes and unchanged non-photo fields were verified; it consumed 37 credits.
+Cleanup `6787ee8b8bed4e03b55fa467f1c36fcb` conditionally deleted the disposable
+contact and verified 404. Both synthetic store records and the test scenario were
+removed. This test does not establish a real Contacts+ photo-change webhook or a
+full provider echo cycle. Production readback confirmed active/unpaused at
+`2026-10-04T20:08:52.501Z`. No provider sync settings changed.
+
+Receipts retain the legacy `photo_fill` operation name with an explicit `action`
+for compatibility; replacement recovery compares the stored non-photo digest.
+Automatic merge/deletion handling and interrupted-creation recovery remain held.

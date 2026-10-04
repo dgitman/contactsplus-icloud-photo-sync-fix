@@ -12,12 +12,13 @@ A disposable contact lifecycle test on October 3, 2026 confirmed that real Conta
 create, update, and delete events each ran only their matching branch successfully.
 The current scenario is active for explicitly verified mappings with per-field
 baselines. It supports guarded shared-field updates and additions to empty fields,
-with conditional writes and exact readback. It also fills confirmed missing photos
-for accepted mappings, preserving existing readable images. It does not yet provide full photo,
-new-contact creation, deletion, or pending-event recovery. Unknown identities and
-conflicting changes are held. See [launch status](launch-blockers.md) for the latest
-coverage and evidence. Historical tests below do not imply those unfinished
-operations are enabled in production.
+with conditional writes and exact readback. Eligible new contacts can be created
+with or without a primary photo after bounded duplicate checks. Missing photos
+can be filled; existing photos can be replaced only with a verified photo baseline,
+a changed source photo and an unchanged target photo. Unknown identities, mixed
+photo/text changes and independent target changes are held. Automatic merge/deletion
+and interrupted-creation recovery remain unfinished. See [launch status](launch-blockers.md)
+for coverage, cloud evidence and remaining limitations.
 
 ## Credit budget for launch work
 

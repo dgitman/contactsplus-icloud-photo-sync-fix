@@ -16,7 +16,7 @@ function planUriPhotoRecovery(input){
   const url=photos[0].slice(p+1),u=new URL(url);
   if(typeof input.photoPathPrefix!=='string'||!/^\/contacts\/[0-9]+\/ck\/card\/$/.test(input.photoPathPrefix)||u.origin!=='https://gateway.icloud.com'||u.username||u.password||u.hash||!u.pathname.startsWith(input.photoPathPrefix)||u.pathname===input.photoPathPrefix)return hold('photo_url_not_allowed');
   const stripped=lines.filter(l=>l!==photos[0]).join('\r\n')+'\r\n';
-  if(cardDigest(stripped,input.uid)!==r.beforeHash)return hold('non_photo_drift');
+  if(cardDigest(stripped,input.uid)!==(r.beforeNonPhotoHash||r.beforeHash))return hold('non_photo_drift');
   const next=JSON.parse(r.expectedBaselineJson),propertyHash=hash(photos);
   if(next.photoBaseline?.sourceContentHash!==r.byteHash||!next.fields?.photos)return hold('photo_receipt_baseline');
   next.fields.photos.target=propertyHash;next.photoBaseline.targetPropertyHash=propertyHash;

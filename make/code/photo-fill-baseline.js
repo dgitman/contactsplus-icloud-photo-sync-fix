@@ -12,9 +12,14 @@ function photoFillGate({source,sourceContactId,uid,existingVcard,baseline}){
     if(field==='photos')continue;
     if(!current.fields[field]||!baseline.fields[field]||current.fields[field].source!==baseline.fields[field].source)return hold('mixed_source_changes');
   }
-  if(existingVcard.replace(/\r\n[ \t]/g,'').split('\r\n').some(l=>/^(?:[^.;:]+\.)?(PHOTO|X-IMAGEHASH|X-IMAGETYPE)[;:]/i.test(l)))return hold('existing_photo_preserved');
+  if(existingVcard.replace(/\r\n[ \t]/g,'').split('\r\n').some(l=>/^(?:[^.;:]+\.)?(PHOTO|X-IMAGEHASH|X-IMAGETYPE)[;:]/i.test(l))){
+    const p=baseline.photoBaseline,old=baseline.fields.photos,now=current.fields.photos;
+    if(!p||p.version!==1||p.uid!==uid||p.sourceContactId!==sourceContactId||!old||!now||p.targetPropertyHash!==now.target||old.target!==now.target)return hold('existing_photo_preserved');
+    if(now.source===old.source)return hold('source_photo_unchanged');
+    return {...selected,status:'eligible',action:'replace'};
+  }
   if(baseline.fields.photos&&current.fields.photos.target!==baseline.fields.photos.target)return hold('independent_photo_removal');
-  return {...selected,status:'eligible'};
+  return {...selected,status:'eligible',action:'fill'};
 }
 function advancePhotoBaseline({source,baseline,prepared,actual,targetEtag,download}){
   if(source.contactId!==prepared.sourceContactId||source.etag!==prepared.sourceEtag)throw Error('Source verification mismatch');
