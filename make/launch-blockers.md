@@ -665,3 +665,22 @@ readback, interrupted-create recovery, and an end-to-end create/import-echo test
 The user previously declined live duplicate checks. A decision is pending on the
 narrow exception for **unmapped new contacts only**; no lookup or creation route
 has been activated. Existing mapped updates keep their current lookup behavior.
+
+## Creation transaction safeguards prepared offline
+
+`code/create-transaction.js` now prepares a deterministic, account-scoped UID,
+lightweight reservation, conditional `If-None-Match: *` PUT intent, and exact
+readback reconciliation. All 209 local tests pass. This code is **not deployed**
+and has no network or storage side effects.
+
+The future Make route must insert the reservation without overwriting an existing
+mapping or tombstone, then durably mark the first attempt before sending its PUT.
+It must never resend an attempted creation after a timeout or uncertain result.
+A fresh bounded query, unchanged source, supported fields, and decoded primary
+photo when present are required. A missing readback stays held instead of retrying.
+The reservation stores hashes and IDs, not a full contact backup.
+
+Exact embedded-photo readback is supported by these primitives. Creation-specific
+iCloud URI-photo reconciliation, cloud storage ordering tests, and an end-to-end
+create/import-echo test remain before activation. The pending permission choice
+for new-contact-only duplicate checks is unchanged. No creation was enabled.
