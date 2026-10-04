@@ -7,7 +7,7 @@ The newest verification evidence is at the end; older sections describe historic
 implementation stages, not the current enabled state.
 
 This is event-driven synchronization, not a claim that every historical record is
-identical. There are 6,992 accepted existing mappings. Ambiguous/unmapped identities,
+identical. There are 7,013 accepted existing mappings. Ambiguous/unmapped identities,
 malformed supported fields, mixed photo/text changes and independent target edits remain
 held rather than guessed or overwritten. New-contact creation requires a structured
 name and email and a successful bounded duplicate query.
@@ -1039,3 +1039,21 @@ All 16 mappings passed complete store readback, bringing coverage to 6,992.
 contents were rewritten; historical differences remain separately baselined.
 252 local tests passed and the portable reviewer bundle was regenerated and
 syntax-checked. Both temporary scenarios were removed after verification.
+
+
+## Remaining identity graph with preserved differences — October 4
+
+The remaining 147 prior-inventory records yielded 141 sources with 149 available
+candidate targets (153 edges) using shared email, literal phone or decoded names.
+Fresh reads first found no completely equal supported-field pairs. Re-review with
+initial differences preserved accepted 21 pairs under existing identity evidence
+rules and exact supported names. Across both batches, enrollment required exactly
+one qualifying target per source and no competing qualifying source for that
+target. Name-only candidates did not qualify. Already mapped targets were excluded.
+
+All 21 mapping records passed complete store readback, bringing coverage to 7,013.
+126 records from the earlier inventory remain outside coverage. Contact content
+was not changed, and initial differences remain separately baselined. No matcher
+or production code changed in this step, so the existing 252-test result remains
+the code validation baseline. Both temporary scenarios were deleted after cloud
+verification. Full historical convergence remains separate outstanding work.
