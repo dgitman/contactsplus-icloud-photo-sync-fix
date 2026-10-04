@@ -1,26 +1,29 @@
 # Launch verification status
 
 Full synchronization is not active. The main scenario captures events but has no
-production identity mappings. Do not represent activation of that listener as a
-completed sync deployment.
+production identity mappings. Listener activation is not sync deployment.
 
-## CardDAV query compatibility (October 3, 2026, America/New_York)
+## Verified transport
 
-Tested through a disposable Make scenario using the existing Basic Auth keychain:
+The standard HTTP module rejected REPORT before network dispatch. The private
+Make custom connector subsequently authenticated and returned HTTP 207 with a
+valid DAV multistatus for an exact-name disposable-contact query. This establishes
+a Make-only CardDAV query route. No local worker or AWS helper is required.
 
-- HTTP v4 `MakeRequest`, method `report`: bundle validation rejected the request.
-- HTTP v3 `ActionSendDataBasicAuth`, methods `REPORT` and `report`: bundle
-  validation rejected the requests despite the manifest's editable method field.
-- Same v3 module and credential, ordinary GET of a nonexistent disposable UID:
-  passed, with expected 404. Authentication therefore worked in that test.
+Detailed execution logging is enabled at the user's request; authorization headers
+remain sanitized. A full identity inventory query is configured but was blocked
+before execution by automatic approval review, pending specific authorization to
+send names, emails, phones, IDs and ETags to Make and retain them in execution logs.
 
-These tests do not establish support for CardDAV collection queries in Make.
-No request was sent by the failed bundle-validation runs. An address-book collection
-GET was proposed as a read-only inventory alternative, but automatic approval review
-blocked it pending explicit authorization to send the private address book to Make.
-No successful collection inventory was obtained. Confidential logging stayed on.
-The temporary compatibility scenario was deleted after testing.
+## Remaining launch work
 
-Before launch, establish a supported cloud inventory/lookup route, build verified
-identity mappings, integrate field/photo reconciliation and uncertain-write recovery,
-and test creation/import/merge loops. No full backups are required by current policy.
+- Run the approved inventory and verify existing source-to-target mappings.
+- Wire the tested bootstrap matcher; name-only, ambiguous, conflicting, and
+  many-to-one matches must remain held. It is not a per-event duplicate search.
+- Implement creation/import loop prevention while iCloud pull-in remains enabled.
+- Extend updates beyond names/notes, including verified photo reconciliation.
+- Integrate field baselines, pending-operation readback, and merge-aware deletion.
+- Add pending-event processing and event-store retention/capacity monitoring.
+- Run disposable lifecycle and echo/merge tests before enabling production writes.
+
+Full per-contact backups remain omitted under the user's storage policy.

@@ -77,3 +77,11 @@ merge disposition must be known before destructive propagation.
 Input normalization and Make integration remain required. Hashes do not replace
 identity mapping, field conversion, or image decoding, and object-array ordering
 must be normalized by the caller according to each field's semantics.
+
+## Bootstrap matching
+
+`identity.js` is a pure, currently unwired bootstrap matcher. It requires a unique
+email or exact international phone plus normalized exact name agreement. Conflicting
+keys, shared identifiers and many-to-one matches are held. Name-only matching and
+phone-suffix guessing are never accepted. Inventory completeness must be verified
+by the caller. A match is not authority to propagate a deletion.

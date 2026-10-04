@@ -1,0 +1,12 @@
+const {test}=require('node:test');
+const assert=require('node:assert/strict');
+const {matchIdentities:m}=require('./identity');
+const s=(id,emails=[],phones=[],name='Test Person')=>({id,name,emails,phones});
+test('matches unique email and normalized exact name',()=>assert.equal(m([s('s',['A@example.invalid'])],[s('t',['a@example.invalid'])])[0].targetId,'t'));
+test('shared email does not identify people',()=>assert.equal(m([s('s',['a'])],[s('t',['a']),s('u',['a'])])[0].status,'ambiguous'));
+test('conflicting email and phone evidence holds',()=>assert.equal(m([s('s',['a'],['+12025550123'])],[s('t',['a']),s('u',[],['+12025550123'])])[0].status,'ambiguous'));
+test('name alone never maps',()=>assert.equal(m([s('s')],[s('t')])[0].status,'unmatched'));
+test('local phone suffix never maps',()=>assert.equal(m([s('s',[],['2025550123'])],[s('t',[],['+12025550123'])])[0].status,'unmatched'));
+test('two sources cannot map one target using different keys',()=>assert.deepEqual(m([s('s',['a']),s('x',['b'])],[s('t',['a','b'])]).map(r=>r.status),['ambiguous','ambiguous']));
+test('name disagreement holds',()=>assert.equal(m([s('s',['a'])],[s('t',['a'],[],'Someone Else')])[0].status,'name_conflict'));
+test('duplicate IDs reject incomplete inventory',()=>assert.throws(()=>m([s('s'),s('s')],[]),/duplicate/));
