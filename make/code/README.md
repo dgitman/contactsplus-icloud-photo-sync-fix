@@ -2,7 +2,7 @@
 
 This is pure conversion code for the native Make Code JavaScript module. It has
 no external dependencies, credentials, network calls, or local runtime service.
-It is not connected to the production routes yet.
+It is connected to the update route for preparation only; writes remain disabled.
 
 Paste `vcard.js` into `code:ExecuteCode` (JavaScript, editor input), replacing the
 last `module.exports = convert;` line with `return convert(input);`. Pass input
@@ -41,3 +41,8 @@ runtime, not an iCloud save or device display. The main scenario remains inactiv
 
 References: [Make Code](https://apps.make.com/code) and
 [vCard 3.0, RFC 2426](https://www.rfc-editor.org/rfc/rfc2426).
+
+The adapter prepare-update.js follows the converter with its CommonJS export
+removed. Run all tests with `node --test make/code/*.test.js`. The adapter uses
+only non-null source name and notes; other target fields stay untouched.
+This is not a full-field sync yet.

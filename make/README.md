@@ -9,7 +9,9 @@ Its account-specific webhook and data store IDs have been removed. Configure bot
 when importing; use the mapping schema documented below.
 A disposable contact lifecycle test on October 3, 2026 confirmed that real Contacts+
 create, update, and delete events each ran only their matching branch successfully.
-The route endpoints currently set a verification variable; they do not write contacts.
+Create/delete endpoints still set verification variables. The update route now
+reads the exact mapped source and target and prepares a name/notes change.
+No route writes contacts.
 The scenario was switched off after verification.
 
 A separate temporary Make test successfully read an iCloud vCard using Basic Auth.
@@ -53,6 +55,26 @@ Production creation and pending-event processing are still unfinished.
 
 [Make Code conversion](code/README.md) now covers basic new cards and targeted
 name/notes edits that preserve existing photos and unrelated properties. It passed
-local tests and a synthetic Make cloud test. It is not yet wired to the routes;
+local tests and a synthetic Make cloud test. It is now wired to the update route in preparation-only mode;
 the event-to-iCloud pilot still requires access to a disposable source contact.
 Live duplicate searches are intentionally omitted at the user's request.
+
+## Prepared update route
+
+Modules 11–13 fetch the current Contacts+ record, GET the exact mapped iCloud
+resource, and prepare a name/notes-only patch. This read preserves existing fields;
+it is not a duplicate search. The route checks source identity, limits the target
+to the configured address book and UID, disables redirects, and retains the
+before-vCard and ETag in its result. There is no PUT module.
+
+On import, configure the Contacts+ connection on module 11 and iCloud Basic Auth
+on module 12. Replace both example.invalid book prefixes in module 12 (URL and
+equality filter) with the same discovered book URL. Configure the webhook and
+both data stores as described above.
+
+Module 13 combines code/vcard.js without its CommonJS export, followed by
+code/prepare-update.js. Source uses the whole-bundle reference for module 11.
+Three adapter tests cover before-image retention, absent vs empty notes, and
+identity/ETag rejection. The live route was saved and read back but has not been
+executed end-to-end; the main scenario is inactive. Preparation results are not
+yet durable backups, and events remain pending in the inbox.
