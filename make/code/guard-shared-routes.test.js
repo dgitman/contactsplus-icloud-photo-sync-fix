@@ -10,3 +10,18 @@ test('raw source reader retains configured-target guards and is idempotent',()=>
   assert.equal(gates.length,3);assert.ok(gates.some(c=>c.a==='{{8.targetHref}}'));assert.ok(gates.some(c=>c.a==='{{8.targetUid}}'));
   assert.deepEqual(guard(b),b);
 });
+test('added events reuse exact mapped update path, never a create branch',()=>{
+  const b=guard(blueprint),router=b.flow.find(m=>m.id===3);
+  assert.ok(!router.routes.some(r=>r.flow.some(m=>m.id===4)));
+  const gate=router.routes.find(r=>r.flow.some(m=>m.id===5)).flow[0].filter.conditions;
+  assert.deepEqual(gate.map(c=>c[0].b),['contact.added','contact.updated']);
+  assert.equal(router.filter.conditions[0].find(c=>c.a==='{{8.state}}').b,'verified');
+  assert.equal(router.filter.conditions[0].find(c=>c.a==='{{8.sourceContactId}}').b,'{{2.data.contactId}}');
+});
+test('unmapped first deliveries receive an explicit hold and duplicates stop first',()=>{
+  const b=guard(blueprint),ids=b.flow.map(m=>m.id);
+  assert.ok(ids.indexOf(9)<ids.indexOf(7)&&ids.indexOf(7)<ids.indexOf(10)&&ids.indexOf(10)<ids.indexOf(8));
+  assert.deepEqual(b.flow.find(m=>m.id===7).filter.conditions,[[{a:'{{9.exist}}',b:false,o:'boolean:equal'}]]);
+  assert.match(b.flow.find(m=>m.id===10).mapper.data.state,/held_needs_identity/);
+  assert.equal(b.flow.find(m=>m.id===10).mapper.overwrite,false);
+});

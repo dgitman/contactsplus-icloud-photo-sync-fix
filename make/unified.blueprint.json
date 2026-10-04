@@ -110,13 +110,39 @@
       }
     },
     {
+      "id": 7,
+      "module": "datastore:ExistRecord",
+      "version": 1,
+      "mapper": {
+        "key": "contactsplus-primary:{{2.data.contactId}}"
+      },
+      "filter": {
+        "name": "First delivery only",
+        "conditions": [
+          [
+            {
+              "a": "{{9.exist}}",
+              "b": false,
+              "o": "boolean:equal"
+            }
+          ]
+        ]
+      },
+      "parameters": {},
+      "metadata": {
+        "designer": {
+          "name": "Check exact contact mapping — no writes"
+        }
+      }
+    },
+    {
       "id": 10,
       "module": "datastore:AddRecord",
       "version": 1,
       "mapper": {
         "key": "contactsplus-primary:{{2.eventId}}",
         "data": {
-          "state": "pending",
+          "state": "{{if(7.exist; \"pending\"; \"held_needs_identity\")}}",
           "eventId": "{{2.eventId}}",
           "triggerId": "{{2.triggerId}}",
           "receivedAt": "{{now}}",
@@ -141,36 +167,6 @@
       "metadata": {
         "designer": {
           "name": "Retain new event for processing"
-        }
-      }
-    },
-    {
-      "id": 7,
-      "module": "datastore:ExistRecord",
-      "version": 1,
-      "mapper": {
-        "key": "contactsplus-primary:{{2.data.contactId}}"
-      },
-      "filter": {
-        "name": "Source contact ID required",
-        "conditions": [
-          [
-            {
-              "a": "{{2.data.contactId}}",
-              "o": "exist"
-            },
-            {
-              "a": "{{2.data.contactId}}",
-              "b": "",
-              "o": "text:notequal"
-            }
-          ]
-        ]
-      },
-      "parameters": {},
-      "metadata": {
-        "designer": {
-          "name": "Check exact contact mapping — no writes"
         }
       }
     },
@@ -231,36 +227,6 @@
         {
           "flow": [
             {
-              "id": 4,
-              "module": "util:SetVariable2",
-              "version": 1,
-              "mapper": {
-                "name": "verifiedEventType",
-                "value": "contact.added"
-              },
-              "filter": {
-                "name": "Contact added",
-                "conditions": [
-                  [
-                    {
-                      "a": "{{2.triggerId}}",
-                      "b": "contact.added",
-                      "o": "text:equal"
-                    }
-                  ]
-                ]
-              },
-              "metadata": {
-                "designer": {
-                  "name": "Verify added event — no writes"
-                }
-              }
-            }
-          ]
-        },
-        {
-          "flow": [
-            {
               "id": 5,
               "module": "util:SetVariable2",
               "version": 1,
@@ -269,8 +235,15 @@
                 "value": "contact.updated"
               },
               "filter": {
-                "name": "Contact updated",
+                "name": "Known contact added or updated",
                 "conditions": [
+                  [
+                    {
+                      "a": "{{2.triggerId}}",
+                      "b": "contact.added",
+                      "o": "text:equal"
+                    }
+                  ],
                   [
                     {
                       "a": "{{2.triggerId}}",

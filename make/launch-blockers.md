@@ -242,3 +242,22 @@ shared fields; two used unverified social-service mappings; one required
 unsupported parameter encoding. Their content was not modified. The new converter
 and portable blueprint are deployed, the main scenario remains active, and the
 temporary scenario and disposable test contact have been removed.
+
+## Added-event routing and identity holds deployed
+
+Known, verified contact.added events now use the same guarded update path as
+contact.updated. They never create another target resource. Unknown added,
+updated and deleted events receive `held_needs_identity` after mapping lookup,
+before any Contacts+ or iCloud request. Duplicate delivery stops before that
+lookup. Automatic creation remains disabled: the inspected API contactMetadata
+does not reliably distinguish an iCloud import from a genuinely new source card.
+
+Live synthetic webhook execution `1ab02114db6f4e71b835f844e0377e73` exercised an
+added event for an existing verified mapping plus three unknown-identity events.
+The known card was freshly read and recorded unchanged; the three unknown events
+were held. No PUT or DELETE ran. Duplicate execution
+`b8a3258e635c43efab06179f4a8dcf24` performed only webhook intake/iteration and
+event-existence checks. Test inbox records were read back and removed after
+private evidence was saved. These are synthetic routing tests, not evidence of
+a natural provider import cycle. All 110 local tests pass; 18 real mappings remain
+enabled for the limited update rollout.

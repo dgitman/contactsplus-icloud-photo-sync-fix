@@ -7,6 +7,19 @@ function guardSharedRoutes(blueprint){
   if(!router?.routes)throw Error('Expected event router');
   const update=router.routes.find(r=>r.flow.some(m=>m.id===5)).flow;
   const at=id=>{const m=update.find(x=>x.id===id);if(!m)throw Error('Missing update module '+id);return m;};
+  // An added event for a known identity is an upsert of that exact target,
+  // never permission to create a second iCloud resource.
+  router.routes=router.routes.filter(r=>!r.flow.some(m=>m.id===4));
+  at(5).filter={name:'Known contact added or updated',conditions:[
+    [{a:'{{2.triggerId}}',b:'contact.added',o:'text:equal'}],
+    [{a:'{{2.triggerId}}',b:'contact.updated',o:'text:equal'}]
+  ]};
+  const lookup=b.flow.find(m=>m.id===7),intake=b.flow.find(m=>m.id===10);
+  if(!lookup||!intake)throw Error('Expected mapping lookup and event intake');
+  lookup.filter={name:'First delivery only',conditions:[[{a:'{{9.exist}}',b:false,o:'boolean:equal'}]]};
+  b.flow=b.flow.filter(m=>m.id!==7);
+  b.flow.splice(b.flow.findIndex(m=>m.id===10),0,lookup);
+  intake.mapper.data.state='{{if(7.exist; "pending"; "held_needs_identity")}}';
   at(11).module='contactsplus:makeAPICall';
   at(11).mapper={url:'/v1/contacts.get',body:'{"contactIds":["{{8.sourceContactId}}"]}'};
   // Exact source identity is validated by module 13 before any PUT. The GET

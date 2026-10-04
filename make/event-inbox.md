@@ -1,7 +1,8 @@
 # Durable event inbox
 
-The single scenario records recognized Contacts+ events before looking up a contact
-mapping. This is intake only; it does not yet synchronize contacts.
+The single scenario checks duplicate delivery and mapping existence, then records
+recognized Contacts+ events before any contact request. Verified mapped contacts
+use the limited shared-field update path; unknown identities remain held.
 
 Create a separate Make data structure with required text fields:
 sourceAccountId, eventId, sourceContactId, triggerId, receivedAt, state.
@@ -12,8 +13,9 @@ omits both stores' IDs and the webhook ID.
 The key is `contactsplus-primary:<eventId>`. The namespace is fixed configuration,
 not supplied by an incoming event. Only contact.added, contact.updated, and
 contact.deleted with nonempty event and contact IDs enter the inbox.
-New records are saved as pending, without overwriting an existing record. A
-repeated event ID stops before routing. The scenario runs sequentially; do not
+New records are saved as pending for known mappings or held_needs_identity for
+unknown contacts, without overwriting an existing record. A repeated event ID
+stops before mapping lookup or contact requests. The scenario runs sequentially; do not
 add another writer to this inbox without addressing concurrent intake.
 
 ## Verified test
@@ -69,3 +71,10 @@ persistence precede `verified_shared_fields`. Unmapped events still stay pending
 Mapped deletion events now become `held_merge_or_delete`; the direct target-delete
 modules were removed. This state is not a completed deletion. Event retention and
 processing of held/pending records remain launch requirements.
+
+Mapped contact.added events now share the guarded contact.updated path. They
+never authorize resource creation. Unmapped added, updated and deleted events
+are recorded as `held_needs_identity`; they cannot reach any contact request.
+These holds need bootstrap/reconciliation before processing. The API metadata
+examined does not reliably identify iCloud-import origin, so automatic new-card
+creation stays disabled while iCloud pull-in is enabled.
