@@ -7,7 +7,7 @@ The newest verification evidence is at the end; older sections describe historic
 implementation stages, not the current enabled state.
 
 This is event-driven synchronization, not a claim that every historical record is
-identical. There are 7,013 accepted existing mappings. Ambiguous/unmapped identities,
+identical. There are 7,032 accepted existing mappings. Ambiguous/unmapped identities,
 malformed supported fields, mixed photo/text changes and independent target edits remain
 held rather than guessed or overwritten. New-contact creation requires a structured
 name and email and a successful bounded duplicate query.
@@ -1057,3 +1057,19 @@ was not changed, and initial differences remain separately baselined. No matcher
 or production code changed in this step, so the existing 252-test result remains
 the code validation baseline. Both temporary scenarios were deleted after cloud
 verification. Full historical convergence remains separate outstanding work.
+
+
+## Business SMS short-code identities — October 4
+
+Fresh diagnostics of 120 remaining sources and 128 available targets identified
+business cards whose only numbers are five- or six-digit SMS short codes. The
+bootstrap-only evidence rule now accepts unnamed business cards only when their
+complete supported primary organization and phone groups match. A short code
+alone, a personal name, a partial phone group, or a different company fails.
+The candidate graph still requires one qualifying target and no competing source.
+
+19 pairs passed fresh review and complete store readback, bringing live coverage
+to 7,032. 107 records from the earlier inventory remain outside coverage. Contact
+contents were preserved and historical differences remain separately baselined.
+256 local tests passed; the portable reviewer bundle was regenerated and syntax
+checked. Temporary review and enrollment scenarios were removed after verification.

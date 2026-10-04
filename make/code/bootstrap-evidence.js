@@ -10,6 +10,16 @@ function bootstrapEvidence({contactData,existingVcard}){
   const phone=v=>{if(typeof v!=='string'||!/^[+0-9 ().-]+$/.test(v))return null;const n=v.replace(/[ ().-]/g,'');return /^\+[1-9]\d{7,14}$/.test(n)?n:null;};
   const targetPhones=new Set(lines.filter(l=>key(l)==='TEL').map(l=>phone(value(l))).filter(Boolean));
   const matched=(contactData.phoneNumbers||[]).some(p=>phone(p.value)&&targetPhones.has(phone(p.value)));
+  // Business SMS short codes are not personal phone identity. Require the
+  // complete supported company and phone groups, then caller resolves uniqueness.
+  if(!contactData.name&&contactData.organizations?.[0]?.name?.trim()&&
+     lines.filter(l=>key(l)==='N').every(l=>value(l).replace(/;/g,'')==='')&&
+     contactData.phoneNumbers?.some(p=>typeof p.value==='string'&&/^\d{5,6}$/.test(p.value.replace(/-/g,'')))){
+    const uid=value(lines.find(l=>key(l)==='UID')||'');
+    const data={organizations:contactData.organizations,phoneNumbers:contactData.phoneNumbers};
+    const projected=patchSharedFields({uid,existingVcard,contactData:data,projectionOnly:true});
+    if(projected.organizations&&projected.phoneNumbers&&!patchSharedFields({uid,existingVcard,contactData:data}).changed)return 'exact_business_and_short_code_group';
+  }
   if(!matched) {
     // National numbers are compared literally after punctuation removal; no
     // country inference. Candidate uniqueness is established by the caller.
