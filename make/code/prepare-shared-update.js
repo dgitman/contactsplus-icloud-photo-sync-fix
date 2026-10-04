@@ -47,6 +47,6 @@ function prepareSharedUpdate(input) {
   if(conflicts.length)return held('conflict',conflicts);
   const prepared=patchSharedFields({uid,existingVcard,contactData:patch});
   return {...prepared,status:prepared.changed?'prepared-only':'unchanged',writesApplied:false,
-    targetEtag,sourceEtag:source.etag,eventId:input.eventId};
+    targetEtag,sourceEtag:source.etag,eventId:input.eventId,updatedFields:Object.keys(patch)};
 }
 module.exports={snapshot,prepareSharedUpdate};

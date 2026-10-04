@@ -62,3 +62,13 @@ This is a routing guard, not completed synchronization. Valid unmapped events no
 remain pending in the [event inbox](event-inbox.md); a processor is still required.
 Target URL/UID checks are implemented on the update preparation route.
 Write conflict handling remains to be implemented.
+
+## Baseline gate deployed October 4
+
+The mapping schema now includes optional text `baselineJson`: versioned source
+and target field hashes, bound to sourceContactId and targetUid. It is required
+for an update to prepare a write. Mapping module 28 advances it only after module
+18 verifies readback, and only for changed fields. Initial baselines must be
+accepted explicitly by bootstrap; merely receiving an event never initializes
+one. The store was empty at deployment. Its 1 MB capacity is not sufficient to
+assume a full inventory of field hashes will fit; sizing is still required.

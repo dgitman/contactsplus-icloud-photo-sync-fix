@@ -119,3 +119,29 @@ blueprint and execution evidence remain private outside Git.
 This verifies replacement transport and serialization on a disposable contact.
 Production source-photo selection, event routing, baseline integration, mapping
 installation, and merge/echo behavior remain separate unverified launch work.
+
+## Guarded event routes deployed October 4
+
+The main event scenario now uses the bundled shared-field preparation code and
+requires `baselineJson` on an otherwise verified identity mapping. Missing
+baselines, conflicts and invalid/unsupported data record held event states.
+Conditional PUT is gated on both `changed=true` and `status=prepared-only`.
+Verified readback advances hashes for only the fields actually updated; unrelated
+target edits retain their previous baseline and remain protected.
+
+The prior direct deletion route has been removed. Mapped deletion events record
+`held_merge_or_delete` without any target HTTP call. Standalone deletion and merge
+reconciliation must be resolved before deletion propagation is implemented.
+
+Make cloud guard test `08f6676ff3d746979969a4142c352aed` passed four preparation
+cases. Test `d14b71ddf7704cfd8e7de3e820810e3a` verified baseline advancement and
+rejected drift. Temporary test scenario removed. The deployed blueprint was read
+back to confirm baseline input, conditional-write gate, baseline update order,
+and absence of HTTP calls on the delete branch. The portable blueprint mirrors
+these changes. All 101 local tests pass.
+
+Mapping storage was confirmed empty before deployment. Full synchronization is
+still not enabled: mapping/baseline bootstrap, event-to-contact pilot, primary
+photo integration, create/echo handling, merge resolution and retained-event
+processing remain. The stored mapping schema now includes optional baselineJson;
+capacity must be addressed before loading thousands of records.

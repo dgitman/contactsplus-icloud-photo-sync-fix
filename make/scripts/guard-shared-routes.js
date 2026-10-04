@@ -1,0 +1,33 @@
+// Apply the same guarded-route change to a fresh live or portable blueprint.
+const bundlePrepare=require('../code/bundle-shared-update');
+const bundleVerify=require('../code/bundle-shared-verification');
+function guardSharedRoutes(blueprint){
+  const b=JSON.parse(JSON.stringify(blueprint));
+  const router=b.flow.find(m=>m.id===3);
+  if(!router?.routes)throw Error('Expected event router');
+  const update=router.routes.find(r=>r.flow.some(m=>m.id===5)).flow;
+  const at=id=>{const m=update.find(x=>x.id===id);if(!m)throw Error('Missing update module '+id);return m;};
+  const p=at(13);p.mapper.codeEditorJavascript=bundlePrepare();
+  p.mapper.input=p.mapper.input.filter(x=>x.name!=='baseline');p.mapper.input.push({name:'baseline',value:'{{8.baselineJson}}'});
+  at(14).mapper.data.state='{{13.result.eventState}}';
+  at(16).filter={name:'Baseline-approved prepared change only',conditions:[[{a:'{{13.result.changed}}',b:true,o:'boolean:equal'},{a:'{{13.result.status}}',b:'prepared-only',o:'text:equal'}]]};
+  at(18).mapper.codeEditorJavascript=bundleVerify();
+  at(18).mapper.input=[
+    {name:'actual',value:'{{17.data}}'},{name:'expected',value:'{{13.result.vcard}}'},
+    {name:'targetEtag',value:'{{17.headers.etag}}'},{name:'uid',value:'{{8.targetUid}}'},
+    {name:'source',value:'{{`11`}}'},{name:'baseline',value:'{{8.baselineJson}}'},
+    {name:'updatedFields',value:'{{13.result.updatedFields}}'}];
+  const mapping=JSON.parse(JSON.stringify(at(19)));mapping.id=28;
+  mapping.parameters=JSON.parse(JSON.stringify(b.flow.find(m=>m.id===8).parameters));
+  mapping.mapper={key:'contactsplus-primary:{{2.data.contactId}}',upsert:false,overwriteArrays:false,data:{baselineJson:'{{18.result.baselineJson}}',targetEtag:'{{18.result.targetEtag}}',sourceEtag:'{{11.etag}}',lastEventId:'{{2.eventId}}',lastVerifiedAt:'{{now}}'}};
+  if(!update.some(x=>x.id===28))update.splice(update.findIndex(x=>x.id===19),0,mapping);
+  else update[update.findIndex(x=>x.id===28)]=mapping;
+  at(19).mapper.data.state='verified_shared_fields';
+  const deletion=router.routes.find(r=>r.flow.some(m=>m.id===6));
+  const entry=deletion.flow.find(m=>m.id===6),hold=deletion.flow.find(m=>m.id===27);
+  if(!entry||!hold)throw Error('Expected deletion route');
+  hold.mapper.data.state='held_merge_or_delete';deletion.flow=[entry,hold];
+  return b;
+}
+module.exports=guardSharedRoutes;
+if(require.main===module){const fs=require('node:fs');const p=process.argv[2];process.stdout.write(JSON.stringify(guardSharedRoutes(JSON.parse(fs.readFileSync(p,'utf8'))),null,2)+'\n');}

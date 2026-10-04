@@ -58,3 +58,14 @@ scenario and record were removed afterward; no contacts were written.
 
 Live duplicate searches are deferred at the user's request. This inbox makes no
 live iCloud requests and does not change source sync settings.
+
+## Current deployed states (October 4)
+
+The shared-field adapter supersedes the name/notes-only preparation states above:
+`prepared_shared_fields`, `unchanged_shared_fields`, `held_needs_baseline`,
+`held_field_conflict`, and `held_validation`. Verified readback and baseline
+persistence precede `verified_shared_fields`. Unmapped events still stay pending.
+
+Mapped deletion events now become `held_merge_or_delete`; the direct target-delete
+modules were removed. This state is not a completed deletion. Event retention and
+processing of held/pending records remain launch requirements.
