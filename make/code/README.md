@@ -60,3 +60,20 @@ values, not persisted event states yet. A future writer must require changed=tru
 the current scenario has no writer. This avoids future unnecessary PUTs but does
 not eliminate the existing source/target reads or their Make credit usage.
 Sixteen tests now cover conversion and preparation, including no-change cases.
+
+## Lightweight synchronization policy
+
+`sync-state.js` is a tested decision library, not yet wired into the deployed
+scenario. It stores only hashes of normalized field snapshots, and requires a
+baseline before proposing field changes. A changed source field is applied only
+if the target still matches its baseline; opposing edits hold the entire contact.
+Target-only edits and converged values produce no outgoing patch.
+
+Interrupted operations are resolved by identity and expected-content readback.
+No uncertain create/update/delete is automatically repeated. A delete event alone
+is insufficient evidence of a standalone deletion when merges can emit deletions;
+merge disposition must be known before destructive propagation.
+
+Input normalization and Make integration remain required. Hashes do not replace
+identity mapping, field conversion, or image decoding, and object-array ordering
+must be normalized by the caller according to each field's semantics.
