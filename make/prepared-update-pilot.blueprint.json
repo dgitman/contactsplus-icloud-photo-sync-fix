@@ -1,0 +1,208 @@
+{
+  "name": "Disposable prepared update pilot",
+  "metadata": {
+    "version": 1,
+    "scenario": {
+      "confidential": true
+    }
+  },
+  "flow": [
+    {
+      "id": 1,
+      "module": "http:MakeRequest",
+      "version": 4,
+      "parameters": {
+        "authenticationType": "basicAuth"
+      },
+      "mapper": {
+        "url": "https://icloud-carddav.example.invalid/book/codex-prepared-pilot-20261004-0129.vcf",
+        "method": "put",
+        "parseResponse": false,
+        "allowRedirects": false,
+        "stopOnHttpError": true,
+        "shareCookies": false,
+        "requestCompressedContent": false,
+        "headers": [
+          {
+            "name": "If-None-Match",
+            "value": "*"
+          }
+        ],
+        "contentType": "custom",
+        "contentTypeValue": "text/vcard; charset=utf-8",
+        "rawBodyContent": "BEGIN:VCARD\r\nVERSION:3.0\r\nUID:codex-prepared-pilot-20261004-0129\r\nN:Test;Codex Prepared;;;\r\nFN:Codex Prepared Test\r\nNOTE:Before\r\nEMAIL:disposable@example.invalid\r\nEND:VCARD\r\n"
+      }
+    },
+    {
+      "id": 2,
+      "module": "http:MakeRequest",
+      "version": 4,
+      "parameters": {
+        "authenticationType": "basicAuth"
+      },
+      "mapper": {
+        "url": "https://icloud-carddav.example.invalid/book/codex-prepared-pilot-20261004-0129.vcf",
+        "method": "get",
+        "parseResponse": false,
+        "allowRedirects": false,
+        "stopOnHttpError": true,
+        "shareCookies": false,
+        "requestCompressedContent": false
+      }
+    },
+    {
+      "id": 3,
+      "module": "code:ExecuteCode",
+      "version": 1,
+      "mapper": {
+        "language": "javascript",
+        "inputFormat": "editor",
+        "codeEditorJavascript": "// Pure conversion for Make Code. No network, filesystem, or credentials.\nfunction convert(input) {\n  const text = value => {\n    if (value == null) return '';\n    if (typeof value !== 'string' || /[\\x00-\\x08\\x0b\\x0c\\x0e-\\x1f\\x7f]/.test(value))\n      throw new Error('Invalid text value');\n    return value;\n  };\n  const escape = value => text(value).replace(/\\\\/g, '\\\\\\\\').replace(/\\r\\n|\\r|\\n/g, '\\\\n').replace(/;/g, '\\\\;').replace(/,/g, '\\\\,');\n  const fold = line => {\n    let out = '', width = 0;\n    for (const ch of line) {\n      const size = Buffer.byteLength(ch, 'utf8');\n      if (width + size > 75) { out += '\\r\\n '; width = 1; }\n      out += ch; width += size;\n    }\n    return out;\n  };\n  const uid = text(input.uid);\n  if (!/^[A-Za-z0-9_-]{1,128}$/.test(uid)) throw new Error('A safe stable target UID is required');\n  const data = typeof input.contactData === 'string' ? JSON.parse(input.contactData) : input.contactData;\n  if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('contactData must be an object');\n  const nameLines = () => {\n    const n = data.name;\n    if (!n || typeof n !== 'object' || Array.isArray(n)) throw new Error('Structured name required');\n    const keys = ['familyName','givenName','middleName','prefix','suffix'];\n    if (Object.keys(n).some(k => !keys.includes(k) && n[k])) throw new Error('Unsupported name component');\n    const fn = ['prefix','givenName','middleName','familyName','suffix'].map(k=>text(n[k])).filter(Boolean).join(' ');\n    if (!fn.trim()) throw new Error('Nonempty name required');\n    return ['N:' + keys.map(k=>escape(n[k])).join(';'), 'FN:' + escape(fn)];\n  };\n  if (input.mode === 'patch-name-notes') {\n    const prior = text(input.existingVcard);\n    if (/\\r(?!\\n)|(?<!\\r)\\n/.test(prior) || !prior.endsWith('\\r\\n')) throw new Error('Expected CRLF vCard');\n    const physical = prior.slice(0,-2).split('\\r\\n');\n    const records = [];\n    for (const line of physical) {\n      if (/^[ \\t]/.test(line)) {\n        if (!records.length) throw new Error('Invalid folding');\n        records[records.length-1].raw += '\\r\\n' + line;\n        records[records.length-1].logical += line.slice(1);\n      } else records.push({raw:line,logical:line});\n    }\n    const logical = records.map(r=>r.logical);\n    if (logical[0] !== 'BEGIN:VCARD' || logical.at(-1) !== 'END:VCARD' || logical.filter(l=>l==='BEGIN:VCARD').length !== 1 || logical.filter(l=>l==='END:VCARD').length !== 1 || logical.filter(l=>l==='VERSION:3.0').length !== 1)\n      throw new Error('Expected one vCard 3.0');\n    if (logical.filter(l=>/^UID[;:]/i.test(l)).length !== 1 || !logical.includes('UID:'+uid)) throw new Error('Target UID mismatch');\n    const requested = Object.keys(data);\n    if (!requested.length || requested.some(k=>!['name','notes'].includes(k))) throw new Error('Patch supports only explicit name and notes');\n    const desired = [...(requested.includes('name')?nameLines():[]), ...(requested.includes('notes')?['NOTE:'+escape(data.notes)]:[])];\n    const property = r => r.logical.split(':')[0].split(';')[0].split('.').at(-1).toUpperCase();\n    const additions = desired.filter(line => {\n      const key = line.slice(0,line.indexOf(':'));\n      const current = records.filter(r => property(r) === key);\n      if (current.some(r => /[;.]/.test(r.logical.split(':')[0]))) throw new Error('Qualified managed property needs manual handling');\n      if (current.length > 1) throw new Error('Ambiguous repeated managed property');\n      // An absent note and an explicitly empty note have the same effect.\n      if (!current.length && line === 'NOTE:') return false;\n      return !current.length || current[0].logical.slice(current[0].logical.indexOf(':')+1) !== line.slice(line.indexOf(':')+1);\n    });\n    if (!additions.length) return {vcard:prior,uid,mode:input.mode,changed:false};\n    const replace = new Set(additions.map(line => line.slice(0,line.indexOf(':'))));\n    const kept = records.filter(r => !replace.has(property(r))).map(r=>r.raw);\n    kept.splice(kept.length-1,0,...additions.map(fold));\n    return {vcard:kept.join('\\r\\n')+'\\r\\n',uid,mode:input.mode,changed:true};\n  }\n  if (input.mode !== 'create') throw new Error('Explicit create or patch-name-notes mode required');\n  const allowed = ['name','notes','emails','phoneNumbers'];\n  if (Object.keys(data).some(k=>!allowed.includes(k) && data[k] != null && data[k] !== '' && !(Array.isArray(data[k]) && !data[k].length)))\n    throw new Error('Unsupported populated field; do not drop source data');\n  const lines = ['BEGIN:VCARD','VERSION:3.0','UID:'+uid,...nameLines()];\n  for (const [key,property,types] of [['emails','EMAIL',['HOME','WORK','INTERNET']],['phoneNumbers','TEL',['HOME','WORK','CELL','VOICE','FAX','PAGER']]]) {\n    const entries = data[key] ?? [];\n    if (!Array.isArray(entries)) throw new Error('Expected contact value array');\n    for (const e of entries) {\n      if (!e || Object.keys(e).some(k=>!['type','value'].includes(k))) throw new Error('Unsupported contact value field');\n      const value = text(e.value);\n      if (!value || /[\\r\\n]/.test(value)) throw new Error('Invalid email or phone');\n      const label = text(e.type).toUpperCase();\n      if (label && !types.includes(label)) throw new Error('Unsupported label');\n      lines.push(property+(label?';TYPE='+label:'')+':'+escape(value));\n    }\n  }\n  if (Object.hasOwn(data,'notes')) lines.push('NOTE:'+escape(data.notes));\n  lines.push('END:VCARD');\n  return {vcard:lines.map(fold).join('\\r\\n')+'\\r\\n',uid,mode:input.mode};\n}\n\nconst p=convert({mode:\"patch-name-notes\",uid:\"codex-prepared-pilot-20261004-0129\",existingVcard:input.card,contactData:{notes:\"After prepared update\"}}); if(!p.changed) throw Error(\"Expected change\"); return p;",
+        "input": [
+          {
+            "name": "card",
+            "value": "{{2.data}}"
+          }
+        ]
+      }
+    },
+    {
+      "id": 4,
+      "module": "datastore:AddRecord",
+      "version": 1,
+      "parameters": {},
+      "mapper": {
+        "key": "codex-prepared-pilot-20261004-0129",
+        "overwrite": false,
+        "data": {
+          "eventId": "codex-prepared-pilot-20261004-0129",
+          "sourceContactId": "synthetic-source",
+          "targetUid": "codex-prepared-pilot-20261004-0129",
+          "targetEtag": "{{2.headers.etag}}",
+          "beforeVcard": "{{2.data}}",
+          "preparedVcard": "{{3.result.vcard}}",
+          "createdAt": "{{now}}"
+        }
+      }
+    },
+    {
+      "id": 5,
+      "module": "http:MakeRequest",
+      "version": 4,
+      "parameters": {
+        "authenticationType": "basicAuth"
+      },
+      "mapper": {
+        "url": "https://icloud-carddav.example.invalid/book/codex-prepared-pilot-20261004-0129.vcf",
+        "method": "put",
+        "parseResponse": false,
+        "allowRedirects": false,
+        "stopOnHttpError": true,
+        "shareCookies": false,
+        "requestCompressedContent": false,
+        "headers": [
+          {
+            "name": "If-Match",
+            "value": "{{2.headers.etag}}"
+          }
+        ],
+        "contentType": "custom",
+        "contentTypeValue": "text/vcard; charset=utf-8",
+        "rawBodyContent": "{{3.result.vcard}}"
+      }
+    },
+    {
+      "id": 6,
+      "module": "http:MakeRequest",
+      "version": 4,
+      "parameters": {
+        "authenticationType": "basicAuth"
+      },
+      "mapper": {
+        "url": "https://icloud-carddav.example.invalid/book/codex-prepared-pilot-20261004-0129.vcf",
+        "method": "get",
+        "parseResponse": false,
+        "allowRedirects": false,
+        "stopOnHttpError": true,
+        "shareCookies": false,
+        "requestCompressedContent": false
+      }
+    },
+    {
+      "id": 7,
+      "module": "code:ExecuteCode",
+      "version": 1,
+      "mapper": {
+        "language": "javascript",
+        "inputFormat": "editor",
+        "codeEditorJavascript": "const lines=s=>s.replace(/\\r\\n[ \\t]/g,\"\").split(/\\r?\\n/).filter(x=>x&&!/^(REV|PRODID):/.test(x)).sort();if(JSON.stringify(lines(input.actual))!==JSON.stringify(lines(input.expected)))throw Error(\"Readback drift\");return {verified:true};",
+        "input": [
+          {
+            "name": "actual",
+            "value": "{{6.data}}"
+          },
+          {
+            "name": "expected",
+            "value": "{{3.result.vcard}}"
+          }
+        ]
+      }
+    },
+    {
+      "id": 8,
+      "module": "http:MakeRequest",
+      "version": 4,
+      "parameters": {
+        "authenticationType": "basicAuth"
+      },
+      "mapper": {
+        "url": "https://icloud-carddav.example.invalid/book/codex-prepared-pilot-20261004-0129.vcf",
+        "method": "delete",
+        "parseResponse": false,
+        "allowRedirects": false,
+        "stopOnHttpError": true,
+        "shareCookies": false,
+        "requestCompressedContent": false,
+        "headers": [
+          {
+            "name": "If-Match",
+            "value": "{{6.headers.etag}}"
+          }
+        ]
+      }
+    },
+    {
+      "id": 9,
+      "module": "http:MakeRequest",
+      "version": 4,
+      "parameters": {
+        "authenticationType": "basicAuth"
+      },
+      "mapper": {
+        "url": "https://icloud-carddav.example.invalid/book/codex-prepared-pilot-20261004-0129.vcf",
+        "method": "get",
+        "parseResponse": false,
+        "allowRedirects": false,
+        "stopOnHttpError": false,
+        "shareCookies": false,
+        "requestCompressedContent": false
+      }
+    },
+    {
+      "id": 10,
+      "module": "code:ExecuteCode",
+      "version": 1,
+      "mapper": {
+        "language": "javascript",
+        "inputFormat": "editor",
+        "codeEditorJavascript": "if(Number(input.status)!==404)throw Error(\"Cleanup unverified\"); return {verified:true,deleted:true};",
+        "input": [
+          {
+            "name": "status",
+            "value": "{{9.statusCode}}"
+          }
+        ]
+      }
+    }
+  ]
+}

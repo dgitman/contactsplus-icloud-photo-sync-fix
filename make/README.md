@@ -97,3 +97,21 @@ The pilot store is 1 MB; the attempted 5 MB allocation exceeded Make's available
 4 MB limit. Embedded photos may consume this quickly. Capacity planning, retention,
 and interrupted-run reconciliation are required before production. Never purge
 unresolved backups merely to make space. No write route is enabled yet.
+
+## Prepared-update pilot
+
+`prepared-update-pilot.blueprint.json` is an on-demand, disposable-target test,
+not the production scenario. Configure the HTTP Basic Auth connection, discovered
+book URL, and backup store before running. Use a fresh unique UID consistently in
+all URLs, the initial vCard, converter input, and backup key. Do not run against a
+real contact or blindly rerun after an interruption.
+
+The Make run on October 3, 2026 (October 4 UTC) passed: conditional create, GET,
+repository converter preparation, durable backup, conditional PUT with the GET
+ETag, GET comparison, conditional deletion, and confirmed 404. The comparison
+ignores property ordering, folding, REV and PRODID; every other property must
+match the prepared card. The temporary scenario and synthetic backup were removed.
+
+This pilot used synthetic source data and a notes-only change. It does not verify
+Contacts+ webhook-to-write behavior, photo preservation through a real update,
+or display on Apple devices. Production remains inactive with no contact writes.
