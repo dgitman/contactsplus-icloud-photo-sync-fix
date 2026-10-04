@@ -7,10 +7,20 @@ function bootstrapEvidence({contactData,existingVcard}){
   const value=l=>l.slice(l.indexOf(':')+1);
   const emails=new Set(lines.filter(l=>key(l)==='EMAIL').map(l=>value(l).trim().toLowerCase()));
   const email=(contactData.emails||[]).some(e=>typeof e.value==='string'&&/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e.value)&&emails.has(e.value.trim().toLowerCase()));
-  if(email)return 'exact_email';
   const phone=v=>{if(typeof v!=='string'||!/^[+0-9 ().-]+$/.test(v))return null;const n=v.replace(/[ ().-]/g,'');return /^\+[1-9]\d{7,14}$/.test(n)?n:null;};
   const targetPhones=new Set(lines.filter(l=>key(l)==='TEL').map(l=>phone(value(l))).filter(Boolean));
   const matched=(contactData.phoneNumbers||[]).some(p=>phone(p.value)&&targetPhones.has(phone(p.value)));
+  if(email&&matched)return 'exact_email_and_phone';
+  if(email) {
+    const n=lines.filter(l=>/^N:/.test(l));
+    const components=n.length===1?n[0].slice(2).split(';'):[];
+    const norm=s=>String(s||'').normalize('NFKC').trim().toLowerCase();
+    const source=contactData.name;
+    // Prior globally unique email plus exact family and first given-name token.
+    // Additional given/middle names do not require overwriting either name.
+    if(components.length===5&&source&&norm(source.familyName)&&norm(source.familyName)===norm(components[0])&&norm(source.givenName).split(/\s+/)[0]&&norm(source.givenName).split(/\s+/)[0]===norm(components[1]).split(/\s+/)[0])return 'exact_email_and_compatible_name';
+    return 'exact_email';
+  }
   if(!matched||!contactData.name)return null;
   const proposed=patchSharedFields({uid:value(lines.find(l=>key(l)==='UID')||''),existingVcard,contactData:{name:contactData.name}}).vcard.replace(/\r\n[ \t]/g,'').split('\r\n');
   const names=lines.filter(l=>key(l)==='N'),expected=proposed.filter(l=>key(l)==='N');

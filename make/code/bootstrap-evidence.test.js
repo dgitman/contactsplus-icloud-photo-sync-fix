@@ -12,3 +12,9 @@ test('email must exist on both sides, not merely in the source',()=>{
   assert.equal(evidence({contactData,existingVcard:card}),null);
   assert.equal(evidence({contactData,existingVcard:card.replace('END:VCARD','EMAIL:test@example.invalid\r\nEND:VCARD')}),'exact_email');
 });
+test('name differences require extra current corroboration',()=>{
+ const target=card.replace('END:VCARD','EMAIL:test@example.invalid\r\nEND:VCARD');
+ assert.equal(evidence({contactData:{...contactData,emails:[{value:'test@example.invalid'}],name:{givenName:'Test',familyName:'Changed'}},existingVcard:target}),'exact_email_and_phone');
+ assert.equal(evidence({contactData:{emails:[{value:'test@example.invalid'}],name:{givenName:'Test Middle',familyName:'Person'}},existingVcard:target}),'exact_email_and_compatible_name');
+ assert.equal(evidence({contactData:{emails:[{value:'test@example.invalid'}],name:{givenName:'Someone',familyName:'Else'}},existingVcard:target}),'exact_email');
+});

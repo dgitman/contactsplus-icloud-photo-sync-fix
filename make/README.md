@@ -20,7 +20,8 @@ a changed source photo and an unchanged target photo. Unknown identities, mixed
 photo/text changes and independent target changes are held. Unsupported top-level
 fields are omitted. Unsupported components or target parameters leave their whole
 field group untouched while supported groups continue syncing; skipped groups are
-not logged per contact. Identity errors and malformed supported values remain held. Merged-away IDs use the same confirmed-deletion path, while survivor updates
+not logged per contact. Malformed social URLs also preserve their entire URL group. Identity errors and
+other malformed supported values remain held. Merged-away IDs use the same confirmed-deletion path, while survivor updates
 use their own exact mapping. Interrupted create/delete operations have read-only
 receipt recovery; an uncertain write is never blindly repeated. See [launch status](launch-blockers.md)
 for coverage, cloud evidence and remaining limitations.

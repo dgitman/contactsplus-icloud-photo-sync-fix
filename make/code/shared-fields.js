@@ -169,7 +169,7 @@ function patchSharedFields({uid,existingVcard,contactData,projectionOnly=false})
       patchSharedFieldsStrict({uid,existingVcard,contactData:{[field]:value}});
       projected[field]=value;
     } catch(e) {
-      if(field==='name'||!['Unsupported source component','Unsupported social parameter value','Social profile metadata needs verified mapping','Unsupported IM service','Unsupported target parameter','Managed field shares group with unmanaged data'].includes(e.message))throw e;
+      if(field==='name'||!['Invalid social URL','Unsupported source component','Unsupported social parameter value','Social profile metadata needs verified mapping','Unsupported IM service','Unsupported target parameter','Managed field shares group with unmanaged data'].includes(e.message))throw e;
     }
   }
   if(projectionOnly)return projected;

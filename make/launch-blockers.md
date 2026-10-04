@@ -7,7 +7,7 @@ The newest verification evidence is at the end; older sections describe historic
 implementation stages, not the current enabled state.
 
 This is event-driven synchronization, not a claim that every historical record is
-identical. There are 6,005 accepted existing mappings. Ambiguous/unmapped identities,
+identical. There are 6,009 accepted existing mappings. Ambiguous/unmapped identities,
 malformed supported fields, mixed photo/text changes and independent target edits remain
 held rather than guessed or overwritten. New-contact creation requires a structured
 name and email and a successful bounded duplicate query.
@@ -916,3 +916,22 @@ was created, deleted or edited. Four cases remain in the prior matched cohort:
 three actual name differences and one malformed social URL. Broader unmatched
 records are not included in that number. Validation includes 233 local tests,
 exact deployed-code readback, and a successful Make HTTP read using the new mapper.
+
+## Original matched cohort fully enrolled — October 4
+
+Fresh reads resolved the last four pairs. Name-difference enrollment is explicitly
+opt-in for already globally unique candidates and requires current exact email
+plus exact international phone, or current exact email plus compatible structured
+first/family names. Both current name versions become separate baselines; enrolling
+a pair does not rewrite its name or historical differences. Email alone with an
+unrelated name remains held. This option is off in the portable batch template.
+
+A malformed social URL now preserves/skips the complete URL/social-profile group
+while allowing other supported groups to sync. Other malformed supported values
+retain their existing guards. No per-contact skipped-field record is added.
+
+All four new mappings passed readback. The original 6,009 matched-pair cohort is
+fully enrolled, but this does not establish historical convergence or resolve the
+remaining 1,130 records classified as name conflicts, ambiguous or unmatched in
+the earlier inventory. Both temporary scenarios were removed. Validation: 236
+local tests, successful fresh cloud review and exact deployed-code readback.

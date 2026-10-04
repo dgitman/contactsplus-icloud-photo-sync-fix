@@ -36,3 +36,11 @@ test('encoded resource basename is distinct from UID and verified against the ca
  x.targetResponse.body.multistatus.response[0].propstat[0].prop[0]['address-data']=[card.replace('UID:t','UID:other')];assert.equal(review(x)[0].status,'held');
  x.targetResponse.body.multistatus.response[0].href=['/other/dA==.vcf'];assert.throws(()=>review(x));
 });
+test('explicit name enrollment requires corroboration and retains both baselines',()=>{
+ const x=structuredClone(args);x.acceptInitialDifferences=true;x.acceptCorroboratedNames=true;
+ x.sourceResponse.body.contacts[0].contactData.name.givenName='Alex Middle';
+ const r=review(x)[0];assert.equal(r.status,'eligible');
+ const prepare=require('./prepare-shared-update').prepareSharedUpdate;
+ assert.equal(prepare({source:x.sourceResponse.body.contacts[0],sourceContactId:'s',uid:'t',existingVcard:card,targetEtag:'"v1"',baseline:JSON.parse(r.baselineJson)}).status,'unchanged');
+ x.sourceResponse.body.contacts[0].contactData.name={givenName:'Someone',familyName:'Else'};assert.equal(review(x)[0].status,'held');
+});

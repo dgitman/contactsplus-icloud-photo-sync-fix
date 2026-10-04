@@ -64,3 +64,7 @@ test('mobile equivalence never hides number, fax or custom label differences',()
   for(const tel of ['TEL;TYPE=CELL,VOICE:+12025550124','TEL;TYPE=CELL,FAX:+12025550123','item1.TEL:+12025550123\r\nitem1.X-ABLabel:Cell'])
     assert.equal(run(data,tel+'\r\n').changed,true);
 });
+test('malformed social URL leaves working target URLs untouched while notes sync',()=>{
+ const r=run({notes:'changed',urls:[{type:'linkedin',value:'https://example.test/invalid space'}]},'URL:https://example.test/working\r\n');
+ assert.match(r.vcard,/URL:https:\/\/example.test\/working/);assert.match(r.vcard,/NOTE:changed/);assert.doesNotMatch(r.vcard,/invalid space/);
+});
