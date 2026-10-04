@@ -1,7 +1,7 @@
 // Bundled after shared-fields.js, sync-state.js and prepare-shared-update.js.
 // Malformed/unsupported source data is retained as a held event, not a write.
 try {
-  const source=typeof input.source==='string'?JSON.parse(input.source):input.source;
+  const source=readSourceResponse(input.source);
   const baseline=typeof input.baseline==='string'&&input.baseline?JSON.parse(input.baseline):input.baseline||null;
   const r=prepareSharedUpdate({...input,source,baseline});
   return {...r,eventState:r.status==='prepared-only'?'prepared_shared_fields':

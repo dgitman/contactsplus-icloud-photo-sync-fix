@@ -7,6 +7,12 @@ function guardSharedRoutes(blueprint){
   if(!router?.routes)throw Error('Expected event router');
   const update=router.routes.find(r=>r.flow.some(m=>m.id===5)).flow;
   const at=id=>{const m=update.find(x=>x.id===id);if(!m)throw Error('Missing update module '+id);return m;};
+  at(11).module='contactsplus:makeAPICall';
+  at(11).mapper={url:'/v1/contacts.get',body:'{"contactIds":["{{8.sourceContactId}}"]}'};
+  // Exact source identity is validated by module 13 before any PUT. The GET
+  // remains limited to the mapping's configured target address book and UID.
+  at(12).filter.conditions[0]=at(12).filter.conditions[0].filter(c=>c.a!=='{{11.contactId}}'&&c.a!=='{{11.statusCode}}');
+  at(12).filter.conditions[0].unshift({a:'{{11.statusCode}}',b:200,o:'number:equal'});
   const p=at(13);p.mapper.codeEditorJavascript=bundlePrepare();
   p.mapper.input=p.mapper.input.filter(x=>x.name!=='baseline');p.mapper.input.push({name:'baseline',value:'{{8.baselineJson}}'});
   at(14).mapper.data.state='{{13.result.eventState}}';
@@ -19,7 +25,7 @@ function guardSharedRoutes(blueprint){
     {name:'updatedFields',value:'{{13.result.updatedFields}}'}];
   const mapping=JSON.parse(JSON.stringify(at(19)));mapping.id=28;
   mapping.parameters=JSON.parse(JSON.stringify(b.flow.find(m=>m.id===8).parameters));
-  mapping.mapper={key:'contactsplus-primary:{{2.data.contactId}}',upsert:false,overwriteArrays:false,data:{baselineJson:'{{18.result.baselineJson}}',targetEtag:'{{18.result.targetEtag}}',sourceEtag:'{{11.etag}}',lastEventId:'{{2.eventId}}',lastVerifiedAt:'{{now}}'}};
+  mapping.mapper={key:'contactsplus-primary:{{2.data.contactId}}',upsert:false,overwriteArrays:false,data:{baselineJson:'{{18.result.baselineJson}}',targetEtag:'{{18.result.targetEtag}}',sourceEtag:'{{13.result.sourceEtag}}',lastEventId:'{{2.eventId}}',lastVerifiedAt:'{{now}}'}};
   if(!update.some(x=>x.id===28))update.splice(update.findIndex(x=>x.id===19),0,mapping);
   else update[update.findIndex(x=>x.id===28)]=mapping;
   at(19).mapper.data.state='verified_shared_fields';

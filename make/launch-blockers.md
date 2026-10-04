@@ -1,7 +1,9 @@
 # Launch verification status
 
-Full synchronization is not active. The main scenario captures events but has no
-production identity mappings. Listener activation is not sync deployment.
+Full synchronization is not active. A limited production rollout now processes
+supported shared-field updates for explicitly verified mappings with field
+baselines. The latest rollout counts and evidence appear at the end of this
+document; earlier sections describe the staged implementation history.
 
 ## Verified transport
 
@@ -20,14 +22,16 @@ and are not yet activated as production mappings.
 
 ## Remaining launch work
 
-- Run the approved inventory and verify existing source-to-target mappings.
-- Wire the tested bootstrap matcher; name-only, ambiguous, conflicting, and
+- Expand freshly verified source-to-target mappings beyond the limited rollout.
+- Complete repeatable bootstrap; name-only, ambiguous, conflicting, and
   many-to-one matches must remain held. It is not a per-event duplicate search.
 - Implement creation/import loop prevention while iCloud pull-in remains enabled.
-- Extend updates beyond names/notes, including verified photo reconciliation.
-- Integrate field baselines, pending-operation readback, and merge-aware deletion.
+- Integrate verified photo reconciliation into the event update route.
+- Add interrupted-operation readback and merge-aware deletion. Shared-field
+  baselines and successful-write readback are already deployed.
 - Add pending-event processing and event-store retention/capacity monitoring.
-- Run disposable lifecycle and echo/merge tests before enabling production writes.
+- Run creation/echo and merge tests before enabling those operations. A real
+  disposable notes-update event and deletion hold already passed end to end.
 
 Full per-contact backups remain omitted under the user's storage policy.
 
@@ -191,3 +195,29 @@ New-contact creation, photo-event integration, merge/deletion propagation, wider
 mapping bootstrap and pending-event recovery remain outstanding. Existing guards
 continue to hold conflicting or unsupported changes. Increase and verify mapping
 store capacity before a broad rollout; the current store is only 1 MB.
+
+## Expanded rollout and yearless-birthday reader fix
+
+The limited rollout now has 17 verified mappings. A fresh read-only batch of 50
+additional candidates admitted 12: 18 differed in shared fields, 10 required
+unsupported social-profile metadata, and 10 lacked the required email evidence.
+Held candidates were not mapped or modified. All 12 inserted mappings and their
+baselines were read back and compared. No contact content was written in this
+bootstrap batch. Review execution: `11adc3eb67c74e6ea34d101cdaac7977`.
+
+The initial review exposed a native Contacts+ Get Contact module failure on a
+yearless birthday (`parseContactsOutputDates`). The production reader now calls
+`/v1/contacts.get` through the existing Contacts+ connection instead, preserving
+the raw birthday object. It requires HTTP 200 and exactly one versioned source
+contact; preparation still checks the exact mapped source ID before any write.
+Configured target URL/UID checks, conditional PUT, readback verification, and
+deletion holds remain in place. Source ETag persistence uses the validated
+preparation result. Both preparation and readback accept the raw API envelope.
+
+The replacement reader completed all 50 real reads. Make test execution
+`2a9f3b3551b0489d97f41b114909e05a` verified preparation, baseline advancement,
+yearless-birthday preservation, and rejection of missing/wrong source identities
+using synthetic cards without writes. All 106 local tests pass. The deployed
+configuration was read back and compared; the main scenario remains active.
+The temporary review/test scenario was removed. Full synchronization still has
+the outstanding work listed above.

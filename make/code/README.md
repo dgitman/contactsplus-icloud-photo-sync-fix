@@ -126,3 +126,11 @@ The Make synthetic blueprint uses built-in image conversion and metadata modules
 then passes their output directly to the serializer. Successful conversion and
 HTML rejection were verified in Make; see ../launch-blockers.md. The temporary
 cloud test was removed. Production image downloads and writes are not wired yet.
+
+## Raw Contacts+ source reader
+
+Production uses `contactsplus:makeAPICall` with `/v1/contacts.get`. The native
+Get Contact module can fail while converting a birthday that has no year.
+`read-source-response.js` preserves the API object, requires one successful,
+versioned contact, and passes it to the existing exact-identity guards. Both
+bundles use this reader; direct object inputs remain supported for local tests.
