@@ -77,4 +77,6 @@ code/prepare-update.js. Source uses the whole-bundle reference for module 11.
 Three adapter tests cover before-image retention, absent vs empty notes, and
 identity/ETag rejection. The live route was saved and read back but has not been
 executed end-to-end; the main scenario is inactive. Preparation results are not
-yet durable backups, and events remain pending in the inbox.
+yet durable backups. Module 14 records the scoped preparation outcome in the
+inbox; configure it to use the same store as modules 9 and 10. Neither outcome
+means a contact update was applied. See [event-inbox.md](event-inbox.md).

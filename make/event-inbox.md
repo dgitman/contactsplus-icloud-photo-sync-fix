@@ -5,7 +5,7 @@ mapping. This is intake only; it does not yet synchronize contacts.
 
 Create a separate Make data structure with required text fields:
 sourceAccountId, eventId, sourceContactId, triggerId, receivedAt, state.
-Create a data store linked to it. Configure modules 9 and 10 to use this inbox;
+Create a data store linked to it. Configure modules 9, 10, and 14 to use this inbox;
 modules 7 and 8 use the separate contact-mapping store. The portable blueprint
 omits both stores' IDs and the webhook ID.
 
@@ -23,6 +23,21 @@ saved three pending records for an unmapped contact. The second ran only the
 existence checks, preserving the original records and receipt timestamps.
 No mapping was required to retain these events. All synthetic records were
 removed afterward and the scenario was disabled. No contacts were written.
+
+## Preparation outcomes
+
+Module 14 updates only the existing event's state after name/notes preparation:
+
+- `prepared_name_notes`: a name or notes difference was prepared, not applied.
+- `unchanged_name_notes`: those fields already match; other fields are not covered.
+
+Neither state means the contact is fully synchronized. The module has upsert
+turned off and preserves the original receipt timestamp and source identifiers.
+Unmapped events and the create/delete branches remain pending.
+
+Both outcomes were tested in a temporary Make scenario with a synthetic inbox
+record. Readback confirmed that all other fields stayed unchanged. The temporary
+scenario and record were removed afterward; no contacts were written.
 
 ## Remaining work
 

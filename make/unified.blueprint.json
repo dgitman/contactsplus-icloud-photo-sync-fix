@@ -385,6 +385,25 @@
                   "name": "Prepare name and notes update \u2014 no writes"
                 }
               }
+            },
+            {
+              "id": 14,
+              "module": "datastore:UpdateRecord",
+              "version": 1,
+              "parameters": {},
+              "mapper": {
+                "key": "contactsplus-primary:{{2.eventId}}",
+                "upsert": false,
+                "overwriteArrays": false,
+                "data": {
+                  "state": "{{if(13.result.changed; \"prepared_name_notes\"; \"unchanged_name_notes\")}}"
+                }
+              },
+              "metadata": {
+                "designer": {
+                  "name": "Record name and notes preparation outcome"
+                }
+              }
             }
           ]
         },
