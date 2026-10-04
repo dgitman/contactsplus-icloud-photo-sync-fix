@@ -48,8 +48,19 @@ function patchSharedFields({uid,existingVcard,contactData}) {
   if(own('urls')){
     const social=new Set(['linkedin','twitter','facebook','github','keybase','pinterest','youtube','instagram','flickr','myspace','skype','tiktok']);
     set('urls',['URL','X-SOCIALPROFILE'],array('urls').flatMap(x=>{
-      check(x,['value','type','username','userId']);if(x.username||x.userId)throw Error('Social profile metadata needs verified mapping');const type=text(x.type).toLowerCase();
-      if(social.has(type)){if(!/^https?:\/\/[^\s]+$/i.test(text(x.value)))throw Error('Invalid social URL');return ['X-SOCIALPROFILE;TYPE='+type+':'+esc(x.value)];}
+      check(x,['value','type','username','userId']);const type=text(x.type).toLowerCase();
+      if(social.has(type)){
+        if(!/^https?:\/\/[^\s]+$/i.test(text(x.value)))throw Error('Invalid social URL');
+        const param=(key,value)=>{
+          if(value==null||value==='')return '';
+          // Delimiters/quoted parameters require a separate verified encoder.
+          // Never allow a handle to inject another parameter or vCard line.
+          if(!/^[A-Za-z0-9._~@+\-]+$/.test(text(value)))throw Error('Unsupported social parameter value');
+          return ';'+key+'='+value;
+        };
+        return ['X-SOCIALPROFILE;TYPE='+type+param('X-USER',x.username)+param('X-USERID',x.userId)+':'+esc(x.value)];
+      }
+      if(x.username||x.userId)throw Error('Social profile metadata needs verified mapping');
       return labeled('URL',x.value,x.type,['HOME','WORK','HOMEPAGE','OTHER']);
     }));
   }
@@ -89,12 +100,16 @@ function patchSharedFields({uid,existingVcard,contactData}) {
     const semantic=rs=>rs.filter(r=>key(r.line)!=='X-ABLABEL').map(r=>{
       const pos=r.line.indexOf(':'),head=r.line.slice(0,pos);let types=[...head.matchAll(/;type=([^;:]+)/gi)].flatMap(m=>m[1].toLowerCase().split(',')).filter(t=>!['pref','internet'].includes(t)).sort();
       const label=rs.find(x=>group(x.line)===group(r.line)&&group(r.line)&&key(x.line)==='X-ABLABEL');if(label)types=[label.line.slice(label.line.indexOf(':')+1).toLowerCase()];
-      const params=head.split(';').slice(1).filter(p=>!/^type=/i.test(p)&&!/^value=(date|text)$/i.test(p)).map(p=>p.toLowerCase()).sort();
+      const params=head.split(';').slice(1).filter(p=>!/^type=/i.test(p)&&!/^value=(date|text)$/i.test(p)).map(p=>{
+        const i=p.indexOf('='),k=p.slice(0,i).toLowerCase(),v=p.slice(i+1);
+        // Social IDs are opaque and case-sensitive; retain their exact value.
+        return ['x-user','x-userid'].includes(k)?k+'='+v:p.toLowerCase();
+      }).sort();
       return key(r.line)+';'+types.join(',')+';'+params.join(';')+':'+r.line.slice(pos+1);
     }).sort();
     const proposed=wanted.get(field).map(line=>({line,raw:fold(line)}));
     if(JSON.stringify(semantic([...selected,...ancillary]))===JSON.stringify(semantic(proposed)))continue;
-    const allowed=new Set(['TYPE','VALUE',...(field==='ims'?['X-SERVICE-TYPE']:[]),...(field==='birthday'?['X-APPLE-OMIT-YEAR']:[])]);
+    const allowed=new Set(['TYPE','VALUE',...(field==='urls'?['X-USER','X-USERID']:[]),...(field==='ims'?['X-SERVICE-TYPE']:[]),...(field==='birthday'?['X-APPLE-OMIT-YEAR']:[])]);
     if(selected.some(r=>r.line.slice(0,r.line.indexOf(':')).split(';').slice(1).some(p=>!allowed.has(p.split('=')[0].toUpperCase()))))throw Error('Unsupported target parameter');
     changedFields.push(field);kept=kept.filter(r=>!keys.has(key(r.line))&&!ancillary.includes(r));additions.push(...proposed);
   }

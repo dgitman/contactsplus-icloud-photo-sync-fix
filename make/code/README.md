@@ -134,3 +134,11 @@ Get Contact module can fail while converting a birthday that has no year.
 `read-source-response.js` preserves the API object, requires one successful,
 versioned contact, and passes it to the existing exact-identity guards. Both
 bundles use this reader; direct object inputs remain supported for local tests.
+
+## Social-profile metadata
+
+Supported social URLs include `username` and `userId` as `X-USER` and `X-USERID`.
+The serializer preserves case and accepts only tested, delimiter-free parameter
+values. Unknown services, unsupported quoting, and unknown target parameters stay
+held. A disposable CardDAV create/update/readback/cleanup test verified the
+representation before deployment; see the launch verification record.

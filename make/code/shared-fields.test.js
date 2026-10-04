@@ -20,5 +20,21 @@ test('related person labels survive a repeated patch',()=>{const d={relatedPeopl
 test('yearless birthday keeps Apple omission marker',()=>{const d={birthday:{month:2,day:29}};assert.equal(run(d,'BDAY;X-APPLE-OMIT-YEAR=1604:1604-02-29\r\n').changed,false);assert.match(run(d).vcard,/BDAY;X-APPLE-OMIT-YEAR=1604:1604-02-29/);});
 test('actual non-leap years rejected',()=>assert.throws(()=>run({birthday:{year:1900,month:2,day:29}}),/Invalid birthday/));
 test('literal 1604 birthday differs from yearless birthday',()=>assert.equal(run({birthday:{year:1604,month:1,day:1}},'BDAY;X-APPLE-OMIT-YEAR=1604:1604-01-01\r\n').changed,true));
-test('unmapped social metadata is held rather than discarded',()=>assert.throws(()=>run({urls:[{type:'linkedin',value:'https://example.test',username:'user'}]}),/metadata/));
+test('social username and provider ID map without loss',()=>{
+  const data={urls:[{type:'linkedin',value:'https://example.test/profile',username:'Test.User',userId:'AbC123'}]};
+  const r=run(data);assert.match(r.vcard,/X-USER=Test.User;X-USERID=AbC123/);
+  assert.equal(patch({uid:'test',existingVcard:r.vcard,contactData:data}).changed,false);
+  assert.match(r.vcard,/PHOTO;VALUE=uri:/);assert.match(r.vcard,/X-PRIVATE:keep/);
+});
+test('social parameter order is immaterial but opaque ID case is not',()=>{
+  const more='X-SOCIALPROFILE;X-USERID=AbC;X-USER=Test;TYPE=linkedin:https://example.test\r\n';
+  const url={type:'linkedin',value:'https://example.test',username:'Test',userId:'AbC'};
+  assert.equal(run({urls:[url]},more).changed,false);
+  assert.equal(run({urls:[{...url,userId:'abc'}]},more).changed,true);
+});
+test('unverified social service and unsafe parameter values remain held',()=>{
+  assert.throws(()=>run({urls:[{type:'Unverified',value:'https://example.test',username:'user'}]}),/metadata/);
+  for(const username of ['x;TYPE=work','x:y','x\r\nNOTE:bad','"quoted"','a,b','a\\b'])
+    assert.throws(()=>run({urls:[{type:'linkedin',value:'https://example.test',username}]}),/parameter|Invalid text/);
+});
 test('unknown target parameters cannot be silently removed',()=>assert.throws(()=>run({emails:[{value:'new@example.test'}]},'EMAIL;X-CUSTOM=keep:old@example.test\r\n'),/target parameter/));

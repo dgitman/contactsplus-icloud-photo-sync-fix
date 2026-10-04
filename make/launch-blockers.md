@@ -221,3 +221,24 @@ using synthetic cards without writes. All 106 local tests pass. The deployed
 configuration was read back and compared; the main scenario remains active.
 The temporary review/test scenario was removed. Full synchronization still has
 the outstanding work listed above.
+
+## Social-profile metadata deployed
+
+Social URLs for supported services now retain Contacts+ username and userId in
+iCloud X-USER and X-USERID parameters. Parameter values retain exact case;
+unverified services and values requiring unsupported quoting remain held.
+Unknown target metadata still prevents a destructive replacement.
+
+A disposable iCloud contact verified initial metadata roundtrip, conditional
+update, exact readback of the changed card with unrelated fields intact, and
+conditional cleanup followed by 404. Execution:
+`ba5481ff467f4cae97929decb6168866`. This is CardDAV verification, not an iCloud
+web-interface visual check. All 108 local tests pass, including injection guards.
+
+Fresh review of ten previously held contacts completed in
+`44a6bb2206634d8cb85f9e88c7dc0a35`. One now matched and was enabled after mapping
+readback, bringing the limited rollout to 18 contacts. Six still differed in
+shared fields; two used unverified social-service mappings; one required
+unsupported parameter encoding. Their content was not modified. The new converter
+and portable blueprint are deployed, the main scenario remains active, and the
+temporary scenario and disposable test contact have been removed.
