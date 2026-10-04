@@ -7,6 +7,7 @@ function richIdentity({contactData:d,existingVcard,uid}){
  if(names.changed)return null;
  const projected=patchSharedFields({uid,existingVcard,contactData:d,projectionOnly:true});
  const exact=field=>Object.hasOwn(projected,field)&&!patchSharedFields({uid,existingVcard,contactData:{[field]:projected[field]}}).changed;
+ if(d.phoneNumbers?.some(x=>typeof x.value==='string'&&/^[+0-9 ().-]+$/.test(x.value)&&/^\d{10,15}$/.test(x.value.replace(/\D/g,'')))&&exact('phoneNumbers'))return 'unique_name_and_exact_phone_group';
  if(d.addresses?.some(x=>x.street?.trim()&&(x.postalCode?.trim()||x.city?.trim()))&&exact('addresses'))return 'unique_name_and_complete_address';
  if(Number.isInteger(d.birthday?.year)&&exact('birthday'))return 'unique_name_and_full_birthday';
  const social=new Set(['linkedin','twitter','github','keybase','facebook','instagram']);

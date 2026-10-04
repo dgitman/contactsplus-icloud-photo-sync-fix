@@ -7,7 +7,7 @@ The newest verification evidence is at the end; older sections describe historic
 implementation stages, not the current enabled state.
 
 This is event-driven synchronization, not a claim that every historical record is
-identical. There are 6,892 accepted existing mappings. Ambiguous/unmapped identities,
+identical. There are 6,926 accepted existing mappings. Ambiguous/unmapped identities,
 malformed supported fields, mixed photo/text changes and independent target edits remain
 held rather than guessed or overwritten. New-contact creation requires a structured
 name and email and a successful bounded duplicate query.
@@ -988,3 +988,20 @@ inventory remain outside coverage. This is not a fresh full-inventory count.
 
 242 local tests passed. Both temporary scenarios were deleted after successful
 enrollment. Production remains active, unpaused, with zero incomplete executions.
+
+
+## Exact national-phone corroboration — October 4
+
+Fresh read-only diagnostics of the 96 unique-name holds found 34 with an exact
+supported name and an exact complete phone group, but no international prefix.
+The review-only rich-identity rule now accepts these globally unique-name pairs
+when at least one phone has 10–15 digits and only ordinary phone punctuation.
+It does not infer a country code, accept short numbers/extensions, or accept a
+partially matching phone group. Name uniqueness remains an upstream prerequisite.
+
+All 34 passed fresh cloud review and complete mapping-store readback. Coverage is
+6,926; 213 records from the prior inventory remain outside coverage. No contact
+contents were changed. Enrollment preserves historical differences as separate
+baselines rather than asserting full convergence. 244 local tests passed, and
+the portable review bundle was regenerated and syntax-checked. Temporary review
+and enrollment scenarios were removed after verification.
