@@ -1,5 +1,5 @@
 // Pure, conservative Contacts+ -> vCard patching. No network or credentials.
-function patchSharedFields({uid,existingVcard,contactData}) {
+function patchSharedFieldsStrict({uid,existingVcard,contactData}) {
   const text=v=>{if(v==null)return '';if(typeof v!=='string'||/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/.test(v))throw Error('Invalid text');return v;};
   const esc=v=>text(v).replace(/\\/g,'\\\\').replace(/\r\n|\r|\n/g,'\\n').replace(/;/g,'\\;').replace(/,/g,'\\,');
   const fold=l=>{let s='',n=0;for(const c of l){const z=Buffer.byteLength(c);if(n+z>75){s+='\r\n ';n=1;}s+=c;n+=z;}return s;};
@@ -142,5 +142,25 @@ function patchSharedFields({uid,existingVcard,contactData}) {
   }
   if(!changedFields.length)return {vcard:existingVcard,changed:false,changedFields};
   kept.splice(kept.length-1,0,...additions);return {vcard:kept.map(r=>r.raw).join('\r\n')+'\r\n',changed:true,changedFields};
+}
+// Unsupported representations are omitted as whole field groups. Keeping the
+// target group untouched avoids deleting working values beside an omitted item.
+// Identity and malformed data errors are never swallowed.
+function patchSharedFields({uid,existingVcard,contactData,projectionOnly=false}) {
+  if(!contactData||typeof contactData!=='object'||Array.isArray(contactData))throw Error('Missing source');
+  patchSharedFieldsStrict({uid,existingVcard,contactData:{}});
+  const supported=new Set(['name','notes','emails','phoneNumbers','addresses','urls','organizations','birthday','photos','ims','relatedPeople']);
+  const projected={};
+  for(const [field,value] of Object.entries(contactData)) {
+    if(!supported.has(field))continue;
+    try {
+      patchSharedFieldsStrict({uid,existingVcard,contactData:{[field]:value}});
+      projected[field]=value;
+    } catch(e) {
+      if(field==='name'||!['Unsupported source component','Unsupported social parameter value','Social profile metadata needs verified mapping','Unsupported IM service','Unsupported target parameter','Managed field shares group with unmanaged data'].includes(e.message))throw e;
+    }
+  }
+  if(projectionOnly)return projected;
+  return patchSharedFieldsStrict({uid,existingVcard,contactData:projected});
 }
 module.exports=patchSharedFields;

@@ -10,8 +10,8 @@ const fields = {
 };
 function snapshot({sourceContactId,uid,existingVcard,contactData}) {
   if(typeof sourceContactId!=='string'||!sourceContactId)throw Error('Source identity required');
-  // Validate identity and the entire source, including populated unsupported data.
-  patchSharedFields({uid,existingVcard,contactData});
+  // Validate identity and omit unsupported field groups without touching the target.
+  contactData=patchSharedFields({uid,existingVcard,contactData,projectionOnly:true});
   const lines=existingVcard.replace(/\r\n[ \t]/g,'').split('\r\n');
   const key=l=>l.split(':')[0].split(';')[0].split('.').at(-1).toUpperCase();
   const group=l=>{const h=l.split(':')[0].split(';')[0];return h.includes('.')?h.split('.')[0]:null;};
@@ -36,10 +36,14 @@ function prepareSharedUpdate(input) {
   const held=(status,conflicts=[])=>({status,conflicts,changed:false,writesApplied:false});
   if(!baseline)return held('needs_baseline');
   if(baseline.version!==1||baseline.uid!==uid||baseline.sourceContactId!==sourceContactId||!baseline.fields)throw Error('Baseline identity/version mismatch');
+  const projected=patchSharedFields({uid,existingVcard,contactData:source.contactData,projectionOnly:true});
   const patch={},conflicts=[];
   for(const field of new Set([...Object.keys(current.fields),...Object.keys(baseline.fields)])) {
     const now=current.fields[field],old=baseline.fields[field];
-    if(!now) {conflicts.push(field);continue;}
+    if(!now) {
+      if(Object.hasOwn(source.contactData,field)&&!Object.hasOwn(projected,field))continue;
+      conflicts.push(field);continue;
+    }
     if(!old){
       // This field was absent from the accepted source snapshot. Permit an
       // addition only when the fresh target has no corresponding property or

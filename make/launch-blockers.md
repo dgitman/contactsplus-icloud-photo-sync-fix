@@ -7,8 +7,8 @@ The newest verification evidence is at the end; older sections describe historic
 implementation stages, not the current enabled state.
 
 This is event-driven synchronization, not a claim that every historical record is
-identical. There are 5,380 accepted existing mappings. Ambiguous/unmapped identities,
-unsupported fields, mixed photo/text changes and independent target edits remain
+identical. There are 6,001 accepted existing mappings. Ambiguous/unmapped identities,
+malformed supported fields, mixed photo/text changes and independent target edits remain
 held rather than guessed or overwritten. New-contact creation requires a structured
 name and email and a successful bounded duplicate query.
 
@@ -862,3 +862,23 @@ unmatched and ambiguous inventory records are also not covered by this count.
 Production was active and unpaused with zero queued deliveries and zero incomplete
 runs at final verification. The temporary enrollment scenario was deleted.
 These checks verify Make storage and server state, not Apple-device display.
+
+## Unsupported-field rollout — October 4
+
+Production now omits unsupported top-level fields. Unsupported components, social
+metadata, services or target parameters preserve the whole affected field group
+while supported groups continue. No per-contact skipped-field records are stored.
+Names and exact identity remain guarded; malformed supported values still hold.
+Existing iCloud values are never cleared just because the source representation
+is unsupported. Existing baseline hashes for skipped groups are retained so a
+later representable edit cannot silently accept an independent target change.
+
+Fresh read-only review of 622 previously unsupported pairs accepted 621; one
+structured-name mismatch stayed held. All 621 mappings passed non-overwriting
+registration and full field readback, bringing coverage to 6,001 mappings. No
+historical contact contents were overwritten. Both temporary scenarios were
+deleted. The earlier 629 held pairs are now reduced to eight in that cohort;
+other unmatched or ambiguous inventory records remain outside coverage.
+
+Validation: 229 local tests passed, deployed converter code was read back exactly,
+and fresh cloud review plus mapping readback succeeded. Production stayed active.

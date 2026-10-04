@@ -22,4 +22,11 @@ test('new photo field still requires separate photo verification',()=>{
 test('changed primary/alternate photo data cannot be silently ignored',()=>assert.deepEqual(run({...data,photos:[]}).conflicts,['photos']));
 test('wrong baseline identity and weak ETag fail',()=>{assert.throws(()=>run(data,{baseline:{...baseline,uid:'other'}}),/Baseline/);assert.throws(()=>run(data,{targetEtag:'W/"v1"'}),/ETag/);});
 test('baseline stores hashes rather than contact contents',()=>{const serialized=JSON.stringify(baseline);assert.doesNotMatch(serialized,/Original|https:|PHOTO/);assert.match(serialized,/[a-f0-9]{64}/);});
-test('unknown source data remains held',()=>assert.throws(()=>run({...data,dates:[{type:'Anniversary'}]}),/Unsupported populated/));
+test('unknown source fields do not hold supported changes',()=>assert.equal(run({...data,dates:[{type:'Anniversary'}],notes:'new note'}).status,'prepared-only'));
+
+test('unsupported field with prior baseline preserves target while supported notes update',()=>{
+ const initial={...data,urls:[{type:'Work',value:'https://example.test'}]};
+ const b=snapshot({sourceContactId:'s',uid:'test',existingVcard:card,contactData:initial});
+ const r=prepare({source:{contactId:'s',etag:'s2',contactData:{...initial,urls:[{type:'Unknown',value:'https://example.test',username:'user'}],notes:'new'}},sourceContactId:'s',uid:'test',existingVcard:card,targetEtag:'"t1"',baseline:b});
+ assert.equal(r.status,'prepared-only');assert.deepEqual(r.updatedFields,['notes']);
+});

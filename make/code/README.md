@@ -14,7 +14,9 @@ never put credentials in this code.
 ## Supported scope
 
 - `create`: explicit target UID; structured name, multiple emails, phone numbers,
-  standard labels, and notes. Populated unsupported source fields cause an error,
+  standard labels, and notes. Unsupported top-level fields are omitted; unsupported representations skip the
+  entire corresponding field group while preserving its existing target data. Identity
+  errors and malformed supported values still cause an error,
   including photos and addresses. Do not use it to overwrite an existing card.
 - `patch-name-notes`: requires an existing vCard 3.0 with the exact target UID.
   Pass only fields intentionally being changed: name and/or notes. All other raw

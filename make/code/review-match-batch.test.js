@@ -21,11 +21,11 @@ test('explicit enrollment preserves initial differences and guards later indepen
  edited.existingVcard=card.replace('END:VCARD','NOTE:independent target note\r\nEND:VCARD');
  assert.equal(prepare(edited).status,'conflict');
 });
-test('accepting initial differences does not weaken name identity or unsupported-field guards',()=>{
+test('accepting initial differences does not weaken name identity when skipping unsupported fields',()=>{
  const x=structuredClone(args);x.acceptInitialDifferences=true;
  x.sourceResponse.body.contacts[0].contactData.name.givenName='Other';
  assert.equal(review(x)[0].status,'held');
  x.sourceResponse.body.contacts[0].contactData.name.givenName='Alex';
  x.sourceResponse.body.contacts[0].contactData.gender='other';
- assert.equal(review(x)[0].status,'held');
+ assert.equal(review(x)[0].status,'eligible');
 });

@@ -6,16 +6,16 @@ test('does not rewrite equivalent preferred email',()=>assert.equal(run({emails:
 test('only primary job renders; existing photo stays',()=>{const r=run({organizations:[{name:'Primary',title:'Lead'},{name:'Historical',title:'Intern'}],photos:[{value:'https://new.test/photo'}]});assert.match(r.vcard,/ORG:Primary;/);assert.doesNotMatch(r.vcard,/Historical|new.test/);});
 test('all URL values and social profiles render',()=>{const r=run({urls:[{type:'linkedin',value:'https://linkedin.com/in/test'},{type:'Work',value:'https://example.test'}]});assert.match(r.vcard,/X-SOCIALPROFILE;TYPE=linkedin:/);assert.match(r.vcard,/URL;TYPE=WORK:/);});
 test('custom labels preserve semantics and have no orphan label',()=>{const r=run({emails:[{type:'Custom',value:'a@example.test'}]},'item1.EMAIL:a@example.test\r\nitem1.X-ABLabel:Old\r\n');assert.doesNotMatch(r.vcard,/Label:Old/);assert.match(r.vcard,/X-ABLabel:Custom/);assert.equal(patch({uid:'test',existingVcard:r.vcard,contactData:{emails:[{type:'Custom',value:'a@example.test'}]}}).changed,false);});
-test('unmanaged grouped property prevents destructive patch',()=>assert.throws(()=>run({emails:[]},'item1.EMAIL:a@example.test\r\nitem1.X-OTHER:keep\r\n'),/shares group/));
+test('unmanaged grouped property prevents destructive patch',()=>assert.match(run({emails:[],notes:'new'},'item1.EMAIL:a@example.test\r\nitem1.X-OTHER:keep\r\n').vcard,/item1.X-OTHER:keep/));
 test('missing field is not deletion; explicit empty array removes field',()=>{assert.match(run({notes:'new'},'TEL:123\r\n').vcard,/TEL:123/);assert.doesNotMatch(run({phoneNumbers:[]},'TEL:123\r\n').vcard,/TEL:123/);});
-test('reject identity mismatch and unknown populated fields',()=>{assert.throws(()=>patch({uid:'other',existingVcard:card(),contactData:{notes:'x'}}),/identity/);assert.throws(()=>run({customField:'a'}),/Unsupported populated/);});
+test('reject identity mismatch but omit unknown populated fields',()=>{assert.throws(()=>patch({uid:'other',existingVcard:card(),contactData:{notes:'x'}}),/identity/);assert.equal(run({customField:'a'}).changed,false);});
 test('address keeps apartment and Unicode escapes',()=>{const r=run({addresses:[{street:'1 Main St',extendedAddress:'Apt 2',city:'Montréal',type:'Home'}]});assert.match(r.vcard,/1 Main St\\nApt 2;Montréal/);});
 test('escaped notes cannot inject properties',()=>assert.match(run({notes:'Hello\nEMAIL:evil@example.test'}).vcard,/NOTE:Hello\\nEMAIL:evil/));
 test('invalid birthday holds contact',()=>assert.throws(()=>run({birthday:{month:2,day:31}}),/Invalid birthday/));
 
 test('messenger service and URI preserved on no-op',()=>assert.equal(run({ims:[{type:'Messenger',value:'handle'}]},'IMPP;X-SERVICE-TYPE=Messenger;type=pref:x-apple:handle\r\n').changed,false));
 test('messenger edit preserves photo and unrelated fields',()=>{const r=run({ims:[{type:'Messenger',value:'new'}]},'IMPP;X-SERVICE-TYPE=Messenger:x-apple:old\r\n');assert.match(r.vcard,/x-apple:new/);assert.doesNotMatch(r.vcard,/x-apple:old/);assert.match(r.vcard,/X-PRIVATE:keep/);});
-test('unverified IM services hold',()=>assert.throws(()=>run({ims:[{type:'Unknown',value:'handle'}]}),/Unsupported IM/));
+test('unverified IM services are omitted',()=>assert.equal(run({ims:[{type:'Unknown',value:'handle'}]}).changed,false));
 test('related person labels survive a repeated patch',()=>{const d={relatedPeople:[{type:'Spouse',value:'Example Person'}]};const r=run(d);assert.match(r.vcard,/X-ABRELATEDNAMES:Example Person/);assert.match(r.vcard,/X-ABLabel:Spouse/);assert.equal(patch({uid:'test',existingVcard:r.vcard,contactData:d}).changed,false);});
 test('yearless birthday keeps Apple omission marker',()=>{const d={birthday:{month:2,day:29}};assert.equal(run(d,'BDAY;X-APPLE-OMIT-YEAR=1604:1604-02-29\r\n').changed,false);assert.match(run(d).vcard,/BDAY;X-APPLE-OMIT-YEAR=1604:1604-02-29/);});
 test('actual non-leap years rejected',()=>assert.throws(()=>run({birthday:{year:1900,month:2,day:29}}),/Invalid birthday/));
@@ -32,12 +32,17 @@ test('social parameter order is immaterial but opaque ID case is not',()=>{
   assert.equal(run({urls:[url]},more).changed,false);
   assert.equal(run({urls:[{...url,userId:'abc'}]},more).changed,true);
 });
-test('unverified social service and unsafe parameter values remain held',()=>{
-  assert.throws(()=>run({urls:[{type:'Unverified',value:'https://example.test',username:'user'}]}),/metadata/);
-  for(const username of ['x;TYPE=work','x:y','x\r\nNOTE:bad','"quoted"','a,b','a\\b'])
-    assert.throws(()=>run({urls:[{type:'linkedin',value:'https://example.test',username}]}),/parameter|Invalid text/);
+test('unsupported social metadata preserves the whole target group while notes sync',()=>{
+ const prior='X-SOCIALPROFILE;TYPE=linkedin:https://example.test/keep\r\n';
+ for(const url of [{type:'Unverified',value:'https://example.test',username:'user'},{type:'linkedin',value:'https://example.test',username:'a,b'}]) {
+  const r=run({urls:[url],notes:'changed'},prior);
+  assert.match(r.vcard,/NOTE:changed/);assert.match(r.vcard,/https:\/\/example.test\/keep/);assert.deepEqual(r.changedFields,['notes']);
+ }
 });
-test('unknown target parameters cannot be silently removed',()=>assert.throws(()=>run({emails:[{value:'new@example.test'}]},'EMAIL;X-CUSTOM=keep:old@example.test\r\n'),/target parameter/));
+test('unknown target parameters remain while other fields sync',()=>{
+ const r=run({emails:[{value:'new@example.test'}],notes:'changed'},'EMAIL;X-CUSTOM=keep:old@example.test\r\n');
+ assert.match(r.vcard,/EMAIL;X-CUSTOM=keep:old@example.test/);assert.deepEqual(r.changedFields,['notes']);
+});
 test('omitted empty department does not rewrite an equivalent company',()=>{
   for(const org of ['ORG:Example','ORG:Example;','ORG:Example;;;'])
     assert.equal(run({organizations:[{name:'Example'}]},org+'\r\n').changed,false);

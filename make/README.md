@@ -17,7 +17,10 @@ with conditional writes and exact readback. Eligible new contacts can be created
 with or without a primary photo after bounded duplicate checks. Missing photos
 can be filled; existing photos can be replaced only with a verified photo baseline,
 a changed source photo and an unchanged target photo. Unknown identities, mixed
-photo/text changes and independent target changes are held. Merged-away IDs use the same confirmed-deletion path, while survivor updates
+photo/text changes and independent target changes are held. Unsupported top-level
+fields are omitted. Unsupported components or target parameters leave their whole
+field group untouched while supported groups continue syncing; skipped groups are
+not logged per contact. Identity errors and malformed supported values remain held. Merged-away IDs use the same confirmed-deletion path, while survivor updates
 use their own exact mapping. Interrupted create/delete operations have read-only
 receipt recovery; an uncertain write is never blindly repeated. See [launch status](launch-blockers.md)
 for coverage, cloud evidence and remaining limitations.
@@ -168,8 +171,8 @@ also needs a loop-prevention decision before implementation/activation.
 The read-only batch reviewer supports `acceptInitialDifferences: true` for pairs
 whose one-to-one identity was already established. This records separate source
 and target field hashes without reconciling historical differences. Structured
-name differences, unsupported fields, missing resources and invalid identities
-remain held. With the resulting baseline, unchanged source fields cause no write;
+name differences, missing resources and invalid identities remain held. Unsupported
+field groups are excluded from enrollment baselines and preserved on the target. With the resulting baseline, unchanged source fields cause no write;
 a later source edit can update its corresponding field only if the target field
 still matches its accepted hash. Independent edits on both sides hold the contact.
 This option does not authorize a historical overwrite or photo replacement.
