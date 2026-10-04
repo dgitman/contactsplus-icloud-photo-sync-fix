@@ -1,0 +1,16 @@
+const test=require('node:test'),assert=require('node:assert/strict');
+const {snapshot,prepareSharedUpdate}=require('./prepare-shared-update');
+const {createSharedWriteReceipt,reconcileSharedWrite}=require('./shared-write-receipt');
+const before='BEGIN:VCARD\r\nVERSION:3.0\r\nUID:test\r\nNOTE:old\r\nX-KEEP:preserve\r\nEND:VCARD\r\n';
+const baseline=snapshot({sourceContactId:'source',uid:'test',existingVcard:before,contactData:{notes:'old'}});
+const input={source:{contactId:'source',etag:'v2',contactData:{notes:'new'}},sourceContactId:'source',uid:'test',existingVcard:before,targetEtag:'"old"',baseline,eventId:'event'};
+const receipt=createSharedWriteReceipt(input),actual=prepareSharedUpdate(input).vcard;
+const args={receipt,eventId:'event',sourceContactId:'source',uid:'test',source:input.source,baseline,statusCode:200,actual,targetEtag:'"new"'};
+test('exact observed interrupted write yields a baseline without authorizing another write',()=>{const r=reconcileSharedWrite(args);assert.equal(r.status,'verified_recovered');assert.equal(r.writesAllowed,false);assert.equal(JSON.parse(r.baselineJson).fields.notes.source,snapshot({sourceContactId:'source',uid:'test',existingVcard:actual,contactData:{notes:'new'}}).fields.notes.source);});
+test('receipt stores hashes and identities, not contact bodies',()=>{const s=JSON.stringify(receipt);assert.ok(!s.includes('BEGIN:VCARD'));assert.ok(!s.includes('X-KEEP'));assert.ok(!s.includes('NOTE:'));});
+test('unchanged before card never authorizes retry',()=>assert.equal(reconcileSharedWrite({...args,actual:before}).reason,'write_not_observed'));
+test('unrelated drift and wrong identity hold',()=>{assert.equal(reconcileSharedWrite({...args,actual:actual.replace('preserve','changed')}).reason,'readback_drift');assert.equal(reconcileSharedWrite({...args,actual:actual.replace('UID:test','UID:other')}).reason,'invalid_readback_or_receipt');});
+test('revision and producer changes do not hide exact content verification',()=>assert.equal(reconcileSharedWrite({...args,actual:actual.replace('END:VCARD','REV:20261004T180000Z\r\nPRODID:Apple\r\nEND:VCARD')}).status,'verified_recovered'));
+test('source version, content, baseline, and event changes hold',()=>{for(const changed of [{eventId:'other'},{source:{...input.source,etag:'v3'}},{source:{...input.source,contactData:{notes:'newer'}}},{baseline:{...baseline,version:2}}])assert.equal(reconcileSharedWrite({...args,...changed}).status,'held');});
+test('404 weak ETag and unchanged version never confirm a write',()=>{for(const changed of [{statusCode:404},{targetEtag:'W/"weak"'},{targetEtag:'"old"'}])assert.equal(reconcileSharedWrite({...args,...changed}).status,'held');});
+test('unprepared or versionless requests cannot mint receipts',()=>{assert.throws(()=>createSharedWriteReceipt({...input,source:{...input.source,contactData:{notes:'old'}}}));assert.throws(()=>createSharedWriteReceipt({...input,source:{...input.source,etag:''}}));});

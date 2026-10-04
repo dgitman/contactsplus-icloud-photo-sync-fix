@@ -78,3 +78,28 @@ are recorded as `held_needs_identity`; they cannot reach any contact request.
 These holds need bootstrap/reconciliation before processing. The API metadata
 examined does not reliably identify iCloud-import origin, so automatic new-card
 creation stays disabled while iCloud pull-in is enabled.
+
+## Shared-field pre-write receipts
+
+Optional text field `writeReceiptJson` is now saved by module 14 before the
+conditional shared-field PUT. Preparation requires an event ID and source version.
+The receipt contains identities, versions, before/expected card hashes and the
+proposed field-hash baseline. It contains no vCard, contact body or photo bytes.
+It reuses existing Code and Data Store steps, adding no module actions per update.
+
+`shared-write-receipt.js` can verify an interrupted shared-field update by exact
+readback, allowing only REV/PRODID differences. It requires unchanged source
+content/version and baseline, correct identities and a new strong target ETag.
+Unchanged-before, drift, missing target, changed source or changed baseline remain
+held. Every result has `writesAllowed:false`; the caller must never retry from it.
+Receipt storage is trusted internal state, not an input accepted from webhooks.
+
+Synthetic Make tests confirmed that both a marker and the full generated receipt
+survive a later failing Code module with autoCommit enabled. These tests made no
+contact requests. The production configuration has the same autoCommit setting.
+
+Automatic receipt consumption/baseline recovery is not deployed yet. The durable
+receipt is preparation for that processor, not a claim of automatic recovery.
+Photo writes, creates and deletes are not covered by this receipt. Never remove
+an unresolved receipt during event retention cleanup. Historical events without
+a receipt cannot be retroactively treated as verified.

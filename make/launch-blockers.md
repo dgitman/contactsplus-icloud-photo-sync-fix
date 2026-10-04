@@ -561,3 +561,24 @@ with 8,144 credits remaining. No contact contents changed. The temporary scenari
 was deleted and detailed evidence kept private. Broader bootstrap differences
 need explicit reconciliation; they are not all formatting issues. Creation,
 deletion/merge handling and existing-photo replacement remain unfinished.
+
+## Shared-write recovery evidence deployed
+
+The production preparation module now generates a lightweight shared-write
+receipt, and the existing inbox-update step saves it before PUT. The schema has
+an optional writeReceiptJson text field. This adds no module actions per event.
+Receipt data comprises IDs, versions, card hashes and a proposed hash baseline;
+no full contact backup is stored. Missing source version/event ID holds preparation.
+
+Cloud test `d8f036f2cb1c484d945b036c6b09c2ce` verified synthetic saved,
+unsaved, drifted, wrong-identity, changed-source and unavailable outcomes. All
+outcomes forbid another write. Deliberate failures
+`f6bef16e92554ea089768b9296a027c1` and
+`d4f50d0c666140d282b1aa087beb7b44` confirmed marker and full receipt persistence
+after a later Code failure with autoCommit enabled. No contact requests occurred.
+The temporary scenario and synthetic inbox records were removed.
+
+Production receipt generation/storage was read back active and unpaused. All
+168 local tests pass. Automatic receipt processing and baseline recovery still
+need integration, as do photo/create/delete recovery. Existing mapping coverage
+remains 1,990; this change does not enable creation, deletion or photo replacement.

@@ -1,5 +1,5 @@
 // Apply the same guarded-route change to a fresh live or portable blueprint.
-const bundlePrepare=require('../code/bundle-shared-update');
+const bundlePrepare=require('../code/bundle-prepared-receipt');
 const bundleVerify=require('../code/bundle-shared-verification');
 function guardSharedRoutes(blueprint){
   const b=JSON.parse(JSON.stringify(blueprint));
@@ -30,6 +30,7 @@ function guardSharedRoutes(blueprint){
   const p=at(13);p.mapper.codeEditorJavascript=bundlePrepare();
   p.mapper.input=p.mapper.input.filter(x=>x.name!=='baseline');p.mapper.input.push({name:'baseline',value:'{{8.baselineJson}}'});
   at(14).mapper.data.state='{{13.result.eventState}}';
+  at(14).mapper.data.writeReceiptJson='{{13.result.writeReceiptJson}}';
   at(16).filter={name:'Baseline-approved prepared change only',conditions:[[{a:'{{13.result.changed}}',b:true,o:'boolean:equal'},{a:'{{13.result.status}}',b:'prepared-only',o:'text:equal'}]]};
   at(18).mapper.codeEditorJavascript=bundleVerify();
   at(18).mapper.input=[
