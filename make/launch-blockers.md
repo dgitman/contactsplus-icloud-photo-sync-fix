@@ -409,3 +409,21 @@ mappings that are not supported. No matching safeguard was relaxed. The mapping
 store uses 136,272 of 1,048,576 bytes. The main scenario was confirmed active and
 unpaused, and the temporary review scenario was deleted. Detailed candidate and
 readback evidence remains private, outside Git. No runtime code changed.
+
+## Blank display-name equivalence: 241 contacts live
+
+Fresh diagnosis found iCloud cards with an empty FN but an exact structured N.
+The comparator now preserves this representation only for a single exact,
+unparameterized N/FN pair with no ancillary grouped metadata. Different name
+components, nonempty different display names, duplicate fields and unknown
+parameters do not receive this exception. No identity rule was weakened.
+
+Execution `d50ca1a7c8fe43b2962af194288cb2df` freshly rechecked all 144 name-held
+records from the preceding batch. 140 passed all supported-field and identifier
+checks. Four remain held for actual name, phone, URL or address differences.
+Registration and final readback (`81aa0c45df2b4f7c86c9aa40c879891a`,
+`362c2c4eb5d142d1abb011dc6a69ffb9`) confirmed all 140 mappings. Live coverage is
+241, with 296,371 bytes used in the 1 MiB mapping store. Contact contents were not
+changed. The comparator is deployed, the main scenario is active and unpaused,
+and the temporary review scenario was deleted. All 144 tests pass. Private
+candidate evidence is retained outside Git.

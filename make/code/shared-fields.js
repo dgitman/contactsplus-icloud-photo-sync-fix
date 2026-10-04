@@ -123,6 +123,12 @@ function patchSharedFields({uid,existingVcard,contactData}) {
       return key(r.line)+';'+types.join(',')+';'+params.join(';')+':'+value;
     }).sort();
     const proposed=wanted.get(field).map(line=>({line,raw:fold(line)}));
+    // iCloud may return an empty FN while preserving the complete structured N.
+    // Accept that representation only for one exact, unparameterized N/FN pair.
+    // A real name edit must still replace both fields; never infer identity here.
+    if(field==='name'&&selected.length===2&&!ancillary.length&&
+       selected.some(r=>r.line==='FN:')&&
+       selected.some(r=>r.line===proposed.find(p=>p.line.startsWith('N:'))?.line))continue;
     if(JSON.stringify(semantic([...selected,...ancillary]))===JSON.stringify(semantic(proposed)))continue;
     const allowed=new Set(['TYPE','VALUE',...(field==='urls'?['X-USER','X-USERID']:[]),...(field==='ims'?['X-SERVICE-TYPE']:[]),...(field==='birthday'?['X-APPLE-OMIT-YEAR']:[])]);
     if(selected.some(r=>r.line.slice(0,r.line.indexOf(':')).split(';').slice(1).some(p=>!allowed.has(p.split('=')[0].toUpperCase()))))throw Error('Unsupported target parameter');
