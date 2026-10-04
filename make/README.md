@@ -10,8 +10,7 @@ when importing; use the mapping schema documented below.
 A disposable contact lifecycle test on October 3, 2026 confirmed that real Contacts+
 create, update, and delete events each ran only their matching branch successfully.
 The create endpoint still sets a verification variable. The update route can
-apply name/notes changes to exact verified mappings. The delete route can back up
-and conditionally delete exact mapped targets. Both remain experimental; the
+apply name/notes changes to exact verified mappings. The delete route can conditionally delete exact mapped targets. Both remain experimental; the
 scenario is inactive and has no production mappings.
 The scenario was switched off after verification.
 
@@ -38,7 +37,7 @@ The abandoned AWS helper and three separate trigger scenarios have been removed.
 This design must run entirely in Make, with no local worker or AWS helper.
 
 Before enabling writes, implement durable contact-ID mapping, duplicate-event
-handling, conditional CardDAV writes with ETags, backups, preservation of unrelated
+handling, conditional CardDAV writes with ETags, preservation of unrelated
 vCard fields and working photos, and verified readback. Deletion must use a known
 mapping, never a name or email guess. An event echo must not create a sync loop.
 
@@ -56,8 +55,8 @@ Production creation and pending-event processing are still unfinished.
 
 [Make Code conversion](code/README.md) now covers basic new cards and targeted
 name/notes edits that preserve existing photos and unrelated properties. It passed
-local tests and a synthetic Make cloud test. It is now wired to the update route in preparation-only mode;
-the event-to-iCloud pilot still requires access to a disposable source contact.
+local tests and a synthetic Make cloud test. It is wired to the experimental update route, which passed a real disposable
+Contacts+ webhook test.
 Live duplicate searches are intentionally omitted at the user's request.
 
 ## Prepared update route
@@ -78,38 +77,34 @@ Module 13 combines code/vcard.js without its CommonJS export, followed by
 code/prepare-update.js. Source uses the whole-bundle reference for module 11.
 Three adapter tests cover before-image retention, absent vs empty notes, and
 identity/ETag rejection. A real disposable Contacts+ update event executed the route successfully; the
-main scenario is inactive. Module 15 saves original and prepared cards to a separate backup store before
-module 14 records the scoped preparation outcome in the
+main scenario is inactive. Module 14 records the scoped preparation outcome in the
 inbox; configure it to use the same store as modules 9 and 10. Neither outcome
 means a contact update was applied. See [event-inbox.md](event-inbox.md).
 
-## Prepared-card backups
+## Storage policy
 
-Configure module 15 with a separate data store using required text fields:
-`eventId`, `sourceContactId`, `targetUid`, `targetEtag`, `beforeVcard`,
-`preparedVcard`, and `createdAt`. Its key is the fixed account namespace plus event
-ID. Overwrite is disabled. Both changed and unchanged preparations are retained.
-A duplicate backup stops processing rather than replacing previous evidence.
+Full per-contact backups are disabled at the account owner's request. Only the
+contact mappings and event inbox are retained in Make Data Stores. Modules 15 and
+22 were removed, and the empty pilot backup store was deleted. Provider restore
+points are the chosen recovery mechanism for contact content; a targeted automatic
+undo is not available.
 
-A synthetic Make test verified exact CRLF vCard readback and duplicate-key
-rejection. The temporary scenario and record were deleted. No contact was changed.
-These are application-protected records, not tamper-proof archival storage.
-
-The pilot store is 1 MB; the attempted 5 MB allocation exceeded Make's available
-4 MB limit. Embedded photos may consume this quickly. Capacity planning, retention,
-and interrupted-run reconciliation are required before production. Never purge
-unresolved backups merely to make space. No write route is enabled yet.
+The current vCard and prepared result still pass through the execution to preserve
+unrelated fields and verify readback. They are not copied into a backup store.
+Conditional writes, exact identity checks, and readback verification remain intact.
+Interrupted writes must still be reconciled before retrying; removing backups does
+not make blind retries safe. Pending-operation recovery remains unfinished.
 
 ## Prepared-update pilot
 
 `prepared-update-pilot.blueprint.json` is an on-demand, disposable-target test,
 not the production scenario. Configure the HTTP Basic Auth connection, discovered
-book URL, and backup store before running. Use a fresh unique UID consistently in
-all URLs, the initial vCard, converter input, and backup key. Do not run against a
+book URL before running. Use a fresh unique UID consistently in
+all URLs, the initial vCard, and converter input. Do not run against a
 real contact or blindly rerun after an interruption.
 
 The Make run on October 3, 2026 (October 4 UTC) passed: conditional create, GET,
-repository converter preparation, durable backup, conditional PUT with the GET
+repository converter preparation, durable backup (since removed), conditional PUT with the GET
 ETag, GET comparison, conditional deletion, and confirmed 404. The comparison
 ignores property ordering, folding, REV and PRODID; every other property must
 match the prepared card. The temporary scenario and synthetic backup were removed.
@@ -128,12 +123,12 @@ the target, confirmed 404, marked the mapping `deleted`, and recorded
 were removed. This is server readback, not Apple-device visual verification.
 
 Modules 20–27 implement the experimental deletion path. Configure their HTTP
-connection and book URLs, module 22's backup store, module 26's mapping store,
+connection and book URLs, module 26's mapping store,
 and module 27's inbox store. A deleted mapping stops subsequent routing.
 
 **Do not enable production yet.** Existing contacts have not been mapped. Automatic
 creation, full field/photo updates, merge handling, and interrupted-write recovery
 are unfinished. Current failures need manual reconciliation; replaying an event is
-not a recovery procedure. The one-megabyte backup store is only suitable for pilots.
+not a recovery procedure.
 Contacts+ iCloud pull-in was visibly active at this check, so automatic creation
 also needs a loop-prevention decision before implementation/activation.

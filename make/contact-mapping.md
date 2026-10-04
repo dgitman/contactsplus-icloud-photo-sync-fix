@@ -43,7 +43,9 @@ State values and URL/UID validation still require explicit scenario guards.
 - The event inbox retains first deliveries; processing and out-of-order handling
   remain unfinished.
   lastEventId alone cannot provide that guarantee.
-- Back up vCards before real writes. Preserve fields outside the agreed sync scope.
+- Full contact backups are intentionally omitted. Preserve fields outside the agreed
+  sync scope and use conditional writes and readback. Provider restore points are
+  the chosen content-recovery mechanism.
 
 The live store and its identifiers are account configuration, not part of the
 portable blueprint. Keep real mapping records and backups out of Git.

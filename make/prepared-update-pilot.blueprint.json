@@ -67,25 +67,6 @@
       }
     },
     {
-      "id": 4,
-      "module": "datastore:AddRecord",
-      "version": 1,
-      "parameters": {},
-      "mapper": {
-        "key": "codex-prepared-pilot-20261004-0129",
-        "overwrite": false,
-        "data": {
-          "eventId": "codex-prepared-pilot-20261004-0129",
-          "sourceContactId": "synthetic-source",
-          "targetUid": "codex-prepared-pilot-20261004-0129",
-          "targetEtag": "{{2.headers.etag}}",
-          "beforeVcard": "{{2.data}}",
-          "preparedVcard": "{{3.result.vcard}}",
-          "createdAt": "{{now}}"
-        }
-      }
-    },
-    {
       "id": 5,
       "module": "http:MakeRequest",
       "version": 4,

@@ -1,5 +1,5 @@
 {
-  "name": "Contacts+ → iCloud — event routing verification",
+  "name": "Contacts+ \u2192 iCloud \u2014 event routing verification",
   "flow": [
     {
       "id": 1,
@@ -170,7 +170,7 @@
       "parameters": {},
       "metadata": {
         "designer": {
-          "name": "Check exact contact mapping — no writes"
+          "name": "Check exact contact mapping \u2014 no writes"
         }
       }
     },
@@ -197,7 +197,7 @@
       "parameters": {},
       "metadata": {
         "designer": {
-          "name": "Read verified mapping — no writes"
+          "name": "Read verified mapping \u2014 no writes"
         }
       }
     },
@@ -252,7 +252,7 @@
               },
               "metadata": {
                 "designer": {
-                  "name": "Verify added event — no writes"
+                  "name": "Verify added event \u2014 no writes"
                 }
               }
             }
@@ -282,7 +282,7 @@
               },
               "metadata": {
                 "designer": {
-                  "name": "Verify updated event — no writes"
+                  "name": "Verify updated event \u2014 no writes"
                 }
               }
             },
@@ -341,7 +341,7 @@
               },
               "metadata": {
                 "designer": {
-                  "name": "Read exact mapped iCloud card — no duplicate search"
+                  "name": "Read exact mapped iCloud card \u2014 no duplicate search"
                 }
               }
             },
@@ -382,31 +382,7 @@
               },
               "metadata": {
                 "designer": {
-                  "name": "Prepare name and notes update — no writes"
-                }
-              }
-            },
-            {
-              "id": 15,
-              "module": "datastore:AddRecord",
-              "version": 1,
-              "mapper": {
-                "key": "contactsplus-primary:{{2.eventId}}",
-                "data": {
-                  "eventId": "{{2.eventId}}",
-                  "createdAt": "{{now}}",
-                  "targetUid": "{{13.result.uid}}",
-                  "targetEtag": "{{13.result.targetEtag}}",
-                  "beforeVcard": "{{13.result.beforeVcard}}",
-                  "preparedVcard": "{{13.result.vcard}}",
-                  "sourceContactId": "{{8.sourceContactId}}"
-                },
-                "overwrite": false
-              },
-              "parameters": {},
-              "metadata": {
-                "designer": {
-                  "name": "Preserve prepared update and original card"
+                  "name": "Prepare name and notes update \u2014 no writes"
                 }
               }
             },
@@ -568,7 +544,7 @@
               },
               "metadata": {
                 "designer": {
-                  "name": "Verify deleted event — no writes"
+                  "name": "Verify deleted event \u2014 no writes"
                 }
               }
             },
@@ -629,25 +605,6 @@
                 "inputFormat": "editor",
                 "codeEditorJavascript": "const c=input.card.replace(/\\r\\n[ \\t]/g,\"\"); const u=c.split(/\\r?\\n/).filter(l=>/^UID[;:]/i.test(l));if(u.length!==1||u[0]!==\"UID:\"+input.uid)throw Error(\"Target identity mismatch\");if(!/^\"[^\"\\r\\n]+\"$/.test(input.etag))throw Error(\"Strong ETag required\");return {verified:true};"
               }
-            },
-            {
-              "id": 22,
-              "module": "datastore:AddRecord",
-              "version": 1,
-              "mapper": {
-                "key": "contactsplus-primary:{{2.eventId}}",
-                "data": {
-                  "eventId": "{{2.eventId}}",
-                  "createdAt": "{{now}}",
-                  "targetUid": "{{8.targetUid}}",
-                  "targetEtag": "{{20.headers.etag}}",
-                  "beforeVcard": "{{20.data}}",
-                  "preparedVcard": "DELETE",
-                  "sourceContactId": "{{8.sourceContactId}}"
-                },
-                "overwrite": false
-              },
-              "parameters": {}
             },
             {
               "id": 23,
