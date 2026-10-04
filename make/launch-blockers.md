@@ -27,7 +27,7 @@ and are not yet activated as production mappings.
   further. Name-only, ambiguous, conflicting and many-to-one matches remain held.
   Bootstrap is not a per-event duplicate search.
 - Eligible new-contact creation with bounded duplicate checks is deployed. Finish
-  creation-photo handling and interrupted-create recovery.
+  interrupted-create recovery and provider import-echo verification.
 - Missing-photo fills are deployed; existing-photo replacement remains unfinished.
 - Shared-field and new photo-fill interrupted-operation readback are deployed.
   Finish merge-aware deletion; old photo receipts without decode evidence remain held.
@@ -757,3 +757,32 @@ Full sync remains broader than this rollout: merge-aware deletion, creation with
 photos, existing-photo replacement, held mappings/fields, and automatic creation
 recovery remain unfinished. Duplicate checks for all contacts are authorized;
 that permission is no longer a blocker. No source sync settings changed.
+
+## Creation with primary photos deployed
+
+Eligible added contacts with primary photos now use the production creation route.
+The bounded duplicate query must complete before downloading. The source image is
+fetched without credentials or redirects, decoded and converted to JPEG, followed
+by a fresh source read. The original query/source binding and 60-second freshness
+limit must still pass. Storage ordering and conditional creation remain unchanged.
+After saving, exact embedded readback or account-bound iCloud URI image decoding
+and original-byte comparison are required before advancing the mapping.
+
+Cloud test `7c8b8fc4e4144696ac1c7a4e1dc02491` passed all photo-route stages using
+synthetic source records and a public test image, with real Make storage and
+real iCloud creation and photo readback. The image was 544 by 184 pixels.
+This test did not upload a new primary image to Contacts+ or prove a full provider
+import-echo cycle. The existing real Contacts+ event test covers source transport;
+this test covers image processing, save and exact saved-image verification.
+
+The test used 48 credits. Conditional cleanup and confirmed 404 used another nine
+in `59110be524e449c7923c84fb766e0c75`. The test mapping, inbox record and temporary
+scenario were removed. Mapping count returned to 1,990. All 217 local tests passed
+without Make credits. Production was read back active and unpaused after the
+photo-creation rollout at `2026-10-04T19:57:38.077Z`.
+
+Full-sync limitations remain: automatic merge/deletion handling, replacement of
+existing images, held field/identity conflicts, and automated interrupted-creation
+recovery. Broken/unsupported source photos remain held; creation never silently
+omits an observed primary photo. Existing mapped update and missing-photo routes
+remain enabled. No provider sync settings changed.

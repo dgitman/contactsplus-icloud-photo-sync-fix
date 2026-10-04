@@ -1,0 +1,43 @@
+const bundle=require('../code/bundle-create-transaction');
+const fs=require('fs'),path=require('path');
+function enableCreationPhotos(blueprint){
+ const b=JSON.parse(JSON.stringify(blueprint));
+ const walk=f=>f.flatMap(m=>[m,...(m.routes||[]).flatMap(r=>walk(r.flow))]);
+ const at=id=>walk(b.flow).find(m=>m.id===id),copy=id=>JSON.parse(JSON.stringify(at(id)));
+ if(at(223))throw Error('Creation photos already installed');
+ const flow=at(200).routes[1].flow,tail=flow.splice(flow.findIndex(m=>m.id===204));
+ const prefix=at(66).mapper.input.find(x=>x.name==='photoPathPrefix')?.value;
+ if(!prefix)throw Error('Photo account path missing');
+ const code=bundle()+'\n'+fs.readFileSync(path.join(__dirname,'../code/read-source-response.js'),'utf8').replace('module.exports=readSourceResponse;','');
+ const arg=(name,value)=>({name,value}),filter=(id,status)=>({name:'Verified creation photo phase',conditions:[[{a:'{{'+id+'.result.status}}',b:status,o:'text:equal'}]]});
+ const cm=(id,js,input)=>({id,module:'code:ExecuteCode',version:1,mapper:{language:'javascript',inputFormat:'editor',input,codeEditorJavascript:code+'\n'+js}});
+ const inbox=(id,state,extra={})=>({id,module:'datastore:UpdateRecord',version:1,parameters:{...at(10).parameters},mapper:{key:'contactsplus-primary:{{2.eventId}}',upsert:false,overwriteArrays:false,data:{state,...extra}}});
+ const gate=cm(223,`try{const source=readSourceResponse(input.source),q=creation.reviewNewContactQuery({...input,source});if(q.status!=='no_candidates')return q;const p=Object.hasOwn(source.contactData,'photos')?creation.selectPrimaryPhoto({source,sourceContactId:source.contactId}):{status:'preserve'};return p.status==='preserve'?{status:'no_photo',checkedAt:Date.now()}:p.status==='download'?{status:'download',primaryUrl:p.primaryUrl,checkedAt:Date.now()}:{status:'held',reason:p.reason};}catch(e){return {status:'held',reason:String(e.message)};}`,[arg('source','{{`201`}}'),arg('event','{{`2`}}'),arg('plan','{{202.result}}'),arg('response','{{`203`}}')]);
+ // Preserve the existing no-photo path. Unknown/failed queries go to an explicit hold.
+ tail[0].filter=filter(223,'no_photo');
+ const mapped=JSON.parse(JSON.stringify(tail).replace(/\{\{[^}]*\}\}/g,e=>e.replace(/(?<![A-Za-z0-9_])(\d+)(?=\.)/g,(x,n)=>Number(n)>=204&&Number(n)<=221?Number(n)+100:n).replace(/`(\d+)`/g,(x,n)=>Number(n)>=204&&Number(n)<=221?'`'+(Number(n)+100)+'`':x)));
+ for(const m of mapped)m.id+=100;
+ const get=id=>mapped.find(m=>m.id===id);
+ const download=copy(80);download.id=225;download.parameters={authenticationType:'noAuth'};download.mapper.url='{{223.result.primaryUrl}}';download.filter=filter(223,'download');
+ const convert=copy(33);convert.id=226;convert.mapper.data='{{225.data}}';convert.filter={name:'Source photo downloaded',conditions:[[{a:'{{225.statusCode}}',b:200,o:'number:equal'}]]};
+ const dimensions=copy(34);dimensions.id=227;dimensions.mapper={data:'{{226.data}}',fileName:'{{226.fileName}}'};
+ const fresh=copy(201);fresh.id=228;delete fresh.filter;
+ const prep=get(304);delete prep.filter;prep.mapper.input=prep.mapper.input.map(x=>x.name==='source'?{...x,value:'{{`228`}}'}:x);prep.mapper.input.push(arg('photoUrl','{{223.result.primaryUrl}}'),arg('b64','{{base64(226.data)}}'),arg('width','{{227.width}}'),arg('height','{{227.height}}'),arg('checkedAt','{{223.result.checkedAt}}'));
+ prep.mapper.codeEditorJavascript=code+`\ntry{const byteHash=require('node:crypto').createHash('sha256').update(Buffer.from(input.b64,'base64')).digest('hex');const r=creation.prepareCreateTransaction({...input,source:readSourceResponse(input.source),lookupPolicyEnabled:true,completeSource:true,checkedAt:Number(input.checkedAt),now:Date.now(),photoDownload:{requestedUrl:input.photoUrl,statusCode:200,imageBase64:input.b64,decodedImage:{decoded:true,mime:'image/jpeg',width:Number(input.width),height:Number(input.height),byteHash}}});return {...r,reservationJson:r.reservation?JSON.stringify(r.reservation):''};}catch(e){return {status:'held',reason:String(e.message)};}`;
+ const verify=get(318);verify.mapper.input.push(arg('photoPathPrefix',prefix));
+ const parse="const args={...input,source:readSourceResponse(input.source),reservation:JSON.parse(input.saved),statusCode:Number(input.statusCode)};";
+ verify.mapper.codeEditorJavascript=code+`\ntry{if(![201,204].includes(Number(input.putStatus)))return {status:'held',reason:'create_response_unconfirmed'};${parse}const r=creation.reconcileCreateTransaction(args);return r.status==='verified_create'?r:creation.planCreatePhotoRecovery(args);}catch(e){return {status:'held',reason:String(e.message)};}`;
+ const mapping=get(320),done=get(321);mapped.splice(mapped.findIndex(m=>m.id===320));
+ const savedDownload=copy(80);savedDownload.id=341;savedDownload.filter=filter(318,'uri_photo_download');savedDownload.mapper.url='{{318.result.url}}';
+ const decode=copy(81);decode.id=342;decode.mapper.data='{{341.data}}';decode.filter={name:'Saved photo downloaded',conditions:[[{a:'{{341.statusCode}}',b:200,o:'number:equal'}]]};
+ const meta=copy(82);meta.id=343;meta.mapper={data:'{{342.data}}',fileName:'{{342.fileName}}'};
+ const finish=JSON.parse(JSON.stringify(verify));finish.id=344;finish.mapper.input.push(arg('url','{{318.result.url}}'),arg('downloadStatus','{{341.statusCode}}'),arg('b64','{{base64(341.data)}}'),arg('width','{{343.width}}'),arg('height','{{343.height}}'));
+ finish.mapper.codeEditorJavascript=code+`\ntry{${parse}return creation.finishCreatePhotoRecovery({...args,download:{requestedUrl:input.url,statusCode:Number(input.downloadStatus),decoded:true,imageBase64:input.b64,width:Number(input.width),height:Number(input.height)}});}catch(e){return {status:'held',reason:String(e.message)};}`;
+ const uriMapping=JSON.parse(JSON.stringify(mapping).replaceAll('318.result','344.result'));uriMapping.id=346;
+ const uriDone=JSON.parse(JSON.stringify(done));uriDone.id=347;
+ mapped.push({id:340,module:'builtin:BasicRouter',version:1,mapper:null,routes:[{flow:[mapping,done]},{flow:[savedDownload,decode,meta,finish,inbox(345,'{{if(344.result.status = "verified_create"; "create_verified_mapping_pending"; "held_create_photo_readback")}}'),uriMapping,uriDone]}]});
+ const mark=inbox(229,'creation_photo_download_pending');mark.filter=filter(223,'download');
+ flow.push(gate,inbox(224,'{{if(223.result.status = "held"; "held_creation_duplicate_or_photo"; "creation_preflight_pending")}}'),{id:230,module:'builtin:BasicRouter',version:1,mapper:null,routes:[{flow:tail},{flow:[mark,download,convert,dimensions,fresh,...mapped]}]});
+ return b;
+}
+module.exports=enableCreationPhotos;
