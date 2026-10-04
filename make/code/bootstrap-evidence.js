@@ -12,8 +12,7 @@ function bootstrapEvidence({contactData,existingVcard}){
   const matched=(contactData.phoneNumbers||[]).some(p=>phone(p.value)&&targetPhones.has(phone(p.value)));
   // Business SMS short codes are not personal phone identity. Require the
   // complete supported company and phone groups, then caller resolves uniqueness.
-  if(!contactData.name&&contactData.organizations?.[0]?.name?.trim()&&
-     lines.filter(l=>key(l)==='N').every(l=>value(l).replace(/;/g,'')==='')&&
+  if(contactData.organizations?.[0]?.name?.trim()&&
      contactData.phoneNumbers?.some(p=>typeof p.value==='string'&&/^\d{5,6}$/.test(p.value.replace(/-/g,'')))){
     const uid=value(lines.find(l=>key(l)==='UID')||'');
     const data={organizations:contactData.organizations,phoneNumbers:contactData.phoneNumbers};
@@ -21,8 +20,9 @@ function bootstrapEvidence({contactData,existingVcard}){
     const number=v=>typeof v==='string'&&/^[+0-9 ().-]+$/.test(v)?v.replace(/[ ().-]/g,''):null;
     const sourceNumbers=contactData.phoneNumbers.map(p=>number(p.value));
     const targetNumbers=lines.filter(l=>key(l)==='TEL').map(l=>number(value(l)));
+    const sameName=contactData.name?!patchSharedFields({uid,existingVcard,contactData:{name:contactData.name}}).changed:lines.filter(l=>key(l)==='N').every(l=>value(l).replace(/;/g,'')==='');
     const sameNumbers=sourceNumbers.length>0&&sourceNumbers.every(Boolean)&&targetNumbers.every(Boolean)&&JSON.stringify(sourceNumbers.sort())===JSON.stringify(targetNumbers.sort());
-    if(projected.organizations&&projected.phoneNumbers&&sameNumbers&&!patchSharedFields({uid,existingVcard,contactData:{organizations:projected.organizations}}).changed)return 'exact_business_and_short_code_group';
+    if(projected.organizations&&projected.phoneNumbers&&sameName&&sameNumbers&&!patchSharedFields({uid,existingVcard,contactData:{organizations:projected.organizations}}).changed)return 'exact_business_and_short_code_group';
   }
   if(!matched) {
     // National numbers are compared literally after punctuation removal; no

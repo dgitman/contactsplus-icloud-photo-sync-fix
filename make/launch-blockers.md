@@ -7,7 +7,7 @@ The newest verification evidence is at the end; older sections describe historic
 implementation stages, not the current enabled state.
 
 This is event-driven synchronization, not a claim that every historical record is
-identical. There are 7,053 accepted existing mappings. Ambiguous/unmapped identities,
+identical. There are 7,064 accepted existing mappings. Ambiguous/unmapped identities,
 malformed supported fields, mixed photo/text changes and independent target edits remain
 held rather than guessed or overwritten. New-contact creation requires a structured
 name and email and a successful bounded duplicate query.
@@ -1090,3 +1090,18 @@ qualifying source, followed by complete store readback. Live coverage is 7,053;
 was changed. Historical differences remain outstanding. 258 local tests passed;
 the portable reviewer was regenerated and syntax checked. Both temporary
 scenarios were removed after verification.
+
+
+## Named businesses with exact company and numbers — October 4
+
+Business short-code matching now permits a populated name only when that supported
+name also matches exactly. The exact primary organization and complete phone-value
+multiset remain required, and competing source/target claims remain excluded.
+This covers businesses entered in both the name and company fields without
+accepting short codes as standalone personal identity evidence.
+
+11 pairs passed fresh cloud review and complete mapping-store readback. Coverage
+is 7,064, with 75 records from the earlier inventory still outside coverage.
+Contact contents were preserved; historical differences remain separately
+baselined. 259 local tests passed, and the portable reviewer was regenerated and
+syntax checked. Temporary scenarios were removed after verification.

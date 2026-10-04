@@ -8,3 +8,5 @@ test('short codes do not corroborate personal-name records',()=>assert.equal(evi
 
 test('business identity ignores labels and preferred flags but retains every number',()=>assert.equal(evidence({contactData:data,existingVcard:card().replace('TEL;TYPE=OTHER:','item1.TEL;TYPE=pref:')}),'exact_business_and_short_code_group'));
 test('extra and duplicate target numbers cannot be hidden by set comparison',()=>{for(const extra of ['12345','67890'])assert.equal(evidence({contactData:data,existingVcard:card().replace('END:VCARD','TEL:'+extra+'\r\nEND:VCARD')}),null);});
+
+test('named business requires name, company and all phone values',()=>{const d={...data,name:{givenName:'Example Service'}};const c=card().replace('ORG:','N:;Example Service;;;\r\nFN:Example Service\r\nORG:');assert.equal(evidence({contactData:d,existingVcard:c}),'exact_business_and_short_code_group');assert.equal(evidence({contactData:{...d,name:{givenName:'Other Service'}},existingVcard:c}),null);});
