@@ -76,7 +76,24 @@ Module 13 combines code/vcard.js without its CommonJS export, followed by
 code/prepare-update.js. Source uses the whole-bundle reference for module 11.
 Three adapter tests cover before-image retention, absent vs empty notes, and
 identity/ETag rejection. The live route was saved and read back but has not been
-executed end-to-end; the main scenario is inactive. Preparation results are not
-yet durable backups. Module 14 records the scoped preparation outcome in the
+executed end-to-end; the main scenario is inactive. Module 15 saves original and prepared cards to a separate backup store before
+module 14 records the scoped preparation outcome in the
 inbox; configure it to use the same store as modules 9 and 10. Neither outcome
 means a contact update was applied. See [event-inbox.md](event-inbox.md).
+
+## Prepared-card backups
+
+Configure module 15 with a separate data store using required text fields:
+`eventId`, `sourceContactId`, `targetUid`, `targetEtag`, `beforeVcard`,
+`preparedVcard`, and `createdAt`. Its key is the fixed account namespace plus event
+ID. Overwrite is disabled. Both changed and unchanged preparations are retained.
+A duplicate backup stops processing rather than replacing previous evidence.
+
+A synthetic Make test verified exact CRLF vCard readback and duplicate-key
+rejection. The temporary scenario and record were deleted. No contact was changed.
+These are application-protected records, not tamper-proof archival storage.
+
+The pilot store is 1 MB; the attempted 5 MB allocation exceeded Make's available
+4 MB limit. Embedded photos may consume this quickly. Capacity planning, retention,
+and interrupted-run reconciliation are required before production. Never purge
+unresolved backups merely to make space. No write route is enabled yet.

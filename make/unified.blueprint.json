@@ -387,6 +387,30 @@
               }
             },
             {
+              "id": 15,
+              "module": "datastore:AddRecord",
+              "version": 1,
+              "parameters": {},
+              "mapper": {
+                "key": "contactsplus-primary:{{2.eventId}}",
+                "overwrite": false,
+                "data": {
+                  "eventId": "{{2.eventId}}",
+                  "sourceContactId": "{{8.sourceContactId}}",
+                  "targetUid": "{{13.result.uid}}",
+                  "targetEtag": "{{13.result.targetEtag}}",
+                  "beforeVcard": "{{13.result.beforeVcard}}",
+                  "preparedVcard": "{{13.result.vcard}}",
+                  "createdAt": "{{now}}"
+                }
+              },
+              "metadata": {
+                "designer": {
+                  "name": "Preserve prepared update and original card"
+                }
+              }
+            },
+            {
               "id": 14,
               "module": "datastore:UpdateRecord",
               "version": 1,

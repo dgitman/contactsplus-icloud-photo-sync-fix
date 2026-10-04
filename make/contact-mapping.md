@@ -58,4 +58,5 @@ removed and the scenario was disabled afterward. No target requests occurred.
 
 This is a routing guard, not completed synchronization. Valid unmapped events now
 remain pending in the [event inbox](event-inbox.md); a processor is still required.
-Target URL/UID checks and write conflict handling remain to be implemented.
+Target URL/UID checks are implemented on the update preparation route.
+Write conflict handling remains to be implemented.
