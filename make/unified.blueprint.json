@@ -1,4 +1,5 @@
 {
+  "name": "Contacts+ to iCloud mapping gate scaffold",
   "flow": [
     {
       "id": 1,
@@ -8,20 +9,106 @@
     },
     {
       "id": 2,
+      "module": "builtin:BasicFeeder",
+      "version": 1,
       "mapper": {
         "array": "{{1.events}}"
+      }
+    },
+    {
+      "id": 7,
+      "module": "datastore:ExistRecord",
+      "version": 1,
+      "mapper": {
+        "key": "contactsplus-primary:{{2.data.contactId}}"
       },
-      "module": "builtin:BasicFeeder",
-      "version": 1
+      "filter": {
+        "name": "Source contact ID required",
+        "conditions": [
+          [
+            {
+              "a": "{{2.data.contactId}}",
+              "o": "exist"
+            },
+            {
+              "a": "{{2.data.contactId}}",
+              "b": "",
+              "o": "text:notequal"
+            }
+          ]
+        ]
+      },
+      "parameters": {},
+      "metadata": {
+        "designer": {
+          "name": "Check exact contact mapping \u2014 no writes"
+        }
+      }
+    },
+    {
+      "id": 8,
+      "module": "datastore:GetRecord",
+      "version": 1,
+      "mapper": {
+        "key": "contactsplus-primary:{{2.data.contactId}}",
+        "returnWrapped": false
+      },
+      "filter": {
+        "name": "Mapping exists",
+        "conditions": [
+          [
+            {
+              "a": "{{7.exist}}",
+              "b": true,
+              "o": "boolean:equal"
+            }
+          ]
+        ]
+      },
+      "parameters": {},
+      "metadata": {
+        "designer": {
+          "name": "Read verified mapping \u2014 no writes"
+        }
+      }
     },
     {
       "id": 3,
       "module": "builtin:BasicRouter",
+      "version": 1,
+      "filter": {
+        "name": "Exact verified mapping only",
+        "conditions": [
+          [
+            {
+              "a": "{{8.state}}",
+              "b": "verified",
+              "o": "text:equal"
+            },
+            {
+              "a": "{{8.sourceAccountId}}",
+              "b": "contactsplus-primary",
+              "o": "text:equal"
+            },
+            {
+              "a": "{{8.sourceContactId}}",
+              "b": "{{2.data.contactId}}",
+              "o": "text:equal"
+            }
+          ]
+        ]
+      },
       "routes": [
         {
           "flow": [
             {
               "id": 4,
+              "module": "util:SetVariable2",
+              "version": 1,
+              "mapper": {
+                "name": "verifiedEventType",
+                "value": "contact.added"
+              },
               "filter": {
                 "name": "Contact added",
                 "conditions": [
@@ -34,15 +121,9 @@
                   ]
                 ]
               },
-              "mapper": {
-                "name": "verifiedEventType",
-                "value": "contact.added"
-              },
-              "module": "util:SetVariable2",
-              "version": 1,
               "metadata": {
                 "designer": {
-                  "name": "Verify added event — no writes"
+                  "name": "Verify added event \u2014 no writes"
                 }
               }
             }
@@ -52,6 +133,12 @@
           "flow": [
             {
               "id": 5,
+              "module": "util:SetVariable2",
+              "version": 1,
+              "mapper": {
+                "name": "verifiedEventType",
+                "value": "contact.updated"
+              },
               "filter": {
                 "name": "Contact updated",
                 "conditions": [
@@ -64,15 +151,9 @@
                   ]
                 ]
               },
-              "mapper": {
-                "name": "verifiedEventType",
-                "value": "contact.updated"
-              },
-              "module": "util:SetVariable2",
-              "version": 1,
               "metadata": {
                 "designer": {
-                  "name": "Verify updated event — no writes"
+                  "name": "Verify updated event \u2014 no writes"
                 }
               }
             }
@@ -82,6 +163,12 @@
           "flow": [
             {
               "id": 6,
+              "module": "util:SetVariable2",
+              "version": 1,
+              "mapper": {
+                "name": "verifiedEventType",
+                "value": "contact.deleted"
+              },
               "filter": {
                 "name": "Contact deleted",
                 "conditions": [
@@ -94,46 +181,24 @@
                   ]
                 ]
               },
-              "mapper": {
-                "name": "verifiedEventType",
-                "value": "contact.deleted"
-              },
-              "module": "util:SetVariable2",
-              "version": 1,
               "metadata": {
                 "designer": {
-                  "name": "Verify deleted event — no writes"
+                  "name": "Verify deleted event \u2014 no writes"
                 }
               }
             }
           ]
         }
-      ],
-      "version": 1
+      ]
     }
   ],
-  "name": "Contacts+ → iCloud — event routing verification",
   "metadata": {
-    "instant": true,
     "version": 1,
-    "designer": {
-      "orphans": []
-    },
     "scenario": {
-      "dlq": false,
-      "dataloss": false,
-      "maxErrors": 3,
-      "autoCommit": true,
-      "roundtrips": 1,
       "sequential": true,
-      "confidential": true
+      "confidential": true,
+      "dlq": true,
+      "dataloss": false
     }
-  },
-  "scheduling": {
-    "type": "immediately"
-  },
-  "interface": {
-    "input": [],
-    "output": []
   }
 }

@@ -5,7 +5,8 @@ with separate routes for `contact.added`, `contact.updated`, and `contact.delete
 Contacts+ accepted a webhook registration for all three event types.
 
 `unified.blueprint.json` is the verified event-routing scaffold exported from Make.
-Its account-specific webhook ID has been removed. Create a new webhook when importing.
+Its account-specific webhook and data store IDs have been removed. Configure both
+when importing; use the mapping schema documented below.
 A disposable contact lifecycle test on October 3, 2026 confirmed that real Contacts+
 create, update, and delete events each ran only their matching branch successfully.
 The route endpoints currently set a verification variable; they do not write contacts.
@@ -43,4 +44,6 @@ Do not commit credentials, live webhook URLs, contact records, or execution payl
 ## Mapping storage
 
 See [persistent contact mapping](contact-mapping.md) for the provisioned store schema,
-completed storage test, and remaining guards. The store is not wired to routes yet.
+completed tests, and remaining guards. The store lookup now gates all three routes.
+Only exact verified mappings proceed; unmapped events currently stop without writes.
+Production creation and a durable review queue are still pending.

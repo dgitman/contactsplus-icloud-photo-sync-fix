@@ -2,9 +2,13 @@
 
 A dedicated Make data store now exists for source-to-target identities. Synthetic
 create, read, partial-update, and delete operations passed; the store is empty.
-It is not yet connected to the event routes. No production contacts are mapped.
+It is connected to all three event routes through existence and identity/state
+filters. No production contacts are mapped.
 
-Use a deterministic key derived from the source account ID and contact ID.
+The current single-account deployment uses a fixed logical namespace,
+`contactsplus-primary`, followed by `:` and the exact contact ID. This namespace
+is configured in the scenario, not taken from the event. Give any additional
+source account its own namespace. Use the same namespace in sourceAccountId.
 Do not use a name or email as the persistent key. These fields are stored as text:
 
 | Field | Purpose |
@@ -42,3 +46,15 @@ State values and URL/UID validation still require explicit scenario guards.
 
 The live store and its identifiers are account configuration, not part of the
 portable blueprint. Keep real mapping records and backups out of Git.
+
+## Live no-write gate test
+
+Synthetic webhook batches verified that all three event types proceed only for an
+existing record with state `verified`, the configured source namespace, and the
+exact source contact ID. Unmapped records, pending records, mismatched source IDs,
+and empty contact IDs did not reach any route endpoint. The temporary records were
+removed and the scenario was disabled afterward. No target requests occurred.
+
+This is a routing guard, not completed synchronization: blocked events currently
+end silently, so a durable review queue is required before production activation.
+Target URL/UID checks and write conflict handling remain to be implemented.
