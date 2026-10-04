@@ -395,3 +395,17 @@ The deployed scenario was read back active and unpaused with the photo route
 present. Portable blueprint and route builder are in the repository; all 140
 local tests pass. This is limited missing-photo support, not replacement of existing
 images, full address-book coverage, or automatic creation/deletion.
+
+## Expanded read-only review: 101 contacts live
+
+Execution `1966e886a442484d986b268d301048c5` freshly checked another 200 prior
+unique source/target pairs. Seven passed current identifier, full shared-field,
+UID and version checks. Their accepted mappings were added without changing
+contact contents. Execution `a7c0b4f383e1408299a5b580db786889` read back and
+verified all seven records, bringing the active coverage from 94 to 101.
+
+The other 193 remain held: 191 shared-field differences and two social metadata
+mappings that are not supported. No matching safeguard was relaxed. The mapping
+store uses 136,272 of 1,048,576 bytes. The main scenario was confirmed active and
+unpaused, and the temporary review scenario was deleted. Detailed candidate and
+readback evidence remains private, outside Git. No runtime code changed.
