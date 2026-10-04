@@ -22,11 +22,12 @@ and are not yet activated as production mappings.
 
 ## Remaining launch work
 
-- Expand freshly verified source-to-target mappings beyond the limited rollout.
-- Complete repeatable bootstrap; name-only, ambiguous, conflicting, and
-  many-to-one matches must remain held. It is not a per-event duplicate search.
+- The initial unique-candidate review is complete: 1,750 mappings are registered.
+  Resolve held shared-field differences and unsupported metadata before expanding
+  further. Name-only, ambiguous, conflicting and many-to-one matches remain held.
+  Bootstrap is not a per-event duplicate search.
 - Implement creation/import loop prevention while iCloud pull-in remains enabled.
-- Integrate verified photo reconciliation into the event update route.
+- Missing-photo fills are deployed; existing-photo replacement remains unfinished.
 - Add interrupted-operation readback and merge-aware deletion. Shared-field
   baselines and successful-write readback are already deployed.
 - Add pending-event processing and event-store retention/capacity monitoring.
@@ -494,3 +495,29 @@ is November 4, 2026 at 01:35 UTC. No failed runs or incomplete executions caused
 this pause, and the webhook queue was empty. Additional credits or the reset
 are required before syncing can resume. Check the credit balance before any
 further expansion; do not describe the current deployment as running.
+
+## Initial candidate pass complete: 1,750 contacts live
+
+The credit pause above was subsequently cleared by purchasing 10,000 extra credits.
+The API still reports 10,000 included credits; this is not a confirmed recurring
+20,000-credit subscription. The organization and main scenario are now unpaused.
+
+Execution `1922337492bd4f359104a45f77a70eb5` freshly reviewed the final 2,054
+previously unique candidates for 106 credits. 179 passed. The other 1,875 remain
+held: 1,524 shared-field differences, 326 unsupported social metadata cases,
+17 unsupported social parameter values, seven unsupported gender fields and
+one invalid social URL.
+
+Execution `b11e5a6d426f4b4781b31847eb840910` registered and read back the 179
+accepted mappings for 538 credits. Every returned field matched its expected
+record. There are now 1,750 mappings using 2,086,989 of 5,242,880 bytes. The final
+check confirmed the main scenario active and unpaused, with 8,963 organization
+credits remaining. No contact contents were changed. The temporary scenario was
+deleted and private evidence retained outside Git.
+
+No previously unique candidate from the initial inventory remains unreviewed.
+This does not resolve held matches or prove the whole address book is synchronized.
+Creation, deletion/merge recovery and existing-photo replacement remain disabled.
+The next coverage work is reconciliation of held differences, not another scan of
+the same inventory. Credit budgeting is documented in the Make README. No runtime
+code changed in this rollout.
