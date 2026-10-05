@@ -1195,3 +1195,20 @@ The reusable live-store builder batches cloud reads and rejects incomplete or
 conflicting mapping inventories. Next: inspect the empty target group, then
 separate representation differences from real field changes before conditional
 repairs. Remaining unmatched prior-inventory records remain 63.
+
+### Historical empty-note repair — October 4, 2026
+
+The full audit's single empty target field group was repaired with one guarded
+CardDAV PUT. A fresh source read, current mapping and target read confirmed the
+note remained missing and all tracked fields still matched their saved baselines.
+The write copied only NOTE using If-Match; exact readback confirmed preservation
+of the other properties, including PHOTO. Only the notes baseline was advanced.
+A separate read-only execution verified the persisted baseline and current note.
+
+Write execution: `c8d162b3ab4045f2a401be522afea786`.
+Independent read execution: `893c2f07e91a4209906dcd65aaf0ece8`.
+Temporary scenarios were deleted. Production remained active, unpaused, with no
+incomplete executions. This is iCloud CardDAV verification, not device/UI inspection.
+The same contact still has other historical differences; the full alignment count
+has not been increased. Remaining differences need value/label normalization review,
+especially URLs, before any bulk historical reconciliation.

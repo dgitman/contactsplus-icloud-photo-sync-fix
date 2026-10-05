@@ -1,0 +1,7 @@
+const test=require('node:test'),assert=require('node:assert/strict');
+const prepare=require('./prepare-empty-note-fill'),{snapshot}=require('./prepare-shared-update');
+const card='BEGIN:VCARD\r\nVERSION:3.0\r\nUID:test\r\nFN:Example\r\nURL:https://example.org\r\nPHOTO;ENCODING=b:AAAA\r\nEND:VCARD\r\n';
+function fixture(){const source={contactId:'source',etag:'s1',contactData:{name:{givenName:'Example'},notes:'Recovered note',urls:[{value:'https://example.org'}]}};return {source,existingVcard:card,targetEtag:'"t1"',mapping:{state:'verified',sourceAccountId:'contactsplus-primary',sourceContactId:'source',targetUid:'test',baselineJson:JSON.stringify(snapshot({sourceContactId:'source',uid:'test',existingVcard:card,contactData:source.contactData}))}};}
+test('fills only missing note and advances no state',()=>{const r=prepare(fixture());assert.equal(r.vcard.replace('NOTE:Recovered note\r\n',''),card);assert.deepEqual(r.updatedFields,['notes']);});
+test('refuses an existing note or changed source',()=>{let f=fixture();f.existingVcard=f.existingVcard.replace('END:VCARD','NOTE:Local note\r\nEND:VCARD');assert.throws(()=>prepare(f));f=fixture();f.source.contactData.notes='Changed';assert.throws(()=>prepare(f));});
+test('refuses identity drift or weak version',()=>{let f=fixture();f.source.contactId='other';assert.throws(()=>prepare(f));f=fixture();f.targetEtag='W/"t1"';assert.throws(()=>prepare(f));});
