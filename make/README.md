@@ -46,6 +46,29 @@ to spend an available budget. Keep initial matching separate from event processi
 Future optimization should measure credits per event and remove redundant work
 without dropping identity checks, conditional writes, or verification.
 
+### Deployed step reduction — October 5, 2026
+
+`scripts/optimize-credit-steps.js` implements the deployed 12-module reduction from the previous
+production blueprint. It removes two unused event-type variables and nine
+intermediate inbox-status writes, and runs the existing photo eligibility code
+inside shared-field preparation instead of in a separate Code module. Filters
+on removed route-entry steps are transferred to the next surviving step.
+
+Expected path savings: one credit for a shared-field update, approximately three
+for an unchanged event, four for a photo update, four for creation without a photo,
+five for creation with a photo, and two for deletion. These are step-based
+estimates; actual Code credits depend on runtime. No paid test runs are needed
+for the local comparison.
+
+All HTTP requests, identity checks, conditional writes, post-write readbacks,
+durable write receipts and recovery paths are retained. A pre-write failure may
+leave the inbox at an earlier status; detailed execution logs remain available.
+The transform refuses unexpected module/input layouts and dangling references.
+Live readback confirmed all 184 remaining modules and their configurations match
+the reviewed change. The scenario remains active with no incomplete executions.
+`unified.blueprint.json` contains the optimized portable workflow. No paid scenario
+execution was started for this deployment; savings remain estimates.
+
 A separate temporary Make test successfully read an iCloud vCard using Basic Auth.
 That test scenario was deleted afterward.
 

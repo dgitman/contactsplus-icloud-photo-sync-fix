@@ -1507,3 +1507,23 @@ unpaused, with zero incomplete executions. Verification is CardDAV, not device U
 cases, 2,154 remain, plus the two differing-link cases. Other historical field
 groups and unresolved identities still prevent claiming full alignment. This
 pilot does not establish that all remaining username cases qualify for this mode.
+
+### Credit step reduction deployed — October 5, 2026
+
+Prepared removal of unused variable modules 5/6 and intermediate status modules
+49/222/224/205/210/229/305/310/404. Photo eligibility module 31 is combined with
+shared preparation 13; its result references and route filter are preserved.
+Local checks compared 24 source/photo/target variants with the original adapters.
+All HTTP request configurations and scenario settings were checked unchanged,
+apart from the photo result reference. Existing durable write receipts and
+recovery modules are unchanged. All 32 relevant local route and optimization
+checks pass without Make execution. Maintenance scripts now recognize the
+transferred route gates and preserve combined photo preparation.
+
+The user explicitly approved the 12-step production change. Deployment succeeded
+at 2026-10-05T11:59:35.547Z. Fresh readback confirmed 184 modules, all intended
+mappers, parameters and filters, active status, and zero incomplete executions.
+No paid Make scenario execution was started; local comparison and configuration
+readback do not establish a newly executed contact event. Connected snapshots
+remain private; the repository contains the optimized portable blueprint.
+See README for estimated savings and reduced intermediate-status detail.

@@ -44,7 +44,7 @@ function addCreationRoute(blueprint,{connectionId}={}){
  flow.find(m=>m.id===211).filter=filter('Fresh source and first attempt only',eq('{{209.result.status}}','attempt_marker_prepared'));
  flow.find(m=>m.id===220).filter=filter('Exact creation readback only',eq('{{218.result.status}}','verified_create'));
  // Pending creations must not enter update routing as verified mappings.
- const known=walk(existing).find(m=>m.id===5);for(const conditions of known.filter.conditions)conditions.push(eq('{{8.state}}','verified'));
+ const known=walk(existing).find(m=>m.id===5)||walk(existing).find(m=>m.id===11);for(const conditions of known.filter.conditions)conditions.push(eq('{{8.state}}','verified'));
  first.push({id:200,module:'builtin:BasicRouter',version:1,mapper:null,routes:[{flow:existing},{flow}]});
  return b;
 }

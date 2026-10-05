@@ -8,13 +8,13 @@ function guardSharedRoutes(blueprint){
   const mapped=main.find(m=>m.id===200)?.routes[0].flow||main;
   const router=mapped.find(m=>m.id===3);
   if(!router?.routes)throw Error('Expected event router');
-  const update=router.routes.find(r=>r.flow.some(m=>m.id===5)).flow;
+  const update=router.routes.find(r=>r.flow.some(m=>m.id===5||m.id===11)).flow;
   const writes=update.find(m=>m.id===30)?.routes.find(r=>r.flow.some(m=>m.id===16)).flow||update;
   const at=id=>{const m=[...update,...writes].find(x=>x.id===id);if(!m)throw Error('Missing update module '+id);return m;};
   // An added event for a known identity is an upsert of that exact target,
   // never permission to create a second iCloud resource.
   router.routes=router.routes.filter(r=>!r.flow.some(m=>m.id===4));
-  at(5).filter={name:'Known contact added or updated',conditions:[
+  at(update.some(m=>m.id===5)?5:11).filter={name:'Known contact added or updated',conditions:[
     [{a:'{{2.triggerId}}',b:'contact.added',o:'text:equal'}],
     [{a:'{{2.triggerId}}',b:'contact.updated',o:'text:equal'}]
   ]};
@@ -30,7 +30,13 @@ function guardSharedRoutes(blueprint){
   // remains limited to the mapping's configured target address book and UID.
   at(12).filter.conditions[0]=at(12).filter.conditions[0].filter(c=>c.a!=='{{11.contactId}}'&&c.a!=='{{11.statusCode}}');
   at(12).filter.conditions[0].unshift({a:'{{11.statusCode}}',b:200,o:'number:equal'});
-  const p=at(13);p.mapper.codeEditorJavascript=bundlePrepare();
+  const p=at(13),oldCode=p.mapper.codeEditorJavascript;
+  const photoMarker="\n})(input);\nif(['unchanged','conflict'].includes(result.status)){\nresult.photoCheck=(function(input){\n";
+  if(oldCode.startsWith('const result=(function(input){\n')){
+    const boundary=oldCode.indexOf(photoMarker);
+    if(boundary<0)throw Error('Unknown combined photo preparation');
+    p.mapper.codeEditorJavascript='const result=(function(input){\n'+bundlePrepare()+oldCode.slice(boundary);
+  }else p.mapper.codeEditorJavascript=bundlePrepare();
   p.mapper.input=p.mapper.input.filter(x=>x.name!=='baseline');p.mapper.input.push({name:'baseline',value:'{{8.baselineJson}}'});
   at(14).mapper.data.state='{{13.result.eventState}}';
   at(14).mapper.data.writeReceiptJson='{{13.result.writeReceiptJson}}';
@@ -48,8 +54,8 @@ function guardSharedRoutes(blueprint){
   if(!writes.some(x=>x.id===28))writes.splice(writes.findIndex(x=>x.id===19),0,mapping);
   else writes[writes.findIndex(x=>x.id===28)]=mapping;
   at(19).mapper.data.state='verified_shared_fields';
-  const deletion=router.routes.find(r=>r.flow.some(m=>m.id===6));
-  const entry=deletion.flow.find(m=>m.id===6),hold=deletion.flow.find(m=>m.id===27);
+  const deletion=router.routes.find(r=>r.flow.some(m=>m.id===6||m.id===401));
+  const entry=deletion.flow.find(m=>m.id===6||m.id===401),hold=deletion.flow.find(m=>m.id===27);
   if(!entry)throw Error('Expected deletion route');
   // Preserve the separately verified lifecycle route when refreshing field guards.
   if(hold){hold.mapper.data.state='held_merge_or_delete';deletion.flow=[entry,hold];}
