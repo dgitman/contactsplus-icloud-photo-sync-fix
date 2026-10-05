@@ -1155,3 +1155,21 @@ outside Git. No contact or mapping writes were made. Coverage remains 7,076.
 The temporary diagnostic scenario was deleted. The next broad milestone is a
 read-only audit of historical supported-field differences among enrolled pairs;
 matching coverage alone must not be reported as full convergence.
+
+## Historical difference audit pilot — October 4
+
+Read 100 current verified mappings directly from the live store and fetched fresh
+Contacts+ records and exact mapped iCloud resources. 98 pairs aligned under the
+supported-field converter; two differed only in addresses. None of these 100 had
+source or target field changes since their accepted enrollment baseline, and no
+resources were missing. Neither address difference was an empty target group.
+These are historical differences, not evidence of a newly failed event sync.
+
+The read-only audit reports source/target baseline changes, missing target groups,
+omitted source fields and baseline fields that cannot be assessed from the current
+projection. Photo-content comparison is explicitly not performed. This was a
+100-record pilot, not a complete audit of 7,076 mappings. No contact writes or
+baseline updates were made. A reusable private-input audit builder and comparison
+helper are checked in; 266 local tests passed. The temporary cloud scenario was
+removed. Next: extend this audit to the remaining enrolled records and inspect
+actual values before resolving historical differences.
