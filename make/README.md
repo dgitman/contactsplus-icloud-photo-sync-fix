@@ -197,3 +197,10 @@ A fresh preparation hold skips only that contact. Errors after a write stop the
 batch for read-only investigation; do not replay the batch after an uncertain write.
 The flow verifies the whole returned card, advances only the URL baseline, and
 reads the mapping back. Delete the temporary scenario after retaining its results.
+
+An optional third argument, `missing_profile_ids`, builds reviewed ID-only fills.
+This requires identical URLs and no existing target profile IDs; other metadata
+conflicts remain held. Use the original connected pilot template, which includes
+separate modules 18/20/21; the builder combines those checks to reduce code credits.
+Measured cost is 14 credits per successful repair plus startup, excluding separate
+follow-up checks. Do not assume this pilot proves support for every social service.

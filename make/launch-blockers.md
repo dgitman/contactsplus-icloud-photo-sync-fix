@@ -1266,3 +1266,20 @@ Production remained active, unpaused, with zero incomplete executions. The
 remaining social profile IDs/usernames and unsampled historical differences are
 not covered by this batch. The measured repair cost is about 16 credits per
 contact with these checks; budget explicitly before extending to thousands.
+
+### Missing social-profile ID pilot and credit reduction — October 4, 2026
+
+One reviewed LinkedIn profile had its absent X-USERID populated without changing
+its URL, label, username, photo or other fields. Exact write readback and mapping
+readback passed in `c66ac46c4e0146a480ba9c792e1795ad` (15 credits including startup).
+A separate read in `036c57758ca94c20899b0505ae393a17` confirmed the ID remained
+present and the URL group aligned. This is server verification, not device/UI
+verification or proof that all social services preserve the same metadata.
+
+The `missing_profile_ids` preparation mode requires identical URLs and only userId
+differences, and refuses all groups with existing target X-USERID parameters.
+It cannot replace an existing ID. The default remains label-only repairs.
+The batch builder now combines baseline concurrency verification with exact-card
+verification, preserving both checks and the saved mapping readback. This removes
+one code module: 14 instead of 16 credits per repair, plus startup. The temporary
+scenario was removed and production remains active without incomplete executions.
