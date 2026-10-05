@@ -1212,3 +1212,23 @@ incomplete executions. This is iCloud CardDAV verification, not device/UI inspec
 The same contact still has other historical differences; the full alignment count
 has not been increased. Remaining differences need value/label normalization review,
 especially URLs, before any bulk historical reconciliation.
+
+### URL difference diagnosis — October 4, 2026
+
+A fresh read-only sample of 100 previously differing mapped contacts found identical
+URL value multisets in all 100. This was a convenience sample from saved verified
+registrations, not a random sample or a claim about all 2,997 URL differences.
+None had source or target drift against the saved baseline.
+
+- 37 differed only in social user IDs.
+- 27 differed in labels and social user IDs.
+- 31 differed only in labels.
+- 3 differed in labels, usernames and social user IDs.
+- 2 had the same extracted values and metadata, leaving representation/order to inspect.
+
+Execution `af0a586d499a44b68e390ce4cde752f5` performed no contact or baseline writes.
+`build-url-review.js` produces the bounded read-only flow; `classify-url-differences.js`
+distinguishes exact value differences from metadata and preserves duplicate ambiguity.
+Do not use its categories as write authorization or weaken production comparison.
+Private evidence retains the source/target properties. Next reconcile intentional
+labels/metadata with guarded field-specific writes, checking preservation on readback.
