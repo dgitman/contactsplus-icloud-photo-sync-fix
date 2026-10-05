@@ -44,3 +44,10 @@ test('explicit name enrollment requires corroboration and retains both baselines
  assert.equal(prepare({source:x.sourceResponse.body.contacts[0],sourceContactId:'s',uid:'t',existingVcard:card,targetEtag:'"v1"',baseline:JSON.parse(r.baselineJson)}).status,'unchanged');
  x.sourceResponse.body.contacts[0].contactData.name={givenName:'Someone',familyName:'Else'};assert.equal(review(x)[0].status,'held');
 });
+test('exact rich-field graph mode is opt-in and rejects any supported difference',()=>{
+ const x=structuredClone(args);delete x.sourceResponse.body.contacts[0].contactData.emails;
+ x.sourceResponse.body.contacts[0].contactData.organizations=[{name:'Example Company',title:'Engineer'}];
+ x.targetResponse.body.multistatus.response[0].propstat[0].prop[0]['address-data']=[card.replace('EMAIL:alex@example.test','ORG:Example Company\r\nTITLE:Engineer')];
+ assert.equal(review(x)[0].status,'held');x.allowExactRichFields=true;assert.equal(review(x)[0].status,'eligible');
+ x.acceptInitialDifferences=true;x.sourceResponse.body.contacts[0].contactData.notes='extra source content';assert.equal(review(x)[0].status,'held');
+});

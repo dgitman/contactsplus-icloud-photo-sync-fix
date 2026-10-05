@@ -4,7 +4,7 @@ const patchSharedFields=require('./shared-fields');
 const {snapshot}=require('./prepare-shared-update');
 const bootstrapEvidence=require('./bootstrap-evidence');
 const richIdentity=require('./rich-identity');
-function reviewMatchBatch({candidates,sourceResponse,targetResponse,bookPath,acceptInitialDifferences=false,acceptCorroboratedNames=false,allowUniqueNameCorroboration=false}){
+function reviewMatchBatch({candidates,sourceResponse,targetResponse,bookPath,acceptInitialDifferences=false,acceptCorroboratedNames=false,allowUniqueNameCorroboration=false,allowExactRichFields=false}){
  const parse=x=>typeof x==='string'?JSON.parse(x):x,arr=x=>x==null?[]:Array.isArray(x)?x:[x];
  const scalar=x=>{x=arr(x)[0];return x&&typeof x==='object'?x._value:x;};
  const s=parse(sourceResponse),t=parse(targetResponse);candidates=parse(candidates);
@@ -29,9 +29,9 @@ function reviewMatchBatch({candidates,sourceResponse,targetResponse,bookPath,acc
   if(!source||!target?.card)return hold('missing_resource');
   try{
    if(typeof source.etag!=='string'||!source.etag||!/^"[^"\r\n]+"$/.test(target.etag||''))throw Error('Missing version evidence');
-   const evidence=bootstrapEvidence({contactData:source.contactData,existingVcard:target.card})||(allowUniqueNameCorroboration?richIdentity({contactData:source.contactData,existingVcard:target.card,uid}):null);
-   if(!evidence)return hold('no_strong_identifier');
    const diff=patchSharedFields({uid,existingVcard:target.card,contactData:source.contactData});
+   const evidence=bootstrapEvidence({contactData:source.contactData,existingVcard:target.card})||((allowUniqueNameCorroboration||(allowExactRichFields&&!diff.changed))?richIdentity({contactData:source.contactData,existingVcard:target.card,uid}):null);
+   if(!evidence)return hold('no_strong_identifier');
    // Enrollment records both current versions without modifying either. Future
    // source edits still require an unchanged target field. Never use this option
    // to relax identity: differing structured names remain held.

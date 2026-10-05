@@ -7,7 +7,7 @@ The newest verification evidence is at the end; older sections describe historic
 implementation stages, not the current enabled state.
 
 This is event-driven synchronization, not a claim that every historical record is
-identical. There are 7,064 accepted existing mappings. Ambiguous/unmapped identities,
+identical. There are 7,071 accepted existing mappings. Ambiguous/unmapped identities,
 malformed supported fields, mixed photo/text changes and independent target edits remain
 held rather than guessed or overwritten. New-contact creation requires a structured
 name and email and a successful bounded duplicate query.
@@ -1105,3 +1105,21 @@ is 7,064, with 75 records from the earlier inventory still outside coverage.
 Contact contents were preserved; historical differences remain separately
 baselined. 259 local tests passed, and the portable reviewer was regenerated and
 syntax checked. Temporary scenarios were removed after verification.
+
+
+## Exact rich-field disambiguation — October 4
+
+An opt-in review mode now permits rich identity corroboration for duplicate-name
+candidates only when all supported source fields already match the target. The
+caller must still prove one qualifying target per source and no competing source
+claim across the entire reviewed graph. The option is disabled by default; even
+acceptInitialDifferences cannot relax this mode's whole-supported-field equality.
+Name-only records and placeholder birthdays do not qualify.
+
+Fresh reads covered 68 remaining sources and 77 available targets. Seven pairs
+passed exact supported-field comparison and company/title corroboration, exclusive
+graph assignment, then complete mapping-store readback. Coverage is 7,071; 68
+records from the earlier inventory remain outside coverage. Contact contents were
+unchanged. 260 local tests passed; the portable reviewer was regenerated and
+syntax checked. Temporary scenarios were removed after verification. Historical
+field differences on previously enrolled pairs remain outstanding.

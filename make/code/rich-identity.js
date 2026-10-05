@@ -1,4 +1,5 @@
-// Only for candidates whose full name is unique in both complete inventories.
+// Require globally unique names, or exact supported fields plus a caller-verified
+// exclusive source/target candidate graph. Never accept competing claims.
 // Never use this to discover candidates, authorize deletion, or match by name alone.
 const patchSharedFields=require('./shared-fields');
 function richIdentity({contactData:d,existingVcard,uid}){
