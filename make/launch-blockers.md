@@ -1173,3 +1173,25 @@ baseline updates were made. A reusable private-input audit builder and compariso
 helper are checked in; 266 local tests passed. The temporary cloud scenario was
 removed. Next: extend this audit to the remaining enrolled records and inspect
 actual values before resolving historical differences.
+
+## Complete enrolled-contact historical audit — October 4
+
+A read-only Make run searched the current verified mapping store, required exactly
+7,076 unique source/target identities, and processed all pairs in batches of 100.
+All 7,076 unique result rows were retrieved. 3,336 aligned under the supported-field
+converter; 3,740 had historical differences. Differing field counts overlap:
+URLs/social profiles 2,997; addresses 768; phones 537; emails 115; birthdays 26;
+related people 10; IMs seven; names six; organizations five; notes two.
+
+No compared source/target fields changed since accepted enrollment, no resources
+were missing, and no baseline fields were unassessed. One differing target field
+group was empty. These comparisons include labels/grouping/formatting and do not
+prove value loss. Photo contents and unsupported source fields are outside the
+alignment claim. No contacts or baselines changed. The full run consumed 515 Make
+credits (plus separate setup checks). Detailed private JSON, linked CSV and summary
+were saved outside Git. The temporary audit scenario was removed after retrieval.
+
+The reusable live-store builder batches cloud reads and rejects incomplete or
+conflicting mapping inventories. Next: inspect the empty target group, then
+separate representation differences from real field changes before conditional
+repairs. Remaining unmatched prior-inventory records remain 63.
