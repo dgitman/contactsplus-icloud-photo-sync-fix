@@ -1139,3 +1139,19 @@ from the earlier inventory remain outside coverage. No contact contents changed;
 historical differences remain separately baselined. 263 local tests passed; the
 portable review bundle was regenerated and syntax checked. Both temporary
 scenarios were deleted after verification.
+
+## Remaining-gap classification — October 4
+
+Fresh source reads and readback of known available targets classified all 63
+remaining prior-inventory IDs: 28 name-only, four name plus January 1 without a
+year, four phone-only, 19 with insufficient/conflicting corroboration, one source
+not returned, one candidate whose target is already mapped, and six requiring a
+fresh full-target search (including the disposable test contact). The six are not
+proven absent from iCloud; company-only candidates are missing from the earlier
+name/email/phone inventory. Do not create duplicates based on this classification.
+
+A private linked resolution report and machine-readable categories were saved
+outside Git. No contact or mapping writes were made. Coverage remains 7,076.
+The temporary diagnostic scenario was deleted. The next broad milestone is a
+read-only audit of historical supported-field differences among enrolled pairs;
+matching coverage alone must not be reported as full convergence.
