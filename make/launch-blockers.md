@@ -1250,3 +1250,19 @@ repair primitive, not an automatic replacement policy. Private selection and
 connected blueprint evidence are retained outside Git. This verification is via
 iCloud CardDAV, not visual inspection on an Apple device. The remaining reviewed
 metadata differences have not been repaired by this pilot.
+
+### Remaining reviewed URL-label repairs — October 4, 2026
+
+The remaining 28 label-only cases in the 100-contact URL sample were repaired.
+All 28 passed fresh preflight, conditional PUT, exact full-card readback, URL-only
+baseline advancement and saved mapping readback. No pre-write holds or errors
+occurred. Together with the three-contact pilot, all 31 reviewed label-only cases
+are complete. Links, photos and other properties were preserved by exact readback.
+This is CardDAV verification, not device visual verification or a full-book audit.
+
+Execution `5a9261b8aafc4043a9f7b47b93a03915` used 449 credits and completed in
+139 seconds. The temporary scenario was deleted after retaining private evidence.
+Production remained active, unpaused, with zero incomplete executions. The
+remaining social profile IDs/usernames and unsampled historical differences are
+not covered by this batch. The measured repair cost is about 16 credits per
+contact with these checks; budget explicitly before extending to thousands.

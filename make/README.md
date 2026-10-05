@@ -181,3 +181,19 @@ This option does not authorize a historical overwrite or photo replacement.
 Before registering a batch, calculate serialized mapping size against the live
 store quota. Make can reject a size increase when the team's allocation is full;
 purchased extra credits do not necessarily increase the recurring storage quota.
+
+### Bounded historical website-label repairs
+
+`code/prepare-url-label-repair.js` handles reviewed URL groups whose exact link
+values match and whose only diagnosed difference is a label. It requires current
+source and target fields to match the accepted baseline. Changes to link values,
+usernames or profile IDs are not allowed through this preparation path.
+
+`node make/scripts/build-url-label-repair.js PRIVATE_SELECTION_JSON PRIVATE_CONNECTED_PILOT_JSON`
+builds a temporary on-demand batch from the verified connected pilot blueprint.
+Selections contain reviewed `sourceId` and `urlDiagnosis` rows; the builder rejects
+more than 50 or duplicate IDs. Keep generated blueprints and selections private.
+A fresh preparation hold skips only that contact. Errors after a write stop the
+batch for read-only investigation; do not replay the batch after an uncertain write.
+The flow verifies the whole returned card, advances only the URL baseline, and
+reads the mapping back. Delete the temporary scenario after retaining its results.
