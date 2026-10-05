@@ -1334,3 +1334,25 @@ Verification is via CardDAV, not Apple-device UI. Unsampled URL differences,
 other historical field differences and unresolved identities still prevent a
 claim of full address-book alignment. Broader work needs fresh classification and
 a credit budget, rather than assuming this convenience sample is representative.
+
+### Full remaining URL classification — October 4, 2026
+
+Read-only execution `94895844789f4f469ee2dd8ddb714c59` fetched all current verified
+mappings, required the expected 7,076 unique identities, and freshly compared the
+2,897 previously differing URL contacts outside the repaired 100-contact sample.
+All 2,897 unique output rows were retained privately. No source or target baseline
+drift and no held/missing resources were reported. The audit used 283 credits.
+
+Existing guarded preparation accepted 736: 306 label-only, 279 missing profile IDs,
+134 combined labels/IDs, and 17 reviewed representation patterns. These are current
+eligibility results, not writes or permission to skip fresh checks during repair.
+Another 2,159 have username differences: 760 username-only, 664 label/username,
+396 ID/username, and 339 label/ID/username. Two have different URL values.
+
+At 14 credits per repair, the 736 eligible cases would need 10,304 credits plus
+batch startup, exceeding the remaining balance at this checkpoint. Optimize bulk
+transport/verification and inspect username semantics before broad execution;
+do not infer matching URLs make username removal safe. No contacts were changed
+by this audit. The temporary scenario was deleted and production remained active
+with no incomplete executions. Unmapped identities and other field groups remain
+outside this URL-only classification.

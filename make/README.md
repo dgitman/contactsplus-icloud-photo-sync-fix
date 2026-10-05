@@ -215,3 +215,9 @@ label/ID/username differences where each differing target username is exactly th
 source Flickr/Myspace userId and the source has no distinct username. It cannot
 remove a different handle or overwrite an existing target ID during relocation.
 This mode also canonicalizes equivalent grouped social labels with exact readback.
+
+`configure-url-classification.js CONNECTED_LIVE_URL_AUDIT PRIVATE_SELECTED_IDS`
+restricts a live-store URL audit to an exact reviewed ID set and returns compact
+classification plus eligibility under the guarded preparation modes. It performs
+no writes or baseline changes. Source and target URL contents are removed from
+its output rows, while source/target reads remain in authorized Make logs.
