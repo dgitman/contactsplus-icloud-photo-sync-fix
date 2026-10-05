@@ -2,6 +2,20 @@ const test=require('node:test'),assert=require('node:assert/strict');
 const build=require('../scripts/enable-creation-photos');
 const blueprint=JSON.parse(JSON.stringify(require('../unified.blueprint.json')));
 // Reconstruct the prior creation layout when testing against an upgraded portable blueprint.
-function prior(b){const all=f=>f.flatMap(m=>[m,...(m.routes||[]).flatMap(r=>all(r.flow))]);const flow=all(b.flow).find(m=>m.id===200).routes[1].flow;const index=flow.findIndex(m=>m.id===223);if(index>=0){const tail=flow.find(m=>m.id===230).routes[0].flow;delete tail[0].filter;flow.splice(index,flow.length-index,...tail);}return b;}
+function prior(b){
+ const {splitCode}=require('../scripts/combine-create-preparation');
+ const walk=f=>f.flatMap(m=>[m,...(m.routes||[]).flatMap(r=>walk(r.flow))]);
+ const modules=walk(b.flow),phase=modules.find(m=>m.id===223),router=modules.find(m=>m.id===230);
+ if(!modules.some(m=>m.id===204)){
+ const [phaseCode,prepareCode]=splitCode(phase.mapper.codeEditorJavascript);
+ const prepare=structuredClone(phase);prepare.id=204;prepare.mapper.codeEditorJavascript=prepareCode;
+ router.routes[0].flow.unshift(prepare);phase.mapper.codeEditorJavascript=phaseCode;
+ // Restore the old fixture references before testing this earlier migration.
+ for(const m of walk(b.flow)){
+ if(m.mapper){const c=m.mapper.codeEditorJavascript;m.mapper=JSON.parse(JSON.stringify(m.mapper).replaceAll('223.result.prepared','204.result'));if(c)m.mapper.codeEditorJavascript=c;}
+ if(m.id===206)m.filter.conditions=m.filter.conditions.map(g=>g.filter(c=>c.a!=='{{223.result.status}}'));
+ }
+ }
+const all=f=>f.flatMap(m=>[m,...(m.routes||[]).flatMap(r=>all(r.flow))]);const flow=all(b.flow).find(m=>m.id===200).routes[1].flow;const index=flow.findIndex(m=>m.id===223);if(index>=0){const tail=flow.find(m=>m.id===230).routes[0].flow;delete tail[0].filter;flow.splice(index,flow.length-index,...tail);}return b;}
 const walk=f=>f.flatMap(m=>[m,...(m.routes||[]).flatMap(r=>walk(r.flow))]);
 test('photo creation preserves no-photo path and isolates authenticated image readback',()=>{const b=build(prior(blueprint)),ms=walk(b.flow),at=id=>ms.find(m=>m.id===id);assert.equal(new Set(ms.map(m=>m.id)).size,ms.length);assert.equal(at(225).parameters.authenticationType,'noAuth');assert.equal(at(225).mapper.allowRedirects,false);assert.equal(at(341).mapper.allowRedirects,false);assert.equal(at(204).filter.conditions[0][0].b,'no_photo');assert.equal(at(304).mapper.input.find(i=>i.name==='source').value,'{{`228`}}');assert.equal(at(309).mapper.input.find(i=>i.name==='source').value,'{{`308`}}');assert.equal(at(318).mapper.input.find(i=>i.name==='source').value,'{{`317`}}');assert.equal(at(346).filter.conditions[0][0].a,'{{344.result.status}}');assert.equal(at(315).mapper.headers[0].value,'*');assert.throws(()=>build(b),/already installed/);});

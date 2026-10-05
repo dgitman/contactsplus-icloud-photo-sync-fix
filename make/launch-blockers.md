@@ -1538,3 +1538,15 @@ Live readback verified configurations, removed modules, active status and zero
 incomplete executions. No new paid test was run; no executions were available
 since the earlier optimization when history was checked. Expected incremental
 savings are one credit per unchanged/photo-check event and two per photo update.
+
+### Combined no-photo creation preparation — October 5, 2026
+
+Deployed at 2026-10-05T16:58:00.098Z. Module 223 now performs module 204's pure
+preparation only for no-photo creation; all reservation references point to the
+combined result. Both original gates remain on module 206. Duplicate query,
+reservation storage, fresh source checks, conditional PUT and readback remain.
+Live configuration readback matched the intended change, with active status and
+zero incomplete executions. Thirty-two local route/optimization checks passed,
+including nine creation input variants. No paid execution was launched.
+Estimated incremental saving: approximately two Code credits per new contact
+without a photo; no expected saving on ordinary updates or photo creation.

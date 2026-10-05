@@ -274,3 +274,13 @@ baseline concurrency checking remain per contact. Saved mapping verification is
 aggregated after fresh individual reads. Pre-write holds skip contacts; post-write
 errors stop execution and require read-only reconciliation, never a batch replay.
 The runtime remains entirely in Make. Private inputs/output must not enter Git.
+
+### Combined creation preparation
+
+The October 5 credit optimization also combines pure no-photo creation
+preparation into the preceding eligibility step (223), removing Code module 204.
+This saves one Code execution, estimated around two credits, per new contact
+without a photo. Exact runtime billing may vary. Photo creation and ordinary
+updates follow their existing paths. Duplicate checks, reservation persistence,
+conditional creation and post-write readback remain unchanged. The portable
+workflow now has 181 modules across all branches, not 181 steps per event.
