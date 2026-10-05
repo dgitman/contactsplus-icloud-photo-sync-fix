@@ -1421,3 +1421,18 @@ incomplete executions. Verification is CardDAV rather than Apple-device UI.
 310 of the previously classified 736 eligible cases are now repaired; 426 remain.
 The separate 2,159 username cases and two differing-link cases still need handling.
 No full address-book alignment claim is made.
+
+### Fourth 100-contact batched expansion — October 4, 2026
+
+Execution `dcc7440d917547fc87c1e71ca49fcace` repaired the next 100 eligible contacts
+in five batches of 20, excluding all 310 previously verified IDs. All conditional
+writes, exact complete-card checks, baseline concurrency checks and mapping
+readbacks succeeded. Five final outputs covered 100 unique verified source IDs;
+no holds or errors occurred. Links, photos and unrelated fields were preserved.
+Usage was 745 credits over 191.6 seconds. Private evidence was retained and the
+temporary scenario deleted. Production remained active, unpaused, with no
+incomplete executions. Verification is CardDAV, not Apple-device visual inspection.
+
+410 of the 736 classified eligible cases are repaired; 326 remain. The separate
+2,159 username cases and two differing-link cases remain unresolved. This does
+not establish full address-book alignment.
