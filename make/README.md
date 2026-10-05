@@ -204,3 +204,8 @@ conflicts remain held. Use the original connected pilot template, which includes
 separate modules 18/20/21; the builder combines those checks to reduce code credits.
 Measured cost is 14 credits per successful repair plus startup, excluding separate
 follow-up checks. Do not assume this pilot proves support for every social service.
+
+`label_and_missing_profile_ids` handles reviewed groups needing both a label
+correction and an absent profile ID. It requires exactly those two differences,
+identical link values, unchanged baselines and no existing target profile IDs.
+Username changes remain outside this mode.

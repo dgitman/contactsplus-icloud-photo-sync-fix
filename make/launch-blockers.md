@@ -1300,3 +1300,19 @@ Combined with the earlier label-only repairs, 68 of the 100 reviewed URL cases
 have now been repaired. The remaining 27 label-plus-ID cases, three cases also
 involving usernames, and two representation-only cases still need handling.
 These counts describe this sample, not the full address book.
+
+### Combined label and missing-ID repairs — October 4, 2026
+
+All 27 reviewed label-plus-ID cases completed fresh preflight, conditional writes,
+exact card readback, URL-only baseline advancement and mapping readback in
+`95f3483d930c432585044887af62b3db`. No holds or errors occurred. The run used 379
+credits in 110.3 seconds. Link values, photos and other fields were preserved.
+The temporary scenario was deleted; production remained active and unpaused with
+no incomplete executions. These are CardDAV checks, not Apple-device visual checks.
+
+This brings the reviewed 100-contact URL sample to 95 repaired cases. Inspection
+of the saved evidence for the remaining five found two grouped social labels
+versus TYPE representations with matching extracted data, and three cases where
+a target X-USER carries the source userId (Flickr/Myspace). Those five have not
+been changed; representation equivalence and ID relocation need explicit handling.
+The full address book has not been rescanned or declared aligned.

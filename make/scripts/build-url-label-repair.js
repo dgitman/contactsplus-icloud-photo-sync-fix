@@ -2,8 +2,8 @@
 // Inputs and generated blueprint are private and must stay outside Git.
 const fs=require('node:fs'),path=require('node:path');
 const [selection,template,mode='label']=process.argv.slice(2);
-if(!['label','missing_profile_ids'].includes(mode))throw Error('Unsupported repair mode');
-const expected=mode==='label'?'["label"]':'["userId"]';
+if(!['label','missing_profile_ids','label_and_missing_profile_ids'].includes(mode))throw Error('Unsupported repair mode');
+const expected=mode==='label'?'["label"]':mode==='missing_profile_ids'?'["userId"]':'["label","userId"]';
 if(!selection||!template)throw Error('Private selection and connected pilot required');
 const rows=JSON.parse(fs.readFileSync(selection)),b=JSON.parse(fs.readFileSync(template));
 if(!rows.length||rows.length>50||new Set(rows.map(r=>r.sourceId)).size!==rows.length||rows.some(r=>!/^[a-f0-9]{32}$/.test(r.sourceId)||JSON.stringify(r.urlDiagnosis?.differences)!==expected))throw Error('Expected 1–50 unique records reviewed for the selected mode');
