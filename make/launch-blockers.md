@@ -1391,3 +1391,18 @@ The builder now accepts up to 100 selected records and enforces 20-contact read
 batches. After this expansion and the ten-contact pilot, 626 of the previously
 736 eligible cases remain; the 2,159 username cases and two different-link cases
 are still outside these repairs. No full-book alignment claim is made.
+
+### Second 100-contact batched expansion — October 4, 2026
+
+Execution `0d2364ae7c59473c99d2f00297aa697d` repaired the next 100 unique eligible
+contacts in five batches of 20. All conditional writes, exact whole-card readbacks,
+baseline concurrency checks and final mapping comparisons succeeded without holds
+or errors. Link values, photos and unrelated fields were preserved. Usage was
+745 credits over 190.1 seconds. Private selections excluded the prior 110 repaired
+IDs and all five final outputs were checked for 100 unique verified IDs.
+
+The temporary scenario was deleted after preserving evidence; production remained
+active and unpaused with no incomplete executions. Verification is via CardDAV,
+not Apple-device UI. Of the 736 classified eligible cases, 210 are now repaired
+and 526 remain. The separate 2,159 username cases and two differing-link cases
+remain unresolved; this is not a full address-book alignment claim.
