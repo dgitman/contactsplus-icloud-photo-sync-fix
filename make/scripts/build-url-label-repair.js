@@ -2,11 +2,11 @@
 // Inputs and generated blueprint are private and must stay outside Git.
 const fs=require('node:fs'),path=require('node:path');
 const [selection,template,mode='label']=process.argv.slice(2);
-if(!['label','missing_profile_ids','label_and_missing_profile_ids'].includes(mode))throw Error('Unsupported repair mode');
+if(!['label','missing_profile_ids','label_and_missing_profile_ids','social_representation'].includes(mode))throw Error('Unsupported repair mode');
 const expected=mode==='label'?'["label"]':mode==='missing_profile_ids'?'["userId"]':'["label","userId"]';
 if(!selection||!template)throw Error('Private selection and connected pilot required');
 const rows=JSON.parse(fs.readFileSync(selection)),b=JSON.parse(fs.readFileSync(template));
-if(!rows.length||rows.length>50||new Set(rows.map(r=>r.sourceId)).size!==rows.length||rows.some(r=>!/^[a-f0-9]{32}$/.test(r.sourceId)||JSON.stringify(r.urlDiagnosis?.differences)!==expected))throw Error('Expected 1–50 unique records reviewed for the selected mode');
+if(!rows.length||rows.length>50||new Set(rows.map(r=>r.sourceId)).size!==rows.length||rows.some(r=>!/^[a-f0-9]{32}$/.test(r.sourceId)||(mode==='social_representation'? !((r.urlDiagnosis?.category==='same_urls_and_metadata')||JSON.stringify(r.urlDiagnosis?.differences)==='["label","userId","username"]'):JSON.stringify(r.urlDiagnosis?.differences)!==expected)))throw Error('Expected 1–50 unique records reviewed for the selected mode');
 const get=id=>{const m=b.flow.find(m=>m.id===id);if(!m)throw Error('Pilot shape changed');return m;};
 get(2).mapper.array=rows.map(r=>({sourceId:r.sourceId}));
 const strip=n=>fs.readFileSync(path.join(__dirname,'../code',n+'.js'),'utf8').replace(/^const .*require.*;$/gm,'').replace(/^module.exports=.*;$/gm,'');

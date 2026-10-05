@@ -209,3 +209,9 @@ follow-up checks. Do not assume this pilot proves support for every social servi
 correction and an absent profile ID. It requires exactly those two differences,
 identical link values, unchanged baselines and no existing target profile IDs.
 Username changes remain outside this mode.
+
+`social_representation` is restricted to reviewed equivalent URL metadata or
+label/ID/username differences where each differing target username is exactly the
+source Flickr/Myspace userId and the source has no distinct username. It cannot
+remove a different handle or overwrite an existing target ID during relocation.
+This mode also canonicalizes equivalent grouped social labels with exact readback.

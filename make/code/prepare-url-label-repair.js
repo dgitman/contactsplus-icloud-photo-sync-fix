@@ -11,11 +11,25 @@ function prepareUrlLabelRepair({mapping,source,existingVcard,targetEtag,mode='la
  if(!baseline.fields.urls)throw Error('URL baseline required');
  const targetUrls=existingVcard.replace(/\r\n[ \t]/g,'').split('\r\n').filter(l=>/^(?:[^:;.]+\.)?(URL|X-SOCIALPROFILE|X-ABLabel)[;:]/i.test(l));
  const diagnosis=classifyUrlDifferences({sourceUrls:source.contactData.urls,targetUrls});
- if(!['label','missing_profile_ids','label_and_missing_profile_ids'].includes(mode))throw Error('Unknown repair mode');
+ if(!['label','missing_profile_ids','label_and_missing_profile_ids','social_representation'].includes(mode))throw Error('Unknown repair mode');
  const expected=mode==='label'?'["label"]':mode==='missing_profile_ids'?'["userId"]':'["label","userId"]';
- if(diagnosis.category!=='same_urls_metadata_differs'||JSON.stringify(diagnosis.differences)!==expected)throw Error('Not a '+(mode==='label'?'label-only':'missing-profile-ID')+' repair');
+ if(mode!=='social_representation'&&(diagnosis.category!=='same_urls_metadata_differs'||JSON.stringify(diagnosis.differences)!==expected))throw Error('Not a '+(mode==='label'?'label-only':'missing-profile-ID')+' repair');
  // This mode only fills absent IDs; never replace or remove a target profile ID.
- if(mode!=='label'&&targetUrls.some(l=>/;X-USERID=/i.test(l)))throw Error('Existing profile ID requires separate review');
+ if(!['label','social_representation'].includes(mode)&&targetUrls.some(l=>/;X-USERID=/i.test(l)))throw Error('Existing profile ID requires separate review');
+ if(mode==='social_representation'){
+  const equivalent=diagnosis.category==='same_urls_and_metadata';
+  if(!equivalent&&(diagnosis.category!=='same_urls_metadata_differs'||JSON.stringify(diagnosis.differences)!=='["label","userId","username"]'))throw Error('Not a reviewed social representation');
+  if(!equivalent){
+   // Only relocate an exact Flickr/Myspace ID carried in X-USER. Never drop a distinct handle.
+   for(const line of targetUrls.filter(l=>/^(?:[^:;.]+\.)?X-SOCIALPROFILE[;:]/i.test(l))){
+    const i=line.indexOf(':'),value=line.slice(i+1).replace(/\\([\\,;])/g,'$1'),params=Object.fromEntries(line.slice(0,i).split(';').slice(1).map(p=>{const j=p.indexOf('=');return [p.slice(0,j).toUpperCase(),p.slice(j+1)];}));
+    const sourceUrl=source.contactData.urls.find(u=>u.value===value);if(!sourceUrl)throw Error('Social URL changed');
+    if(params['X-USERID'])throw Error('Existing profile ID requires separate review');
+    const user=params['X-USER']||'';
+    if(user!==(sourceUrl.username||'')&&!(user&&user===sourceUrl.userId&&!sourceUrl.username&&['flickr','myspace'].includes(sourceUrl.type)))throw Error('Distinct username must be preserved');
+   }
+  }
+ }
  const patch=patchSharedFields({uid,existingVcard,contactData:{urls:source.contactData.urls}});
  if(!patch.changed||JSON.stringify(patch.changedFields)!=='["urls"]')throw Error('No supported URL-only change');
  return {vcard:patch.vcard,targetEtag,sourceEtag:source.etag,updatedFields:['urls']};

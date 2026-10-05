@@ -1316,3 +1316,21 @@ versus TYPE representations with matching extracted data, and three cases where
 a target X-USER carries the source userId (Flickr/Myspace). Those five have not
 been changed; representation equivalence and ID relocation need explicit handling.
 The full address book has not been rescanned or declared aligned.
+
+### Reviewed URL sample completed — October 4, 2026
+
+The last five cases passed fresh preflight, conditional PUT, exact complete-card
+readback and saved mapping readback in `a84d575e84cd44c1ad50ea3106b82a8a`.
+Three moved an exact Flickr/Myspace ID from X-USER to X-USERID while reconciling
+labels; two canonicalized equivalent grouped social labels. Distinct usernames
+cannot be removed by this repair mode. Existing target profile IDs are accepted
+only in the equivalent-data case, not the relocation case.
+
+All 100 contacts in the reviewed URL sample have now had their URL differences
+repaired. This run used 71 credits, with no holds or failures. Link values, photos
+and unrelated fields were preserved. The temporary scenario was removed and the
+production scenario remained active, unpaused, with no incomplete executions.
+Verification is via CardDAV, not Apple-device UI. Unsampled URL differences,
+other historical field differences and unresolved identities still prevent a
+claim of full address-book alignment. Broader work needs fresh classification and
+a credit budget, rather than assuming this convenience sample is representative.
