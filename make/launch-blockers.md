@@ -1466,3 +1466,21 @@ incomplete executions. Verification is CardDAV rather than Apple-device UI.
 610 of the 736 eligible cases are now repaired; 126 remain. The separate 2,159
 username cases and two differing-link cases still require handling. Full
 address-book alignment has not been established.
+
+### Eligible URL repair queue completed — October 4, 2026
+
+The last 126 eligible cases completed in two runs:
+`1c983ffd20e342d7bb54f1801b8dddee` verified 100 (745 credits, 188.1 seconds), and
+`871c87ef3b8a4375ad51977741b49577` verified 26 (203 credits, 55.4 seconds).
+All conditional writes, exact complete-card verification, baseline concurrency
+checks and saved mapping comparisons succeeded without holds or errors. Links,
+photos and unrelated fields were preserved. Selections, blueprints and results
+remain private; temporary scenarios were deleted. Production remains active with
+no incomplete executions. Verification is CardDAV, not Apple-device visual proof.
+
+The union of all batched result IDs was checked against the 736 eligible IDs from
+the full remaining-URL classification: all 736 appear exactly once, none missing
+and no unexpected IDs. Together with the earlier 100-contact sample, 836 reviewed
+URL cases have been repaired. The remaining 2,159 username-metadata cases and two
+differing-link cases still need separate handling. Other historical field groups
+and unresolved identities also remain outside this completed URL repair queue.
