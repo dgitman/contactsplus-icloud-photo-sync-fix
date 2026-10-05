@@ -1283,3 +1283,20 @@ The batch builder now combines baseline concurrency verification with exact-card
 verification, preserving both checks and the saved mapping readback. This removes
 one code module: 14 instead of 16 credits per repair, plus startup. The temporary
 scenario was removed and production remains active without incomplete executions.
+
+### Remaining reviewed profile-ID fills — October 4, 2026
+
+All 36 remaining eligible ID-only cases in the 100-contact reviewed URL sample
+were repaired successfully in `b2e19bff94b4458ebe956df720ca99f8`. Each passed fresh
+source/target/baseline preflight, conditional PUT, exact full-card readback, and
+saved mapping readback. No holds or errors occurred. Together with the pilot,
+all 37 ID-only cases in this sample are complete; link values, labels, photos and
+other fields were preserved. This is CardDAV verification, not device visual proof.
+
+The run used 505 credits over 148.5 seconds, confirming 14 credits per repair plus
+startup. The temporary scenario was deleted after retaining private evidence.
+Production remained active and unpaused with zero incomplete executions.
+Combined with the earlier label-only repairs, 68 of the 100 reviewed URL cases
+have now been repaired. The remaining 27 label-plus-ID cases, three cases also
+involving usernames, and two representation-only cases still need handling.
+These counts describe this sample, not the full address book.

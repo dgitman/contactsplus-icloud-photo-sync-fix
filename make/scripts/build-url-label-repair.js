@@ -6,7 +6,7 @@ if(!['label','missing_profile_ids'].includes(mode))throw Error('Unsupported repa
 const expected=mode==='label'?'["label"]':'["userId"]';
 if(!selection||!template)throw Error('Private selection and connected pilot required');
 const rows=JSON.parse(fs.readFileSync(selection)),b=JSON.parse(fs.readFileSync(template));
-if(!rows.length||rows.length>50||new Set(rows.map(r=>r.sourceId)).size!==rows.length||rows.some(r=>!/^[a-f0-9]{32}$/.test(r.sourceId)||JSON.stringify(r.urlDiagnosis?.differences)!==expected))throw Error('Expected 1–50 reviewed label-only records');
+if(!rows.length||rows.length>50||new Set(rows.map(r=>r.sourceId)).size!==rows.length||rows.some(r=>!/^[a-f0-9]{32}$/.test(r.sourceId)||JSON.stringify(r.urlDiagnosis?.differences)!==expected))throw Error('Expected 1–50 unique records reviewed for the selected mode');
 const get=id=>{const m=b.flow.find(m=>m.id===id);if(!m)throw Error('Pilot shape changed');return m;};
 get(2).mapper.array=rows.map(r=>({sourceId:r.sourceId}));
 const strip=n=>fs.readFileSync(path.join(__dirname,'../code',n+'.js'),'utf8').replace(/^const .*require.*;$/gm,'').replace(/^module.exports=.*;$/gm,'');
@@ -17,5 +17,5 @@ const verify=get(18),fresh=get(20);
 verify.mapper.input.push({name:'currentBaseline',value:'{{20.baselineJson}}'},{name:'currentState',value:'{{20.state}}'});
 verify.mapper.codeEditorJavascript=verify.mapper.codeEditorJavascript.replace('\nreturn advanceSharedBaseline(',"\nif(input.baseline!==input.currentBaseline||input.currentState!=='verified')throw Error('Mapping changed; do not retry write');\nreturn advanceSharedBaseline(");
 b.flow=b.flow.filter(m=>![18,20,21].includes(m.id));b.flow.splice(b.flow.findIndex(m=>m.id===28),0,fresh,verify);
-get(16).filter={name:'Only freshly verified label-only repairs',conditions:[[{a:'{{13.result.status}}',o:'text:equal',b:'prepared'}]]};
-b.name='Contacts sync — reviewed website label repairs';process.stdout.write(JSON.stringify(b,null,2)+'\n');
+get(16).filter={name:'Only freshly verified metadata repairs',conditions:[[{a:'{{13.result.status}}',o:'text:equal',b:'prepared'}]]};
+b.name=mode==='label'?'Contacts sync — reviewed website label repairs':'Contacts sync — reviewed missing profile IDs';process.stdout.write(JSON.stringify(b,null,2)+'\n');
