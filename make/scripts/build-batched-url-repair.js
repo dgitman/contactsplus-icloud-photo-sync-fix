@@ -2,13 +2,14 @@
 const fs=require('fs'),path=require('path');
 const [selectionPath,auditPath,pilotPath]=process.argv.slice(2);
 const selected=JSON.parse(fs.readFileSync(selectionPath)),audit=JSON.parse(fs.readFileSync(auditPath)),pilot=JSON.parse(fs.readFileSync(pilotPath));
-if(!selected.length||selected.length>20||new Set(selected.map(r=>r.sourceId)).size!==selected.length||selected.some(r=>!r.eligibleMode))throw Error('Expected 1–20 unique eligible reviewed cases');
+if(!selected.length||selected.length>100||new Set(selected.map(r=>r.sourceId)).size!==selected.length||selected.some(r=>!r.eligibleMode))throw Error('Expected 1–100 unique eligible reviewed cases');
 const clone=x=>JSON.parse(JSON.stringify(x)),get=id=>clone(pilot.flow.find(m=>m.id===id)),b={...audit,name:'Contacts sync — batched guarded URL repairs'};
 b.flow=b.flow.filter(m=>[8,9,10,2,3,4,5,6].includes(m.id));
 const m10=b.flow.find(m=>m.id===10);let c=m10.mapper.codeEditorJavascript;
 // Use an unmodified live-store audit template, validating the full mapping inventory first.
 if(!c.includes('const rows=input.rows')||!c.includes('const batches=[];'))throw Error('Unexpected audit template');
-c=c.replace('const rows=input.rows','let rows=input.rows').replace('const batches=[];',`const modes=new Map(${JSON.stringify(selected.map(r=>[r.sourceId,r.eligibleMode]))});rows=rows.filter(r=>modes.has(r.sourceContactId)).map(r=>({...r,repairMode:modes.get(r.sourceContactId)}));if(rows.length!==modes.size)throw Error('Selected mappings missing');const batches=[];`);m10.mapper.codeEditorJavascript=c;
+c=c.replace('const rows=input.rows','let rows=input.rows').replace('const batches=[];',`const modes=new Map(${JSON.stringify(selected.map(r=>[r.sourceId,r.eligibleMode]))});rows=rows.filter(r=>modes.has(r.sourceContactId)).map(r=>({...r,repairMode:modes.get(r.sourceContactId)}));if(rows.length!==modes.size)throw Error('Selected mappings missing');const batches=[];`);if(!c.includes('i+=100')||!c.includes('rows.slice(i,i+100)'))throw Error('Unexpected batch loop');
+c=c.replace('i+=100','i+=20').replace('rows.slice(i,i+100)','rows.slice(i,i+20)');m10.mapper.codeEditorJavascript=c;
 const strip=n=>fs.readFileSync(path.join(__dirname,'../code',n+'.js'),'utf8').replace(/^const .*require.*;$/gm,'').replace(/^module.exports=.*;$/gm,'');
 const prefix=get(18).mapper.codeEditorJavascript.split('\nreturn advanceSharedBaseline(')[0];
 const m5=b.flow.find(m=>m.id===5);m5.mapper.codeEditorJavascript=prefix+'\n'+strip('classify-url-differences')+'\n'+strip('prepare-url-label-repair')+`

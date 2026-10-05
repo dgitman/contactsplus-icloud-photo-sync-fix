@@ -1374,3 +1374,20 @@ write delay and payload size. The remaining 726 eligible cases would require abo
 5,563 credits over 37 batches under this model, within the remaining balance at
 this checkpoint. Reserve room for other scenarios and recheck before bulk work.
 The other 2,159 username cases and two differing links remain unresolved.
+
+### First 100-contact batched expansion — October 4, 2026
+
+Execution `b4dd65a8ab1d4857981a4c3008d5f4bb` repaired all 100 selected eligible
+contacts in five freshly read batches of 20. All 100 conditional writes, exact
+complete-card checks, baseline concurrency checks and mapping readbacks succeeded.
+The five final batch outputs covered 100 unique source IDs. No holds or errors.
+Links, photos and unrelated fields were preserved; verification is CardDAV, not
+Apple-device UI. Private selection, blueprint and results were retained and the
+temporary scenario removed. Production remained active without incomplete runs.
+
+Measured usage: 745 credits over 194.5 seconds. Sharing mapping inventory setup
+across batches reduces overhead further: this run was 7/contact + 8/batch + 5/setup.
+The builder now accepts up to 100 selected records and enforces 20-contact read
+batches. After this expansion and the ten-contact pilot, 626 of the previously
+736 eligible cases remain; the 2,159 username cases and two different-link cases
+are still outside these repairs. No full-book alignment claim is made.

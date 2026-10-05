@@ -225,7 +225,8 @@ its output rows, while source/target reads remain in authorized Make logs.
 ### Lower-cost historical repair batches
 
 `build-batched-url-repair.js PRIVATE_ELIGIBLE_ROWS CONNECTED_LIVE_AUDIT CONNECTED_PILOT`
-accepts at most 20 reviewed eligible contacts. It reads current mappings with a
+accepts at most 100 reviewed eligible contacts, split into batches of at most 20.
+It reads current mappings with a
 bounded expected-count check, fetches source/target cards together, and prepares
 each contact independently. Conditional PUT, exact full-card verification and
 baseline concurrency checking remain per contact. Saved mapping verification is
