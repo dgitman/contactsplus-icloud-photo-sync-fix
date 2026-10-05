@@ -221,3 +221,14 @@ restricts a live-store URL audit to an exact reviewed ID set and returns compact
 classification plus eligibility under the guarded preparation modes. It performs
 no writes or baseline changes. Source and target URL contents are removed from
 its output rows, while source/target reads remain in authorized Make logs.
+
+### Lower-cost historical repair batches
+
+`build-batched-url-repair.js PRIVATE_ELIGIBLE_ROWS CONNECTED_LIVE_AUDIT CONNECTED_PILOT`
+accepts at most 20 reviewed eligible contacts. It reads current mappings with a
+bounded expected-count check, fetches source/target cards together, and prepares
+each contact independently. Conditional PUT, exact full-card verification and
+baseline concurrency checking remain per contact. Saved mapping verification is
+aggregated after fresh individual reads. Pre-write holds skip contacts; post-write
+errors stop execution and require read-only reconciliation, never a batch replay.
+The runtime remains entirely in Make. Private inputs/output must not enter Git.

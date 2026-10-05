@@ -1356,3 +1356,21 @@ do not infer matching URLs make username removal safe. No contacts were changed
 by this audit. The temporary scenario was deleted and production remained active
 with no incomplete executions. Unmapped identities and other field groups remain
 outside this URL-only classification.
+
+### Batched repair cost pilot — October 4, 2026
+
+Ten freshly eligible contacts outside the original sample were repaired and
+verified in `c620731b95a942a5bc505199e43924e0`. Every conditional PUT, exact complete
+card readback, baseline concurrency check and mapping readback succeeded; the
+final batch comparison returned all ten unique IDs. No errors or holds occurred.
+Links/photos/unrelated fields were preserved. This is server verification, not
+Apple-device visual verification. Production remained active with no incomplete
+executions; the temporary pilot scenario was deleted after preserving evidence.
+
+Measured cost: 83 credits for ten, versus 141 with the prior per-contact flow
+(41% lower). The new measured model is 7 credits/contact plus 13/batch, subject to
+payload/runtime variation. Preparation is bounded to 20 contacts to limit read-to-
+write delay and payload size. The remaining 726 eligible cases would require about
+5,563 credits over 37 batches under this model, within the remaining balance at
+this checkpoint. Reserve room for other scenarios and recheck before bulk work.
+The other 2,159 username cases and two differing links remain unresolved.
