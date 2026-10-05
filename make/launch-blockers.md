@@ -1232,3 +1232,21 @@ distinguishes exact value differences from metadata and preserves duplicate ambi
 Do not use its categories as write authorization or weaken production comparison.
 Private evidence retains the source/target properties. Next reconcile intentional
 labels/metadata with guarded field-specific writes, checking preservation on readback.
+
+### Guarded website-label repairs — October 4, 2026
+
+Three sampled contacts with identical website values had their iCloud website
+labels changed from Home to Work to match Contacts+. Each repair fetched the
+current mapping, source and target, required unchanged field baselines, and used
+a conditional PUT. Exact readback verified preservation of all other properties,
+including PHOTO. Only the URL field baseline advanced; another mapping read
+verified each saved result. All three succeeded in execution
+`91786c2592f14136a2918debc65cd801`. The temporary scenario was removed; production
+remained active and unpaused with no incomplete executions.
+
+`prepare-url-label-repair.js` rejects value differences, ambiguous duplicate URLs,
+non-label metadata differences and baseline drift. It is a bounded historical
+repair primitive, not an automatic replacement policy. Private selection and
+connected blueprint evidence are retained outside Git. This verification is via
+iCloud CardDAV, not visual inspection on an Apple device. The remaining reviewed
+metadata differences have not been repaired by this pilot.
