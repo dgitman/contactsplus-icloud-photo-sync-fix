@@ -216,6 +216,13 @@ source Flickr/Myspace userId and the source has no distinct username. It cannot
 remove a different handle or overwrite an existing target ID during relocation.
 This mode also canonicalizes equivalent grouped social labels with exact readback.
 
+`missing_social_metadata` fills absent usernames and profile IDs on identical
+URLs. Every existing target username and profile ID must exactly match the source;
+conflicting values remain held. Labels can be reconciled in the same URL-only
+patch. Baseline, identity, conditional-write and complete-card readback guards
+remain required. The first five-contact pilot passed; broader eligibility has
+not yet been established.
+
 `configure-url-classification.js CONNECTED_LIVE_URL_AUDIT PRIVATE_SELECTED_IDS`
 restricts a live-store URL audit to an exact reviewed ID set and returns compact
 classification plus eligibility under the guarded preparation modes. It performs

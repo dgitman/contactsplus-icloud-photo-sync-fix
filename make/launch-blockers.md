@@ -1484,3 +1484,26 @@ and no unexpected IDs. Together with the earlier 100-contact sample, 836 reviewe
 URL cases have been repaired. The remaining 2,159 username-metadata cases and two
 differing-link cases still need separate handling. Other historical field groups
 and unresolved identities also remain outside this completed URL repair queue.
+
+### Missing social username pilot — October 4, 2026
+
+A fresh 22-contact read-only sample investigated the remaining username categories
+and both differing-link cases. Many sampled usernames were absent rather than
+conflicting. Both differing-link cases contained additional source links; these
+were left unchanged pending a separate guarded addition path.
+
+The new `missing_social_metadata` preparation mode requires identical URLs and
+refuses to replace any different existing username or profile ID. Five reviewed
+missing-username contacts completed in execution
+`5a7403ccf3be4901895d5e25e9b42b7a`: five conditional writes, exact complete-card
+readbacks, baseline concurrency checks and saved mapping verifications succeeded.
+Photos and unrelated fields were preserved. Usage was 48 credits over 17.1 seconds.
+All 10 preparation tests passed, including conflicting-username refusal. Private
+selection, blueprint and verification evidence were retained; both temporary
+investigation and pilot scenarios were deleted. Production remained active,
+unpaused, with zero incomplete executions. Verification is CardDAV, not device UI.
+
+841 reviewed URL cases are now repaired. Of the previously classified username
+cases, 2,154 remain, plus the two differing-link cases. Other historical field
+groups and unresolved identities still prevent claiming full alignment. This
+pilot does not establish that all remaining username cases qualify for this mode.
