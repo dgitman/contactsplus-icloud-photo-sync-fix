@@ -38,7 +38,7 @@ function guardSharedRoutes(blueprint){
     p.mapper.codeEditorJavascript='const result=(function(input){\n'+bundlePrepare()+oldCode.slice(boundary);
   }else p.mapper.codeEditorJavascript=bundlePrepare();
   p.mapper.input=p.mapper.input.filter(x=>x.name!=='baseline');p.mapper.input.push({name:'baseline',value:'{{8.baselineJson}}'});
-  at(14).mapper.data.state='{{13.result.eventState}}';
+  if(!at(14).mapper.data.state.includes('photo_download_pending'))at(14).mapper.data.state='{{13.result.eventState}}';
   at(14).mapper.data.writeReceiptJson='{{13.result.writeReceiptJson}}';
   at(16).filter={name:'Baseline-approved prepared change only',conditions:[[{a:'{{13.result.changed}}',b:true,o:'boolean:equal'},{a:'{{13.result.status}}',b:'prepared-only',o:'text:equal'}]]};
   at(18).mapper.codeEditorJavascript=bundleVerify();

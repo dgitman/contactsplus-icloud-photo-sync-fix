@@ -402,7 +402,7 @@
                                       "mapper": {
                                         "key": "contactsplus-primary:{{2.eventId}}",
                                         "data": {
-                                          "state": "{{13.result.eventState}}",
+                                          "state": "{{if(13.result.status = \"unchanged\"; if(13.result.photoCheck.status = \"eligible\"; \"photo_download_pending\"; \"held_photo_check\"); if(13.result.status = \"conflict\"; if(13.result.photoCheck.status = \"eligible\"; \"photo_download_pending\"; \"held_photo_check\"); 13.result.eventState))}}",
                                           "writeReceiptJson": "{{13.result.writeReceiptJson}}"
                                         },
                                         "upsert": false,
@@ -589,39 +589,6 @@
                                         {
                                           "flow": [
                                             {
-                                              "id": 48,
-                                              "module": "datastore:UpdateRecord",
-                                              "version": 1,
-                                              "parameters": {},
-                                              "mapper": {
-                                                "key": "contactsplus-primary:{{2.eventId}}",
-                                                "upsert": false,
-                                                "overwriteArrays": false,
-                                                "data": {
-                                                  "state": "{{if(13.result.photoCheck.status = \"eligible\"; \"photo_download_pending\"; \"held_photo_check\")}}"
-                                                }
-                                              },
-                                              "filter": {
-                                                "name": "Photo-only or unchanged source",
-                                                "conditions": [
-                                                  [
-                                                    {
-                                                      "a": "{{13.result.status}}",
-                                                      "b": "conflict",
-                                                      "o": "text:equal"
-                                                    }
-                                                  ],
-                                                  [
-                                                    {
-                                                      "a": "{{13.result.status}}",
-                                                      "b": "unchanged",
-                                                      "o": "text:equal"
-                                                    }
-                                                  ]
-                                                ]
-                                              }
-                                            },
-                                            {
                                               "id": 32,
                                               "module": "http:MakeRequest",
                                               "version": 4,
@@ -638,9 +605,26 @@
                                                 "requestCompressedContent": false
                                               },
                                               "filter": {
-                                                "name": "Verified missing photo only",
+                                                "name": "Photo-only or unchanged source with eligible photo",
                                                 "conditions": [
                                                   [
+                                                    {
+                                                      "a": "{{13.result.status}}",
+                                                      "b": "conflict",
+                                                      "o": "text:equal"
+                                                    },
+                                                    {
+                                                      "a": "{{13.result.photoCheck.status}}",
+                                                      "b": "eligible",
+                                                      "o": "text:equal"
+                                                    }
+                                                  ],
+                                                  [
+                                                    {
+                                                      "a": "{{13.result.status}}",
+                                                      "b": "unchanged",
+                                                      "o": "text:equal"
+                                                    },
                                                     {
                                                       "a": "{{13.result.photoCheck.status}}",
                                                       "b": "eligible",
@@ -699,23 +683,6 @@
                                               }
                                             },
                                             {
-                                              "id": 36,
-                                              "module": "http:MakeRequest",
-                                              "version": 4,
-                                              "parameters": {
-                                                "authenticationType": "basicAuth"
-                                              },
-                                              "mapper": {
-                                                "url": "https://icloud-carddav.example.invalid/book/{{last(split(8.targetHref; \"/\"))}}",
-                                                "method": "get",
-                                                "parseResponse": false,
-                                                "allowRedirects": false,
-                                                "shareCookies": false,
-                                                "stopOnHttpError": true,
-                                                "requestCompressedContent": false
-                                              }
-                                            },
-                                            {
                                               "id": 37,
                                               "module": "code:ExecuteCode",
                                               "version": 1,
@@ -746,11 +713,11 @@
                                                   },
                                                   {
                                                     "name": "card",
-                                                    "value": "{{36.data}}"
+                                                    "value": "{{12.data}}"
                                                   },
                                                   {
                                                     "name": "etag",
-                                                    "value": "{{36.headers.etag}}"
+                                                    "value": "{{12.headers.etag}}"
                                                   },
                                                   {
                                                     "name": "b64",

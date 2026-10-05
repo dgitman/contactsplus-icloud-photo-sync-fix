@@ -69,6 +69,17 @@ the reviewed change. The scenario remains active with no incomplete executions.
 `unified.blueprint.json` contains the optimized portable workflow. No paid scenario
 execution was started for this deployment; savings remain estimates.
 
+A second deployed reduction removes photo status module 48 and repeated target
+GET 36. Module 14 now records the final photo eligibility state in its existing
+write, and module 32 retains both route gates. Photo preparation reuses the exact
+card and ETag from module 12; conditional PUT, source recheck, durable receipt,
+and post-write image verification remain. Concurrent target edits now cause the
+conditional write to fail instead of allowing a fresh preflight read to proceed.
+This saves another one credit for unchanged/photo-check events and two for photo
+updates (estimated combined savings: about four and six respectively). No new
+paid runs were launched to measure these estimates. The live workflow has 182
+modules; only the selected route executes for each event.
+
 A separate temporary Make test successfully read an iCloud vCard using Basic Auth.
 That test scenario was deleted afterward.
 

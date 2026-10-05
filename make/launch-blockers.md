@@ -1527,3 +1527,14 @@ No paid Make scenario execution was started; local comparison and configuration
 readback do not establish a newly executed contact event. Connected snapshots
 remain private; the repository contains the optimized portable blueprint.
 See README for estimated savings and reduced intermediate-status detail.
+
+### Further photo overhead reduction — October 5, 2026
+
+Deployed removal of modules 48 and 36 at 2026-10-05T16:54:24.886Z. Photo status is
+folded into module 14, both eligibility gates remain on 32, and preparation 37
+uses the card/ETag from 12. If-Match and post-write verification remain intact;
+a concurrent edit can fail closed instead of receiving a second preflight read.
+Live readback verified configurations, removed modules, active status and zero
+incomplete executions. No new paid test was run; no executions were available
+since the earlier optimization when history was checked. Expected incremental
+savings are one credit per unchanged/photo-check event and two per photo update.
