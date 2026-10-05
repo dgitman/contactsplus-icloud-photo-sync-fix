@@ -45,6 +45,15 @@ function bootstrapEvidence({contactData,existingVcard}){
     const orgs=lines.filter(l=>key(l)==='ORG').map(l=>value(l).split(/(?<!\\);/)[0].trim().toLowerCase());
     if(escaped&&orgs.includes(escaped))return 'exact_international_phone_and_company';
   }
+  if(contactData.name){
+    const hosts={linkedin:['linkedin.com','www.linkedin.com'],twitter:['twitter.com','www.twitter.com'],instagram:['instagram.com','www.instagram.com'],github:['github.com','www.github.com'],facebook:['facebook.com','www.facebook.com']};
+    const profile=x=>{try{const u=new URL(x.value),type=String(x.type||'').toLowerCase();if(!hosts[type]?.includes(u.hostname)||!['http:','https:'].includes(u.protocol)||u.username||u.password||u.search||u.hash)return false;return type==='linkedin'?/^\/in\/[^/]+\/?$/.test(u.pathname):/^\/[A-Za-z0-9_.-]+\/?$/.test(u.pathname);}catch{return false;}};
+    const targetUrls=new Set(lines.filter(l=>['URL','X-SOCIALPROFILE'].includes(key(l))).map(value));
+    if((contactData.urls||[]).some(x=>profile(x)&&targetUrls.has(x.value))){
+      const uid=value(lines.find(l=>key(l)==='UID')||'');
+      if(!patchSharedFields({uid,existingVcard,contactData:{name:contactData.name}}).changed)return 'exact_profile_url_and_name';
+    }
+  }
   if(email&&contactData.name) {
     const uid=value(lines.find(l=>key(l)==='UID')||'');
     const prepared=patchSharedFields({uid,existingVcard,contactData:{name:contactData.name}}).vcard.replace(/\r\n[ \t]/g,'').split('\r\n');

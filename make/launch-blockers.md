@@ -7,7 +7,7 @@ The newest verification evidence is at the end; older sections describe historic
 implementation stages, not the current enabled state.
 
 This is event-driven synchronization, not a claim that every historical record is
-identical. There are 7,071 accepted existing mappings. Ambiguous/unmapped identities,
+identical. There are 7,076 accepted existing mappings. Ambiguous/unmapped identities,
 malformed supported fields, mixed photo/text changes and independent target edits remain
 held rather than guessed or overwritten. New-contact creation requires a structured
 name and email and a successful bounded duplicate query.
@@ -1123,3 +1123,19 @@ records from the earlier inventory remain outside coverage. Contact contents wer
 unchanged. 260 local tests passed; the portable reviewer was regenerated and
 syntax checked. Temporary scenarios were removed after verification. Historical
 field differences on previously enrolled pairs remain outstanding.
+
+
+## Exact profile-link identity — October 4
+
+Bootstrap corroboration now accepts an exact supported name plus an exact profile
+URL on recognized LinkedIn, Twitter, Instagram, GitHub or Facebook hosts. It
+rejects homepages, LinkedIn company paths, credentials, query strings, fragments
+and lookalike hosts. URL text itself must match; labels and grouping need not.
+The graph still excludes mapped targets and competing qualifying claims.
+
+Fresh review covered 61 sources and 70 available targets. Five pairs passed and
+were enrolled with complete store readback, bringing coverage to 7,076. 63 records
+from the earlier inventory remain outside coverage. No contact contents changed;
+historical differences remain separately baselined. 263 local tests passed; the
+portable review bundle was regenerated and syntax checked. Both temporary
+scenarios were deleted after verification.
